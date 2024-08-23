@@ -15,7 +15,6 @@ const HeaderDiv = styled.div`
   z-index: 99999;
   position: relative;
   padding: 0px 10px;
-  background: #d4d4d4;
   display: flex;
 `;
 
@@ -89,7 +88,7 @@ export const Header = () => {
             }}
           >
             {enabled ? <Checkmark /> : <Customize />}
-            {enabled ? 'Finish Editingd' : 'Edit'}
+            {enabled ? '样式预览' : '编辑'}
           </Btn>
         </div>
       </div>

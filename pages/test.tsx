@@ -1,3 +1,4 @@
+'use client'
 import { Editor, Frame, Element } from "@craftjs/core";
 import { createMuiTheme } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/core/styles";
@@ -12,15 +13,10 @@ import { Custom2, Custom2VideoDrop } from "@platform/components/selectors/Custom
 import { Custom3, Custom3BtnDrop } from "@platform/components/selectors/Custom3";
 import { Video } from "@platform/components/selectors/Video";
 
-const theme = createMuiTheme({
-  typography: {
-    fontFamily: ["acumin-pro", "Roboto", '"Helvetica Neue"', "Arial", "sans-serif"].join(","),
-  },
-});
+
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
       <div className="h-full h-screen">
         <NextSeo
           title="Craft.js"
@@ -355,7 +351,6 @@ function App() {
           </Viewport>
         </Editor>
       </div>
-    </ThemeProvider>
   );
 }
 

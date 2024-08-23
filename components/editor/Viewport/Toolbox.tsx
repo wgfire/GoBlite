@@ -42,9 +42,10 @@ export const Toolbox = () => {
   return (
     <ToolboxDiv
       enabled={enabled && enabled}
-      className="toolbox transition w-12 h-full flex flex-col bg-white"
+      className="toolbox transition  h-full flex flex-col bg-white"
     >
-      <div className="flex flex-1 flex-col items-center pt-3">
+      <div className="flex flex-1 flex-col items-center  px-4">
+        <p className='h-[45px] leading-[45px]'>Toolbox</p>
         <div
           ref={(ref) =>
             create(
