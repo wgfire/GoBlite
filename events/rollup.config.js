@@ -38,6 +38,7 @@ const buildDist = async () => {
       output: {
         file: "dist/index.js",
         format: "cjs",
+
       },
       plugins,
     },
@@ -46,30 +47,11 @@ const buildDist = async () => {
       output: {
         file: "dist/index.esm.js",
         format: "esm",
+        exports: "default",
       },
       plugins,
     },
     ...configs,
-    // {
-    //   input: files,
-    //   output: {
-    //     dir: "dist/umd",
-    //     format: "umd",
-    //     name: "events",
-    //     exports: "named",
-    //     entryFileNames: (chunk) => {
-    //       console.log(chunk, "chunk");
-    //       return `${chunk.name}.umd.js`;
-    //     },
-    //   },
-    //   plugins: [
-    //     typescript({
-    //       tsconfigOverride: {
-    //         declaration: false,
-    //       },
-    //     }),
-    //   ],
-    // },
   ];
 };
 

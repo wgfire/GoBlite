@@ -102,6 +102,9 @@ importers:
       '@material-ui/icons':
         specifier: 4.5.1
         version: 4.5.1(@material-ui/core@4.5.2(@types/react@18.0.27)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@platform/events':
+        specifier: workspace:^
+        version: link:../events
       autoprefixer:
         specifier: latest
         version: 10.4.20(postcss@8.4.41)
@@ -209,6 +212,91 @@ importers:
       rollup-plugin-typescript2:
         specifier: ^0.36.0
         version: 0.36.0(rollup@4.21.0)(typescript@4.9.5)
+      typescript:
+        specifier: 4.9.5
+        version: 4.9.5
+
+  packages/page:
+    dependencies:
+      '@craftjs/core':
+        specifier: 0.2.10
+        version: 0.2.10(react@18.2.0)
+      '@material-ui/core':
+        specifier: 4.5.2
+        version: 4.5.2(@types/react@18.0.27)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@material-ui/icons':
+        specifier: 4.5.1
+        version: 4.5.1(@material-ui/core@4.5.2(@types/react@18.0.27)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@platform/components':
+        specifier: workspace:*
+        version: link:../../components
+      autoprefixer:
+        specifier: latest
+        version: 10.4.20(postcss@8.4.41)
+      classnames:
+        specifier: 2.2.6
+        version: 2.2.6
+      lzutf8:
+        specifier: 0.5.5
+        version: 0.5.5
+      next:
+        specifier: 13.1.6
+        version: 13.1.6(@babel/core@7.7.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      next-seo:
+        specifier: 4.24.0
+        version: 4.24.0(next@13.1.6(@babel/core@7.7.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0))(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      postcss:
+        specifier: latest
+        version: 8.4.41
+      react:
+        specifier: 18.2.0
+        version: 18.2.0
+      react-dom:
+        specifier: 18.2.0
+        version: 18.2.0(react@18.2.0)
+      styled-components:
+        specifier: 4.4.1
+        version: 4.4.1(@babel/core@7.7.5)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+    devDependencies:
+      '@babel/core':
+        specifier: 7.7.5
+        version: 7.7.5
+      '@fullhuman/postcss-purgecss':
+        specifier: 1.3.0
+        version: 1.3.0
+      '@types/classnames':
+        specifier: 2.2.9
+        version: 2.2.9
+      '@types/node':
+        specifier: 12.12.5
+        version: 12.12.5
+      '@types/react':
+        specifier: 18.0.27
+        version: 18.0.27
+      '@types/react-color':
+        specifier: 3.0.1
+        version: 3.0.1
+      '@types/styled-components':
+        specifier: 4.4.1
+        version: 4.4.1(@babel/core@7.7.5)(@babel/preset-env@7.25.3(@babel/core@7.7.5))(react@18.2.0)(typescript@4.9.5)
+      babel-plugin-inline-react-svg:
+        specifier: 2.0.1
+        version: 2.0.1(@babel/core@7.7.5)
+      cross-env:
+        specifier: 6.0.3
+        version: 6.0.3
+      next-transpile-modules:
+        specifier: ^10.0.1
+        version: 10.0.1
+      postcss-import:
+        specifier: 12.0.1
+        version: 12.0.1
+      postcss-preset-env:
+        specifier: 6.7.0
+        version: 6.7.0
+      tailwindcss:
+        specifier: latest
+        version: 3.4.10
       typescript:
         specifier: 4.9.5
         version: 4.9.5

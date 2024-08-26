@@ -1,14 +1,14 @@
 {
   "name": "@platform/components",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
     "@craftjs/core": "0.2.10",
     "@craftjs/layers": "0.2.5",
     "@material-ui/core": "4.5.2",
     "@material-ui/icons": "4.5.1",
+    "@platform/events": "workspace:^",
     "autoprefixer": "latest",
     "classnames": "2.2.6",
     "cssnano": "4.1.10",

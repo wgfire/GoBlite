@@ -1,7 +1,7 @@
 import { EventScript } from "type";
 
- const testRegister: EventScript = {
-  name: "testRegister",
+ const register: EventScript = {
+  name: "register",
   version: "1.0.0",
   description: "测试事件注册",
   handler: (context) => {
@@ -9,4 +9,4 @@ import { EventScript } from "type";
   },
 };
 
-export default testRegister;
+export default register;
