@@ -1,6 +1,6 @@
 {
-  "name": "landing",
-  "version": "0.2.0",
+  "name": "platform-landing",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
@@ -11,6 +11,7 @@
   },
   "workspaces": [
     "components",
+    "events",
     "packages/*"
   ],
   "dependencies": {

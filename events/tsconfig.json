@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "ESNext",
+    "declaration": true,
+    "outDir": "./dist",
+    "strict": true,
+    "allowJs": true,
+    "lib": ["dom", "es2017"],
+    "baseUrl": ".",
+    "moduleResolution": "Node",
+  },
+  "include": ["type.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}
