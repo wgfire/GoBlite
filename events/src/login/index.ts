@@ -1,5 +1,5 @@
 
-import { EventScript } from "type";
+import { EventScript } from "../../type";
  const login: EventScript = {
   name: "login",
   version: "1.0.0",

@@ -1,8 +1,10 @@
 import typescript from "rollup-plugin-typescript2";
 import { globby } from "globby";
 import path from "path";
+import commonjs from "@rollup/plugin-commonjs";
+import copy from "rollup-plugin-copy";
 const srcDir = "src";
-const plugins = [typescript()];
+const plugins = [typescript(), commonjs()];
 
 const buildDist = async () => {
   const files = await globby([`${srcDir}/**/*.ts`], {
@@ -10,16 +12,14 @@ const buildDist = async () => {
   });
   const configs = files.map((file) => {
     const basePath = path.relative(srcDir, file);
-    const baseName = path.basename(basePath, path.extname(basePath));
     const dirName = path.dirname(basePath);
 
     return {
       input: file,
       output: {
-        file: `dist/umd/${dirName}/${baseName}.umd.js`,
+        file: `dist/umd/${dirName}/${dirName}.umd.js`,
         format: "umd",
         name: dirName,
-        export: "named",
       },
       plugins: [
         typescript({
@@ -38,7 +38,7 @@ const buildDist = async () => {
       output: {
         file: "dist/index.js",
         format: "cjs",
-
+        exports: "auto",
       },
       plugins,
     },

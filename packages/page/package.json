@@ -3,15 +3,18 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
-    "build": "next build & next export",
+    "dev": "next dev -p 3002",
+    "build": "next build",
     "export": "next export",
-    "start": "next start -p 3001",
+    "start": "next start -p 3002",
     "clean": "rimraf lib .next out dist"
   },
   "dependencies": {
+    "@craftjs/core": "0.2.10",
     "@material-ui/core": "4.5.2",
     "@material-ui/icons": "4.5.1",
+    "@platform/components": "workspace:*",
+    "@platform/events": "workspace:^",
     "autoprefixer": "latest",
     "classnames": "2.2.6",
     "lzutf8": "0.5.5",
@@ -20,9 +23,7 @@
     "postcss": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "@platform/components": "workspace:*",
-    "styled-components": "4.4.1",
-    "@craftjs/core": "0.2.10"
+    "styled-components": "4.4.1"
   },
   "devDependencies": {
     "@babel/core": "7.7.5",
@@ -34,6 +35,7 @@
     "@types/styled-components": "4.4.1",
     "babel-plugin-inline-react-svg": "2.0.1",
     "cross-env": "6.0.3",
+    "html-webpack-plugin": "^5.6.0",
     "next-transpile-modules": "^10.0.1",
     "postcss-import": "12.0.1",
     "postcss-preset-env": "6.7.0",

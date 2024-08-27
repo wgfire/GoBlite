@@ -2,11 +2,8 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "jsx": "preserve",
-    "lib": [
-      "dom",
-      "es2017"
-    ],
+    "jsx": "react-jsx",
+    "lib": ["dom", "es2017"],
     "baseUrl": ".",
     "moduleResolution": "node",
     "strict": true,
@@ -25,13 +22,11 @@
     "resolveJsonModule": true,
     "noImplicitAny": false,
     "strictNullChecks": false,
-    "incremental": true
+    "incremental": true,
+    "paths": {
+      "@/*": ["./*"]
+    }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
 }

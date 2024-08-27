@@ -2,12 +2,13 @@ import React from "react";
 
 import { ToolbarSection, ToolbarItem } from "../../editor";
 import { ToolbarRadio } from "../../editor/Toolbar/ToolbarRadio";
- import events from "@platform/events/dist";
+import events from "@platform/events";
+import { FormControl, Input, InputLabel } from "@material-ui/core";
 export const ButtonSettings = () => {
   const eventOptions = Object.values(events).map((key) => {
     return {
-      label: key.name,
-      value: key.handler,
+      label: key.name ,
+      value: key.handler, 
     };
   });
   console.log(eventOptions, "eventOptions");
@@ -60,18 +61,32 @@ export const ButtonSettings = () => {
         </ToolbarItem>
       </ToolbarSection>
       <ToolbarSection
-        title="events"
+        title="Events"
         summary={({ event }) => {
           return <span>{event?.name || "none"}</span>;
         }}
       >
-        <ToolbarItem label="Event" propKey="event" type="radio" onChange={(value)=>{
-          return value
-        }}>
+        <ToolbarItem
+          label="Event"
+          propKey="event"
+          type="radio"
+          onChange={(value) => {
+            return value;
+          }}
+        >
           {eventOptions.map((item) => {
-            return <ToolbarRadio value={item.label} label={item.label} />
+            return <ToolbarRadio value={item.label} label={item.label} />;
           })}
         </ToolbarItem>
+
+        <FormControl>
+          <InputLabel>远程事件地址</InputLabel>
+          <Input placeholder="请输入远程事件地址" type="url"></Input>
+        </FormControl>
+        <FormControl>
+          <InputLabel>事件名称</InputLabel>
+          <Input placeholder="请输入事件名称" type="string"></Input>
+        </FormControl>
       </ToolbarSection>
     </React.Fragment>
   );

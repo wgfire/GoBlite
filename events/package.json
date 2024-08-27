@@ -1,13 +1,16 @@
 {
   "name": "@platform/events",
   "version": "1.0.0",
-  "main": "./index.js",
-  "module": "./index.esm.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.esm.js",
   "types": "./dist/src/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "rollup --config rollup.config.js"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",

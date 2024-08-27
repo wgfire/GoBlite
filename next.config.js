@@ -2,7 +2,7 @@
  * @type {import('next').NextConfig}
  */
 module.exports = {
-  assetPrefix: process.env.NODE_ENV === "production" ? "." : "/",
+  assetPrefix: "/",
 };
 
 // exportPathMap: async function (defaultPathMap, ctx) {

@@ -51,7 +51,7 @@ const Item = styled.a<{ disabled?: boolean }>`
 `;
 
 export const Header = () => {
-  const { enabled, canUndo, canRedo, actions } = useEditor((state, query) => ({
+  const { enabled, canUndo, canRedo, actions,query } = useEditor((state, query) => ({
     enabled: state.options.enabled,
     canUndo: query.history.canUndo(),
     canRedo: query.history.canRedo(),
@@ -84,6 +84,7 @@ export const Header = () => {
               },
             ])}
             onClick={() => {
+              console.log(query.getSerializedNodes());
               actions.setOptions((options) => (options.enabled = !enabled));
             }}
           >

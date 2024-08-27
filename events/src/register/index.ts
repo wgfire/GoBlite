@@ -1,4 +1,4 @@
-import { EventScript } from "type";
+import { EventScript } from "../../type";
 
  const register: EventScript = {
   name: "register",

@@ -1,11 +1,12 @@
 import { UserComponent, useNode } from "@craftjs/core";
 import cx from "classnames";
-import React from "react";
 import styled from "styled-components";
-import events from "@platform/events/dist";
+import events,{ EventScript } from "@platform/events";
 import { ButtonSettings } from "./ButtonSettings";
 
 import { Text } from "../Text";
+import { useCustomContext } from "../../context";
+
 
 type ButtonProps = {
   background?: Record<"r" | "g" | "b" | "a", number>;
@@ -30,13 +31,19 @@ export const Button: UserComponent<ButtonProps> = (props: any) => {
   } = useNode((node) => ({
     selected: node.events.selected,
   }));
+  const { publish } = useCustomContext();
 
   const { text, textComponent, color, event, ...otherProps } = props;
-  console.log(event, "生产的event", process.env.NODE_ENV);
+
+  /*
+   * 如果是构建部署环境，那么需要从window找到当前的脚本handler
+   */
   const handleClick = (e) => {
     if (event) {
-      const handler = events[event]?.handler;
-      handler && handler(e);
+      const handler = !publish ? events[event]?.handler : (window[event] as unknown as EventScript)?.handler;
+      console.log("click event", event, handler);
+      handler && handler({ target: e, eventName: event, data: "携带的数据" });
+      return;
     }
   };
   return (

@@ -1,4 +1,4 @@
-/* purgecss start ignore */
+
 @tailwind base;
 @tailwind components;
 @import url('https://use.typekit.net/mpa1wkh.css');
@@ -7,8 +7,7 @@ body {
   font-family: 'acumin-pro', -apple-system, BlinkMacSystemFont, 'Segoe UI',
     'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
     'Helvetica Neue', sans-serif;
-  color: rgb(75, 75, 75);
-  background: #e0e0e0;
+  @apply w-full h-full;
 }
 /* purgecss end ignore */
 
@@ -26,16 +25,4 @@ body {
   transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-#carbonads * {
-  margin: initial;
-  padding: initial;
-}
 
-#carbonads {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-    Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', Helvetica, Arial,
-    sans-serif;
-
-  padding: 10px 0.5rem;
-  border-top: 1px solid rgb(0 0 0 / 6%);
-}

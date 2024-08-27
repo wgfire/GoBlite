@@ -1,0 +1,173 @@
+{
+  "ROOT": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "flexDirection": "column",
+      "alignItems": "flex-start",
+      "justifyContent": "flex-start",
+      "fillSpace": "no",
+      "padding": [10, 10, 10, 10],
+      "margin": ["0", "0", "0", "0"],
+      "background": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 1
+      },
+      "color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 1
+      },
+      "shadow": 0,
+      "radius": 0,
+      "width": "100%",
+      "height": "756px"
+    },
+    "displayName": "Container",
+    "custom": {
+      "displayName": "App"
+    },
+    "hidden": false,
+    "nodes": ["BW5b2T685a"],
+    "linkedNodes": {}
+  },
+  "BW5b2T685a": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "flexDirection": "row",
+      "alignItems": "center",
+      "justifyContent": "center",
+      "fillSpace": "no",
+      "padding": ["0", "0", "0", "0"],
+      "margin": ["0", "0", "0", "0"],
+      "background": {
+        "r": 78,
+        "g": 78,
+        "b": 78,
+        "a": 0
+      },
+      "color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 1
+      },
+      "shadow": 0,
+      "radius": 0,
+      "width": "100%",
+      "height": "296px"
+    },
+    "displayName": "Container",
+    "custom": {},
+    "parent": "ROOT",
+    "hidden": false,
+    "nodes": ["EwkkYW3DuW", "cOmM4GVFf8"],
+    "linkedNodes": {}
+  },
+  "EwkkYW3DuW": {
+    "type": {
+      "resolvedName": "Image"
+    },
+    "isCanvas": false,
+    "props": {
+      "height": "269px",
+      "width": "52%",
+      "src": "https://cdn.builder.io/api/v1/image/assets/TEMP/74a6f7510d4e9b06e0cf5bbf2fc8e9cac1e1613e856eaafeaf15dd77c389da7b?placeholderIfAbsent=true&apiKey=6b9b908ef31942c8b2aff57817d1eca0",
+      "alt": "图片失败"
+    },
+    "displayName": "Image",
+    "custom": {},
+    "parent": "BW5b2T685a",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "FLQeQDxAMC": {
+    "type": {
+      "resolvedName": "Button"
+    },
+    "isCanvas": false,
+    "props": {
+      "background": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 0.5
+      },
+      "color": {
+        "r": 92,
+        "g": 90,
+        "b": 90,
+        "a": 1
+      },
+      "buttonStyle": "full",
+      "text": "Button",
+      "margin": ["5", "0", "5", "0"],
+      "textComponent": {
+        "fontSize": "15",
+        "textAlign": "center",
+        "fontWeight": "500",
+        "color": {
+          "r": 92,
+          "g": 90,
+          "b": 90,
+          "a": 1
+        },
+        "margin": [0, 0, 0, 0],
+        "shadow": 0,
+        "text": "Text"
+      },
+      "event": "register"
+    },
+    "displayName": "Button",
+    "custom": {},
+    "parent": "cOmM4GVFf8",
+    "hidden": false,
+    "nodes": [],
+    "linkedNodes": {}
+  },
+  "cOmM4GVFf8": {
+    "type": {
+      "resolvedName": "Container"
+    },
+    "isCanvas": true,
+    "props": {
+      "flexDirection": "column",
+      "alignItems": "flex-start",
+      "justifyContent": "flex-start",
+      "fillSpace": "no",
+      "padding": ["0", "0", "0", "0"],
+      "margin": ["0", "0", "0", "0"],
+      "background": {
+        "r": 144,
+        "g": 48,
+        "b": 48,
+        "a": 0
+      },
+      "color": {
+        "r": 0,
+        "g": 0,
+        "b": 0,
+        "a": 1
+      },
+      "shadow": 0,
+      "radius": 0,
+      "width": "164px",
+      "height": "219px"
+    },
+    "displayName": "Container",
+    "custom": {},
+    "parent": "BW5b2T685a",
+    "hidden": false,
+    "nodes": ["FLQeQDxAMC"],
+    "linkedNodes": {}
+  }
+}

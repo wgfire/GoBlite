@@ -8,7 +8,7 @@
  * 操作（编辑、预览）
  */
 
-export const ProjectList: React.FC<{ name: string }> = (props) => {
+export const ProjectList: React.FC<{ name: string }> = () => {
   return <div>我是列表页面</div>;
 };
 
