@@ -2,8 +2,10 @@
  * 落地页ssg渲染页面
  */
 import { Frame, Editor, Resolver } from "@craftjs/core";
-import { Container, Text, Button, Video, Image } from "../../selectors";
+import { Container, Text, Button, Image } from "../../selectors";
 import { PlatformProvider } from "../../context";
+
+
 
 export interface PreviewProps {
   schema: string;
@@ -16,7 +18,6 @@ export const Preview: React.FC<PreviewProps> = (props) => {
     Container,
     Text,
     Button,
-    Video,
     Image,
     ...(props.resolver ?? {}),
   };

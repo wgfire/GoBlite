@@ -1,0 +1,22 @@
+{
+  "name": "smoggy-shell",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "latest",
+    "@astrojs/react": "^3.6.2",
+    "@platform/components": "workspace:*",
+    "@platform/events": "workspace:^",
+    "astro": "^4.14.6",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "typescript": "4.9.5"
+  }
+}

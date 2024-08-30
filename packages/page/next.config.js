@@ -38,33 +38,36 @@ module.exports = {
         "@platform/events": "[]",
       });
     }
-    config.plugins.push(
-      new CopyUmdPlugin({
-        scripts: scriptsToInsert,
-        outputPath: path.resolve(__dirname, ".next/static/chunks"),
-      })
-    );
-    config.plugins.push({
-      apply: (compiler) => {
-        compiler.hooks.done.tap("InsertScriptsPlugin", (stats) => {
-          // done 也会执行多次
-          const htmlFilePath = path.resolve(__dirname, ".next/server/pages/index.html");
-          if (!fs.existsSync(htmlFilePath)) {
-            return false;
-          }
+    if (process.env.NODE_ENV === "production") {
+      config.plugins.push(
+        new CopyUmdPlugin({
+          scripts: scriptsToInsert,
+          outputPath: path.resolve(__dirname, ".next/static/chunks"),
+        })
+      );
+      config.plugins.push({
+        apply: (compiler) => {
+          compiler.hooks.done.tap("InsertScriptsPlugin", (stats) => {
+            // done 也会执行多次
+            const htmlFilePath = path.resolve(__dirname, ".next/server/pages/index.html");
+            if (!fs.existsSync(htmlFilePath)) {
+              return false;
+            }
 
-          let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
+            let htmlContent = fs.readFileSync(htmlFilePath, "utf8");
 
-          events.forEach((script) => {
-            const scriptTag = `<script src="/_next/static/chunks/${script}.umd.js"></script>`;
-            htmlContent = htmlContent.replace("</body>", `${scriptTag}</body>`);
+            events.forEach((script) => {
+              const scriptTag = `<script src="/_next/static/chunks/${script}.umd.js"></script>`;
+              htmlContent = htmlContent.replace("</body>", `${scriptTag}</body>`);
+            });
+
+            fs.writeFileSync(htmlFilePath, htmlContent, "utf8");
+            console.log("Inserted scripts into page.html");
           });
+        },
+      });
+    }
 
-          fs.writeFileSync(htmlFilePath, htmlContent, "utf8");
-          console.log("Inserted scripts into page.html");
-        });
-      },
-    });
     return config;
   },
 };
