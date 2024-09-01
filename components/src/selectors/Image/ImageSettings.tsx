@@ -1,4 +1,4 @@
-import { ToolbarSection, ToolbarItem } from "../../editor";
+import { ToolbarSection, ToolbarItem } from "../../editor/Toolbar";
 import { ToolbarRadio } from "../../editor/Toolbar/ToolbarRadio";
 
 /**

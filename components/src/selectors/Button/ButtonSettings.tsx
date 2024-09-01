@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ToolbarSection, ToolbarItem } from "../../editor";
+import { ToolbarSection, ToolbarItem } from "../../editor/Toolbar";
 import { ToolbarRadio } from "../../editor/Toolbar/ToolbarRadio";
 import events from "@platform/events";
 import { FormControl, Input, InputLabel } from "@material-ui/core";

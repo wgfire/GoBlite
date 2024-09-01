@@ -5,6 +5,8 @@
     "jsx": "react-jsx",
     "lib": ["dom", "es2017"],
     "baseUrl": ".",
+    "declaration": true,
+    "declarationDir": "./dist/types",
     "moduleResolution": "node",
     "strict": true,
     "allowJs": true,
@@ -27,6 +29,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": ["**/*.ts", "**/*.tsx","./types/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }

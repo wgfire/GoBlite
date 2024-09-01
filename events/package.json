@@ -11,12 +11,11 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "rollup-plugin-copy": "^3.5.0"
-  },
-  "devDependencies": {
+    "rollup-plugin-copy": "^3.5.0",
     "globby": "^14.0.2",
     "rollup": "^4.21.0",
     "rollup-plugin-typescript2": "^0.36.0",
