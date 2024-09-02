@@ -1,12 +1,12 @@
 import { UserComponent, useNode } from "@craftjs/core";
 import cx from "classnames";
 import styled from "styled-components";
-import events,{ EventScript } from "@platform/events";
+import events from "@platform/events";
+import { EventScript } from "@platform/events";
 import { ButtonSettings } from "./ButtonSettings";
 
 import { Text } from "../Text";
 import { useCustomContext } from "../../context";
-
 
 type ButtonProps = {
   background?: Record<"r" | "g" | "b" | "a", number>;

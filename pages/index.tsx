@@ -1,6 +1,5 @@
 "use client";
-import React from "react";
-import {  Design } from "@platform/components/editor";
+import {  Design } from "@platform/components";
 
 function App() {
   return (

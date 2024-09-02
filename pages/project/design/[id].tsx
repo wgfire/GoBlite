@@ -1,6 +1,6 @@
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
 import { useEffect } from "react";
-import { Design as PlateDesign } from "@platform/components/editor";
+import { Design as PlateDesign } from "@platform/components";
 
 export const getServerSideProps: GetServerSideProps = async (context: GetServerSidePropsContext) => {
   const { id } = context.params;

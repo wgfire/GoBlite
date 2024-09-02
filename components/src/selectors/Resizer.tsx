@@ -1,18 +1,13 @@
-import { useNode, useEditor } from '@craftjs/core';
-import cx from 'classnames';
-import { debounce } from 'debounce';
-import { Resizable } from 're-resizable';
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import styled from 'styled-components';
+import { useNode, useEditor } from "@craftjs/core";
+import cx from "classnames";
+import { debounce } from "debounce";
+import { Resizable } from "re-resizable";
+import React, { useRef, useEffect, useState, useCallback } from "react";
+import styled from "styled-components";
 
-import {
-  isPercentage,
-  pxToPercent,
-  percentToPx,
-  getElementDimensions,
-} from '../utils/numToMeasurement';
+import { isPercentage, pxToPercent, percentToPx, getElementDimensions } from "../utils/numToMeasurement";
 
-const Indicators = styled.div<{ bound?: 'row' | 'column' }>`
+const Indicators = styled.div<{ bound?: "row" | "column" }>`
   position: absolute;
   top: 0;
   left: 0;
@@ -33,7 +28,7 @@ const Indicators = styled.div<{ bound?: 'row' | 'column' }>`
     &:nth-child(1) {
       ${(props) =>
         props.bound
-          ? props.bound === 'row'
+          ? props.bound === "row"
             ? `
                 left: 50%;
                 top: -5px;
@@ -52,12 +47,12 @@ const Indicators = styled.div<{ bound?: 'row' | 'column' }>`
     &:nth-child(2) {
       right: -5px;
       top: -5px;
-      display: ${(props) => (props.bound ? 'none' : 'block')};
+      display: ${(props) => (props.bound ? "none" : "block")};
     }
     &:nth-child(3) {
       ${(props) =>
         props.bound
-          ? props.bound === 'row'
+          ? props.bound === "row"
             ? `
                 left: 50%;
                 bottom: -5px;
@@ -76,7 +71,7 @@ const Indicators = styled.div<{ bound?: 'row' | 'column' }>`
     &:nth-child(4) {
       bottom: -5px;
       right: -5px;
-      display: ${(props) => (props.bound ? 'none' : 'block')};
+      display: ${(props) => (props.bound ? "none" : "block")};
     }
   }
 `;
@@ -102,10 +97,7 @@ export const Resizer = ({ propKey, children, ...props }: any) => {
 
   const { isRootNode, parentDirection } = useEditor((state, query) => {
     return {
-      parentDirection:
-        parent &&
-        state.nodes[parent] &&
-        state.nodes[parent].data.props.flexDirection,
+      parentDirection: parent && state.nodes[parent] && state.nodes[parent].data.props.flexDirection,
       isRootNode: query.node(id).isRoot(),
     };
   });
@@ -128,16 +120,8 @@ export const Resizer = ({ propKey, children, ...props }: any) => {
   const updateInternalDimensionsInPx = useCallback(() => {
     const { width: nodeWidth, height: nodeHeight } = nodeDimensions.current;
 
-    const width = percentToPx(
-      nodeWidth,
-      resizable.current &&
-        getElementDimensions(resizable.current.resizable.parentElement).width
-    );
-    const height = percentToPx(
-      nodeHeight,
-      resizable.current &&
-        getElementDimensions(resizable.current.resizable.parentElement).height
-    );
+    const width = percentToPx(nodeWidth, resizable.current && getElementDimensions(resizable.current.resizable.parentElement).width);
+    const height = percentToPx(nodeHeight, resizable.current && getElementDimensions(resizable.current.resizable.parentElement).height);
 
     setInternalDimensions({
       width,
@@ -172,31 +156,22 @@ export const Resizer = ({ propKey, children, ...props }: any) => {
 
   useEffect(() => {
     const listener = debounce(updateInternalDimensionsWithOriginal, 1);
-    window.addEventListener('resize', listener);
+    window.addEventListener("resize", listener);
 
     return () => {
-      window.removeEventListener('resize', listener);
+      window.removeEventListener("resize", listener);
     };
   }, [updateInternalDimensionsWithOriginal]);
 
   return (
     <Resizable
-      enable={[
-        'top',
-        'left',
-        'bottom',
-        'right',
-        'topLeft',
-        'topRight',
-        'bottomLeft',
-        'bottomRight',
-      ].reduce((acc: any, key) => {
+      enable={["top", "left", "bottom", "right", "topLeft", "topRight", "bottomLeft", "bottomRight"].reduce((acc: any, key) => {
         acc[key] = active && inNodeContext;
         return acc;
       }, {})}
       className={cx([
         {
-          'm-auto': isRootNode,
+          "m-auto": isRootNode,
           flex: true,
         },
       ])}
@@ -222,26 +197,18 @@ export const Resizer = ({ propKey, children, ...props }: any) => {
       onResize={(_, __, ___, d) => {
         const dom = resizable.current.resizable;
         let { width, height }: any = getUpdatedDimensions(d.width, d.height);
-        if (isPercentage(nodeWidth))
-          width =
-            pxToPercent(width, getElementDimensions(dom.parentElement).width) +
-            '%';
+        if (isPercentage(nodeWidth)) width = pxToPercent(width, getElementDimensions(dom.parentElement).width) + "%";
         else width = `${width}px`;
 
-        if (isPercentage(nodeHeight))
-          height =
-            pxToPercent(
-              height,
-              getElementDimensions(dom.parentElement).height
-            ) + '%';
+        if (isPercentage(nodeHeight)) height = pxToPercent(height, getElementDimensions(dom.parentElement).height) + "%";
         else height = `${height}px`;
 
-        if (isPercentage(width) && dom.parentElement.style.width === 'auto') {
-          width = editingDimensions.current.width + d.width + 'px';
+        if (isPercentage(width) && dom.parentElement.style.width === "auto") {
+          width = editingDimensions.current.width + d.width + "px";
         }
 
-        if (isPercentage(height) && dom.parentElement.style.height === 'auto') {
-          height = editingDimensions.current.height + d.height + 'px';
+        if (isPercentage(height) && dom.parentElement.style.height === "auto") {
+          height = editingDimensions.current.height + d.height + "px";
         }
 
         setProp((prop: any) => {
@@ -257,7 +224,7 @@ export const Resizer = ({ propKey, children, ...props }: any) => {
     >
       {children}
       {active && (
-        <Indicators bound={fillSpace === 'yes' ? parentDirection : false}>
+        <Indicators bound={fillSpace === "yes" ? parentDirection : false}>
           <span></span>
           <span></span>
           <span></span>

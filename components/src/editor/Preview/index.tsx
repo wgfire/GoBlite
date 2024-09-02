@@ -12,7 +12,7 @@ export interface PreviewProps {
   resolver?: Resolver;
   publish?: boolean;
 }
-export const Preview: React.FC<PreviewProps> = (props) => {
+ const Preview: React.FC<PreviewProps> = (props) => {
   console.log(props);
   const resolvers = {
     Container,
