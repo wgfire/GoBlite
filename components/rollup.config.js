@@ -27,7 +27,7 @@ const plugins = [
       ["@babel/preset-react",{ runtime: "automatic"}], // 转译JSX语法
       ["@babel/preset-env", { modules: false }],
     ],
-    plugins: [["babel-plugin-styled-components",{ ssr: true}], "inline-react-svg"], // 支持styled-components
+    plugins: [["babel-plugin-styled-components",{ssr: true}], "inline-react-svg"], // 支持styled-components
   }),
 
   terser(), // 压缩代码

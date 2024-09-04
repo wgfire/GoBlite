@@ -1,7 +1,7 @@
 import { useNode, useEditor, ROOT_NODE } from "@craftjs/core";
 import React, { useEffect, useRef, useCallback } from "react";
 import ReactDOM from "react-dom";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 import ArrowUp from "../../public/icons/arrow-up.svg";
 import Delete from "../../public/icons/delete.svg";

@@ -3,7 +3,7 @@ import cx from "classnames";
 import { debounce } from "debounce";
 import { Resizable } from "re-resizable";
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import styled from "styled-components";
+import {styled} from "styled-components";
 
 import { isPercentage, pxToPercent, percentToPx, getElementDimensions } from "../utils/numToMeasurement";
 

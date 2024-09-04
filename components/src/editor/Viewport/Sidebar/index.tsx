@@ -1,13 +1,13 @@
-import { useEditor } from '@craftjs/core';
-import { Layers } from '@craftjs/layers';
-import React, { useState } from 'react';
-import styled from 'styled-components';
+import { useEditor } from "@craftjs/core";
+import { Layers } from "@craftjs/layers";
+import React, { useState } from "react";
+import { styled } from "styled-components";
 
-import { SidebarItem } from './SidebarItem';
+import { SidebarItem } from "./SidebarItem";
 
-import CustomizeIcon from '../../../public/icons/customize.svg';
-import LayerIcon from '../../../public/icons/layers.svg';
-import { Toolbar } from '../../Toolbar';
+import CustomizeIcon from "../../../public/icons/customize.svg";
+import LayerIcon from "../../../public/icons/layers.svg";
+import { Toolbar } from "../../Toolbar";
 
 export const SidebarDiv = styled.div<{ enabled: boolean }>`
   width: 280px;
@@ -16,7 +16,6 @@ export const SidebarDiv = styled.div<{ enabled: boolean }>`
   flex-shrink: 0;
   margin-right: ${(props) => (props.enabled ? 0 : -280)}px;
 `;
-
 
 export const Sidebar = () => {
   const [layersVisible, setLayerVisible] = useState(true);
@@ -31,7 +30,7 @@ export const Sidebar = () => {
         <SidebarItem
           icon={CustomizeIcon}
           title="Customize"
-          height={!layersVisible ? 'full' : '55%'}
+          height={!layersVisible ? "full" : "55%"}
           visible={toolbarVisible}
           onChange={(val) => setToolbarVisible(val)}
         >
@@ -40,7 +39,7 @@ export const Sidebar = () => {
         <SidebarItem
           icon={LayerIcon}
           title="Layers"
-          height={!toolbarVisible ? 'full' : '45%'}
+          height={!toolbarVisible ? "full" : "45%"}
           visible={layersVisible}
           onChange={(val) => setLayerVisible(val)}
         >

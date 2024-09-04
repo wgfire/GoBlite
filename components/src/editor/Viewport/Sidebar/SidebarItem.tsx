@@ -1,15 +1,11 @@
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import { styled } from "styled-components";
 
-import Arrow from '../../../public/icons/arrow.svg';
+import Arrow from "../../../public/icons/arrow.svg";
 
 const SidebarItemDiv = styled.div<{ visible?: boolean; height?: string }>`
-  height: ${(props) =>
-    props.visible && props.height && props.height !== 'full'
-      ? `${props.height}`
-      : 'auto'};
-  flex: ${(props) =>
-    props.visible && props.height && props.height === 'full' ? `1` : 'unset'};
+  height: ${(props) => (props.visible && props.height && props.height !== "full" ? `${props.height}` : "auto")};
+  flex: ${(props) => (props.visible && props.height && props.height === "full" ? `1` : "unset")};
   color: #545454;
 `;
 
@@ -38,35 +34,24 @@ const HeaderDiv = styled.div`
   }
 `;
 
-export const SidebarItem: React.FC<SidebarItemProps> = ({
-  visible,
-  icon,
-  title,
-  children,
-  height,
-  onChange,
-}) => {
+export const SidebarItem: React.FC<SidebarItemProps> = ({ visible, icon, title, children, height, onChange }) => {
   return (
     <SidebarItemDiv visible={visible} height={height} className="flex flex-col">
       <HeaderDiv
         onClick={() => {
           if (onChange) onChange(!visible);
         }}
-        className={`cursor-pointer bg-white border-b last:border-b-0 flex items-center px-2 ${
-          visible ? 'shadow-sm' : ''
-        }`}
+        className={`cursor-pointer bg-white border-b last:border-b-0 flex items-center px-2 ${visible ? "shadow-sm" : ""}`}
       >
         <div className="flex-1 flex items-center">
-          {React.createElement(icon, { className: 'w-4 h-4 mr-2' })}
+          {React.createElement(icon, { className: "w-4 h-4 mr-2" })}
           <h2 className="text-xs uppercase">{title}</h2>
         </div>
         <Chevron visible={visible}>
           <Arrow />
         </Chevron>
       </HeaderDiv>
-      {visible ? (
-        <div className="w-full flex-1 overflow-auto">{children}</div>
-      ) : null}
+      {visible ? <div className="w-full flex-1 overflow-auto">{children}</div> : null}
     </SidebarItemDiv>
   );
 };

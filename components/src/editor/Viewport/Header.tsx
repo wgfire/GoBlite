@@ -1,13 +1,13 @@
-import { useEditor } from '@craftjs/core';
-import { Tooltip } from '@material-ui/core';
-import cx from 'classnames';
-import React from 'react';
-import styled from 'styled-components';
+import { useEditor } from "@craftjs/core";
+import { Tooltip } from "@material-ui/core";
+import cx from "classnames";
+import React from "react";
+import { styled } from "styled-components";
 
-import Checkmark from '../../public/icons/check.svg';
-import Customize from '../../public/icons/customize.svg';
-import RedoSvg from '../../public/icons/toolbox/redo.svg';
-import UndoSvg from '../../public/icons/toolbox/undo.svg';
+import Checkmark from "../../public/icons/check.svg";
+import Customize from "../../public/icons/customize.svg";
+import RedoSvg from "../../public/icons/toolbox/redo.svg";
+import UndoSvg from "../../public/icons/toolbox/undo.svg";
 
 const HeaderDiv = styled.div`
   width: 100%;
@@ -51,7 +51,7 @@ const Item = styled.a<{ disabled?: boolean }>`
 `;
 
 export const Header = () => {
-  const { enabled, canUndo, canRedo, actions,query } = useEditor((state, query) => ({
+  const { enabled, canUndo, canRedo, actions, query } = useEditor((state, query) => ({
     enabled: state.options.enabled,
     canUndo: query.history.canUndo(),
     canRedo: query.history.canRedo(),
@@ -77,10 +77,10 @@ export const Header = () => {
         <div className="flex">
           <Btn
             className={cx([
-              'transition cursor-pointer',
+              "transition cursor-pointer",
               {
-                'bg-green-400': enabled,
-                'bg-primary': !enabled,
+                "bg-green-400": enabled,
+                "bg-primary": !enabled,
               },
             ])}
             onClick={() => {
@@ -89,7 +89,7 @@ export const Header = () => {
             }}
           >
             {enabled ? <Checkmark /> : <Customize />}
-            {enabled ? '样式预览' : '编辑'}
+            {enabled ? "样式预览" : "编辑"}
           </Btn>
         </div>
       </div>

@@ -1,9 +1,9 @@
-import { useNode, useEditor } from '@craftjs/core';
-import React from 'react';
-import YouTube from 'react-youtube';
-import styled from 'styled-components';
+import { useNode, useEditor } from "@craftjs/core";
+import React from "react";
+import YouTube from "react-youtube";
+import { styled } from "styled-components";
 
-import { VideoSettings } from './VideoSettings';
+import { VideoSettings } from "./VideoSettings";
 
 const YoutubeDiv = styled.div<any>`
   width: 100%;
@@ -12,7 +12,7 @@ const YoutubeDiv = styled.div<any>`
     height: 100%;
   }
   iframe {
-    pointer-events: ${(props) => (props.enabled ? 'none' : 'auto')};
+    pointer-events: ${(props) => (props.enabled ? "none" : "auto")};
     // width:100%!important;
     // height:100%!important;
   }
@@ -35,8 +35,8 @@ export const Video = (props: any) => {
       <YouTube
         videoId={videoId}
         opts={{
-          width: '100%',
-          height: '100%',
+          width: "100%",
+          height: "100%",
         }}
       />
     </YoutubeDiv>
@@ -44,9 +44,9 @@ export const Video = (props: any) => {
 };
 
 Video.craft = {
-  displayName: 'Video',
+  displayName: "Video",
   props: {
-    videoId: 'IwzUs1IMdyQ',
+    videoId: "IwzUs1IMdyQ",
   },
   related: {
     toolbar: VideoSettings,

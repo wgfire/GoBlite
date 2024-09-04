@@ -48,6 +48,7 @@ const buildDist = async () => {
         file: "dist/index.esm.js",
         format: "esm",
         exports: "default",
+        interop: "auto",
       },
       plugins,
     },

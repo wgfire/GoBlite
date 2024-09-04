@@ -1,10 +1,11 @@
 {
   "name": "@platform/components",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
-  "types": "dist/esm/index.d.ts",
+  "types": "dist/lib/index.d.ts",
   "module": "dist/esm/index.js",
+  "main": "dist/lib/index.js",
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "build:types": "tsc --emitDeclarationOnly"
@@ -35,7 +36,7 @@
   "peerDependencies": {
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0",
-    "styled-components": "4.4.1"
+    "styled-components": "^6.1.13"
   },
   "devDependencies": {
     "@babel/core": "7.7.5",
@@ -49,7 +50,7 @@
     "@types/node": "12.12.5",
     "@types/react": "18.3.5",
     "@types/react-color": "3.0.1",
-    "@types/styled-components": "4.4.1",
+    "@types/styled-components": "^5.1.34",
     "babel-plugin-inline-react-svg": "2.0.1",
     "babel-plugin-styled-components": "2.1.4",
     "cross-env": "6.0.3",

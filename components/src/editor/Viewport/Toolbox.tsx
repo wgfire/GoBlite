@@ -1,6 +1,6 @@
 import { Element, useEditor } from "@craftjs/core";
 import { Tooltip } from "@material-ui/core";
-import styled from "styled-components";
+import { styled } from "styled-components";
 
 import ButtonSvg from "../../public/icons/toolbox/button.svg";
 import SquareSvg from "../../public/icons/toolbox/rectangle.svg";

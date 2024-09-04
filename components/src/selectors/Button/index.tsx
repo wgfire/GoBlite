@@ -1,6 +1,6 @@
 import { UserComponent, useNode } from "@craftjs/core";
 import cx from "classnames";
-import styled from "styled-components";
+import { styled } from "styled-components";
 import events from "@platform/events";
 import { EventScript } from "@platform/events";
 import { ButtonSettings } from "./ButtonSettings";
