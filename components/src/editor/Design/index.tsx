@@ -33,7 +33,7 @@ export const Design: React.FC<DesignProps> = (props) => {
                 canvas
                 is={Container}
                 width="100%"
-                height="auto"
+                height="60vh"
                 background={{ r: 255, g: 255, b: 255, a: 1 }}
                 padding={["10", "10", "10", "10"]}
                 custom={{ displayName: "App" }}

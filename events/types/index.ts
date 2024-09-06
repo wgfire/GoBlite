@@ -22,4 +22,3 @@ export interface EventScript {
   // 事件处理函数
   handler: EventHandler;
 }
-

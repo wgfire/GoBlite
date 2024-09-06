@@ -1,6 +1,6 @@
+import { EventScript } from "types";
 
-import { EventScript } from "../../type";
- const login: EventScript = {
+const login: EventScript = {
   name: "login",
   version: "1.0.0",
   description: "login事件注册",

@@ -4,11 +4,13 @@ import path from "path";
 import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 const srcDir = "src";
-const plugins = [typescript(), commonjs()];
+const plugins = [
+  typescript({ tsconfig: "./tsconfig.json" }),
+];
 
 const buildDist = async () => {
   const files = await globby([`${srcDir}/**/*.ts`], {
-    ignore: [`${srcDir}/index.ts`],
+    ignore: [`${srcDir}/index.ts`, `${srcDir}/**/*.d.ts`],
   });
   const configs = files.map((file) => {
     const basePath = path.relative(srcDir, file);
@@ -23,7 +25,6 @@ const buildDist = async () => {
       },
       plugins: [
         typescript({
-          tsconfig: "./tsconfig.json",
           tsconfigOverride: {
             compilerOptions: { declaration: false, declarationDir: null },
           },
@@ -36,19 +37,22 @@ const buildDist = async () => {
     {
       input: "src/index.ts",
       output: {
-        file: "dist/index.js",
+        dir: "dist/lib",
         format: "cjs",
         exports: "auto",
+        preserveModules: true, // 保持原始的模块结构
+        interop: "auto",
       },
       plugins,
     },
     {
       input: "src/index.ts",
       output: {
-        file: "dist/index.esm.js",
+        dir: "dist/esm",
         format: "esm",
-        exports: "default",
+        exports: "auto",
         interop: "auto",
+        preserveModules: true, // 保持原始的模块结构
       },
       plugins,
     },

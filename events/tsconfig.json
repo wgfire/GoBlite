@@ -9,8 +9,8 @@
     "allowJs": true,
     "lib": ["dom", "es2017"],
     "baseUrl": ".",
-    "moduleResolution": "Node",
+    "moduleResolution": "Node"
   },
-  "include": ["type.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

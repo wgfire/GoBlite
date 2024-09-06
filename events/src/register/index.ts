@@ -1,6 +1,6 @@
-import { EventScript } from "../../type";
+import { EventScript } from "types";
 
- const register: EventScript = {
+const register: EventScript = {
   name: "register",
   version: "1.0.0",
   description: "测试事件注册",
@@ -8,5 +8,5 @@ import { EventScript } from "../../type";
     console.log(context);
   },
 };
-
+export const a = 50
 export default register;
