@@ -15,7 +15,7 @@ import styled from "styled-components";
    感觉还是使用具名导出吧，可以避免一些问题
  */
 
-import events, { EventScript } from "@platform/events";
+import events, { EventScript } from "@goblit/events";
 import { ButtonSettings } from "./ButtonSettings";
 
 import { Text } from "../Text";

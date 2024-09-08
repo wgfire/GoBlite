@@ -1,4 +1,5 @@
 packages:
   - 'components'
   - 'events'
+  - 'figmaPlugin'
   - 'packages/*'

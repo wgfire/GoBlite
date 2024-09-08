@@ -13,7 +13,7 @@ const dynamicScriptsPlugin = () => {
         console.log("dir", dir);
         // 复制所需的 JS 文件到打包后的目录
         scriptsConfig.scripts.forEach((script) => {
-          const srcPath = path.resolve(`node_modules/@platform/events/dist/umd/${script}/${script}.umd.js`);
+          const srcPath = path.resolve(`node_modules/@goblit/events/dist/umd/${script}/${script}.umd.js`);
           const destPath = path.resolve(dir.pathname, `chunks/${script}.umd.js`);
           fs.mkdirSync(path.dirname(destPath), { recursive: true });
           fs.copyFileSync(srcPath, destPath);

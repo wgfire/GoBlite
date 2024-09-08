@@ -2,13 +2,13 @@ import React from "react";
 
 import { ToolbarSection, ToolbarItem } from "../../editor/Toolbar";
 import { ToolbarRadio } from "../../editor/Toolbar/ToolbarRadio";
-import events from "@platform/events";
+import events from "@goblit/events";
 import { FormControl, Input, InputLabel } from "@material-ui/core";
 export const ButtonSettings = () => {
   const eventOptions = Object.values(events).map((key) => {
     return {
-      label: key.name ,
-      value: key.handler, 
+      label: key.name,
+      value: key.handler,
     };
   });
   console.log(eventOptions, "eventOptions");

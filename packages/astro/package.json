@@ -12,8 +12,7 @@
   "dependencies": {
     "@astrojs/check": "latest",
     "@astrojs/react": "^3.6.2",
-    "@platform/components": "workspace:*",
-    "@platform/events": "workspace:^",
+    "@goblit/components": "workspace:*",
     "astro": "^4.14.6",
     "react": "18.2.0",
     "react-dom": "18.2.0",
