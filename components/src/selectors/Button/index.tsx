@@ -1,6 +1,6 @@
 import { UserComponent, useNode } from "@craftjs/core";
 import cx from "classnames";
-import styled from "styled-components";
+import {styled} from "styled-components";
 /**
  * next.js服务端加载为cjs，es6模块引用commonjs模块时，因为import name from '..'想取的是模块的default属性，而commonjs模块没有暴露default的方法，
  * 所以webpack将整个模块作为了default属性的值输出，并且如果是用commonjs规范打的esm包会增加 Object.defineProperty(exports, "__esModule", { value: true });

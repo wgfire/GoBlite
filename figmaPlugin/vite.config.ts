@@ -6,10 +6,13 @@ import fs from "fs";
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
+  esbuild: {
+    target: ['chrome58'],
+    treeShaking: true,
+  },
   build: {
     minify: "terser",
     assetsDir: "assets",
-    target: "es2016",
     rollupOptions: {
       input: { index: "./src/main.tsx", code: "./src/plugin/controller.ts" },
       output: {
