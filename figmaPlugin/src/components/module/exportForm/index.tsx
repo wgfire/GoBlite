@@ -3,34 +3,32 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {CascadeSelect} from '@/components/ui/cascadeSelect'
 export interface FormValues {
   id: string;
   name: string;
-  pageType: "STATIC_IMAGE" | "GRAPHIC_SITE";
-  format: "PNG" | "SVG" | "PDF" | "JPG";
-  i18n: "en";
+  pageType?: "STATIC_IMAGE" | "GRAPHIC_SITE";
+  format?: "PNG" | "SVG" | "PDF" | "JPG";
+  i18n?: "zh" | "en";
 }
 
 interface FormProps {
-  defaultValues?: FormValues;
+  defaultValues: FormValues;
   values?: FormValues;
   onChange?: (values: FormValues) => void;
 }
 
 export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChange }) => {
-  const [formValues, setFormValues] = useState<FormValues>(
-    defaultValues || {
-      id: "",
-      name: "",
-      pageType: "STATIC_IMAGE",
-      format: "PNG",
-      i18n: "en",
-    }
-  );
-
+  const [formValues, setFormValues] = useState<FormValues>({
+    pageType: "STATIC_IMAGE",
+    format: "PNG",
+    i18n: "zh",
+    ...defaultValues,
+  });
+  console.log(formValues, "values", defaultValues);
   useEffect(() => {
     if (values) {
-      setFormValues(values);
+      setFormValues((prev) => ({ ...prev, ...values }));
     }
   }, [values]);
 
@@ -61,7 +59,9 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="STATIC_IMAGE">静态图片</SelectItem>
-              <SelectItem value="GRAPHIC_SITE" disabled>图文并茂</SelectItem>
+              <SelectItem value="GRAPHIC_SITE" disabled>
+                图文并茂
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -87,14 +87,16 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
           </div>
           <div className="space-y-2">
             <Label htmlFor="i18n">多语言设置</Label>
-            <Select value={formValues.i18n} onValueChange={(value) => handleChange("i18n", value as FormValues["i18n"])}>
+            <Select  value={formValues.i18n} onValueChange={(value) => handleChange("i18n", value as FormValues["i18n"])}>
               <SelectTrigger id="i18n">
                 <SelectValue placeholder="Select i18n" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="zh">Zh</SelectItem>
                 <SelectItem value="en">En</SelectItem>
               </SelectContent>
             </Select>
+            <CascadeSelect></CascadeSelect>
           </div>
         </div>
       </div>

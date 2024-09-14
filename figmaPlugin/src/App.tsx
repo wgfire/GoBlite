@@ -1,15 +1,11 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "./components/ui/button";
 import { ExportService } from "./components/module/exportService";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { ExportData, Preview } from "./components/module/Preview";
-import { ExportForm } from "./components/module/exportForm";
+import { ExportPreview, Preview } from "./components/module/Preview";
+import { ExportForm, FormValues } from "./components/module/exportForm";
 
 export interface initDataProps {
   id: string;
@@ -19,13 +15,14 @@ export interface initDataProps {
 }
 export default function App() {
   const [activeTab, setActiveTab] = useState("config");
-  const [initData, setInitData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
-  const [exportData, setExportData] = useState<ExportData[] | null>(null);
-  const { id, name } = initData;
+  const [pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
+  const [previewData, setPreviewData] = useState<ExportPreview[] | null>(null);
+  const [formValues, setFormValues] = useState<FormValues | undefined>();
+  const { id, name } = pageData;
 
   const exportHandel = () => {
     // window.open("https://www.bilibili.com/?spm_id_from=333.1007.0.0");
-    // parent.postMessage({ pluginMessage: { type: "FigmaExport" } }, "*");
+    // parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
   };
 
   useEffect(() => {
@@ -35,11 +32,12 @@ export default function App() {
       const { type, data } = event.data.pluginMessage;
       if (type === "init") {
         console.log(data, "当前节点数据");
-        setInitData(data);
-        parent.postMessage({ pluginMessage: { type: "FigmaExport" } }, "*");
+        setPageData(data);
+        setFormValues({ id: data.id, name: data.name });
+        parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
       }
-      if (type === "FigmaExport") {
-        setExportData(data);
+      if (type === "FigmaPreview") {
+        setPreviewData(data);
       }
     };
   }, []);
@@ -69,12 +67,12 @@ export default function App() {
 
           {/**config */}
           {activeTab === "config" && (
-           <>
-            <ExportForm></ExportForm>
-            <div className="space-y-4">
+            <>
+              {<ExportForm defaultValues={{ id, name }} values={formValues}></ExportForm>}
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold">导出预览</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">{exportData && <Preview data={exportData} width={400} ></Preview>}</div>
+                  <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
                 </div>
               </div>
             </>

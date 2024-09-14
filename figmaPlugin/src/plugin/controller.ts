@@ -1,12 +1,14 @@
 // import { deepCloneWithEnumerableProperties } from "@/lib/utils";
 import { EventManager } from "./message";
-import { ExportData } from "@/components/module/Preview";
+import { ExportPreview } from "@/components/module/Preview";
+import { clone } from "lodash-es";
+
+
 figma.showUI(__html__, {
   width: 1000,
   height: 1000,
 });
-
-
+const message = new EventManager();
 /**
  * 导出选中节点下的所有图片。
  * @param selectedNodes
@@ -15,10 +17,10 @@ figma.showUI(__html__, {
  */
 async function exportHandel(
   selectedNodes: readonly SceneNode[],
-  arg2?: ExportData[] | ((data: ExportData[]) => void),
-  arg3?: (data: ExportData[]) => void
-): Promise<ExportData[]> {
-  const result: ExportData[] = Array.isArray(arg2) ? arg2 : [];
+  arg2?: ExportPreview[] | ((data: ExportPreview[]) => void),
+  arg3?: (data: ExportPreview[]) => void
+): Promise<ExportPreview[]> {
+  const result: ExportPreview[] = Array.isArray(arg2) ? arg2 : [];
   const callback = typeof arg2 === "function" ? arg2 : arg3;
   console.log(selectedNodes, "选中的节点");
   for (const node of selectedNodes) {
@@ -33,34 +35,46 @@ async function exportHandel(
 
   return result;
 }
-const message = new EventManager();
-
-figma.ui.onmessage = (msg) => {
+const initUIData = () => {
   const currentPage = figma.currentPage;
   const selectedNodes = currentPage.selection[0];
-  console.log(currentPage, "当前页面");
-  const { type } = msg;
+  // figma.clientStorage.setAsync("selectedNodes", currentPage).then(() => {});
+  //const clones = clone(currentPage);
 
-  message.addHandler("init", () => {
+  console.log(currentPage, "当前页面");
+  if (selectedNodes) {
     figma.ui.postMessage({
       type: "init",
-      data: { id: selectedNodes.id, name: currentPage.name, width: selectedNodes.width, height: selectedNodes.height },
+      data: { id: selectedNodes.id, name: currentPage.name, width: selectedNodes.width, height: selectedNodes.height,currentPage },
     });
-  });
-  message.addHandler("FigmaExport", () => {
-    //@ts-ignore
-    const selectedNodes = figma.currentPage.selection[0].children;
-    if (selectedNodes.length > 0) {
-      exportHandel(selectedNodes, (data) => {
-        figma.ui.postMessage({
-          type: "FigmaExport",
-          data
-        });
+  }
+};
+const initPreview = () => {
+  //@ts-ignore
+  const selectedNodes = figma.currentPage.selection[0].children;
+  if (selectedNodes.length > 0) {
+    exportHandel(selectedNodes, (data) => {
+      figma.ui.postMessage({
+        type: "FigmaPreview",
+        data,
       });
-    }
+    });
+  }
+};
+
+figma.ui.onmessage = (msg) => {
+  const { type } = msg;
+  message.addHandler("init", () => {
+    initUIData();
+    initPreview();
   });
+
+  // message.addHandler("FigmaPreview", () => {});
 
   message.trigger(type);
 };
-
+figma.on("selectionchange", () => {
+  initUIData();
+  initPreview();
+});
 //figma.closePlugin();

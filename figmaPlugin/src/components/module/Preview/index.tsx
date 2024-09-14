@@ -1,9 +1,9 @@
 export interface PreviewProps {
-  data: ExportData[];
+  data: ExportPreview[];
   width: number;
   height?: number;
 }
-export interface ExportData {
+export interface ExportPreview {
   props: {
     src: string;
     name: string;
