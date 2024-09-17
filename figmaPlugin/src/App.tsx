@@ -28,10 +28,9 @@ export default function App() {
   useEffect(() => {
     parent.postMessage({ pluginMessage: { type: "init" } }, "*");
     window.onmessage = (event) => {
-      console.log(event, "收到消息");
       const { type, data } = event.data.pluginMessage;
       if (type === "init") {
-        console.log(data, "当前节点数据");
+        console.log(data, "当前节点数据",data.test);
         setPageData(data);
         setFormValues({ id: data.id, name: data.name });
         parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");

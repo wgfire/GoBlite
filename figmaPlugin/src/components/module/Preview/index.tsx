@@ -7,6 +7,7 @@ export interface ExportPreview {
   props: {
     src: string;
     name: string;
+    id: string;
   };
 }
 export const Preview: React.FC<PreviewProps> = (props) => {
