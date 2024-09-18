@@ -87,15 +87,6 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
           </div>
           <div className="space-y-2">
             <Label htmlFor="i18n">多语言设置</Label>
-            <Select  value={formValues.i18n} onValueChange={(value) => handleChange("i18n", value as FormValues["i18n"])}>
-              <SelectTrigger id="i18n">
-                <SelectValue placeholder="Select i18n" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="zh">Zh</SelectItem>
-                <SelectItem value="en">En</SelectItem>
-              </SelectContent>
-            </Select>
             <CascadeSelect></CascadeSelect>
           </div>
         </div>

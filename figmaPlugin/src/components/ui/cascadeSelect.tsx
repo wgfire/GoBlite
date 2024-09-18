@@ -1,30 +1,25 @@
 "use client";
 
 import * as React from "react";
-import { CalendarIcon, Check, ChevronsUpDown, RocketIcon } from "lucide-react";
-
+import { Check, ChevronsUpDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  CommandShortcut,
-} from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { FaceIcon, PersonIcon, EnvelopeClosedIcon, GearIcon } from "@radix-ui/react-icons";
 
 export function CascadeSelect() {
-  const fruits = [
-    { value: "apple", label: "Apple" },
-    { value: "banana", label: "Banana" },
-    { value: "blueberry", label: "Blueberry" },
-    { value: "grapes", label: "Grapes" },
-    { value: "pineapple", label: "Pineapple" },
+  const Langue = [
+    { value: "ZH", label: "中文" },
+    { value: "EN", label: "英文" },
+    { value: "KR", label: "韩文" },
+    { value: "TH", label: "泰文" },
+    { value: "VN", label: "越南文" },
+    { value: "MY", label: "马来文" },
+    { value: "IN", label: "印尼文" },
+    { value: "ID", label: "印度文" },
+    { value: "PH", label: "菲律宾文" },
+    { value: "PT", label: "葡萄牙" },
   ];
   const [open, setOpen] = React.useState(false);
   const [selectedItems, setSelectedItems] = React.useState<string[]>([]);
@@ -36,19 +31,31 @@ export function CascadeSelect() {
   }, []);
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
-          {selectedItems.length > 0 ? `${selectedItems.length} selected` : "Select fruits..."}
+      <PopoverTrigger asChild className="relative w-full">
+        <Button variant="outline" role="combobox" aria-expanded={open} className="text-ellipsis justify-between w-full">
+          {selectedItems.length > 0 ? (
+            <div className="w-full text-ellipsis overflow-hidden text-left">
+              {selectedItems.map((item) => {
+                return (
+                  <Badge className="mr-2" key={item}>
+                    {item}
+                  </Badge>
+                );
+              })}
+            </div>
+          ) : (
+            <span className="w-full opacity-50 text-left">支持按不同语言组合界面</span>
+          )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command className="rounded-lg border shadow-md md:min-w-[450px]">
+      <PopoverContent className="p-0">
+        <Command className="w-full">
           <CommandInput placeholder="Type a command or search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-              {fruits.map((fruit) => (
+              {Langue.map((fruit) => (
                 <CommandItem key={fruit.value} onSelect={() => toggleItem(fruit.value)}>
                   <Check className={cn("mr-2 h-4 w-4", selectedItems.includes(fruit.value) ? "opacity-100" : "opacity-0")} />
                   {fruit.label}
