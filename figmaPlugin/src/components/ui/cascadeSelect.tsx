@@ -8,27 +8,32 @@ import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-export function CascadeSelect() {
-  const Langue = [
-    { value: "ZH", label: "中文" },
-    { value: "EN", label: "英文" },
-    { value: "KR", label: "韩文" },
-    { value: "TH", label: "泰文" },
-    { value: "VN", label: "越南文" },
-    { value: "MY", label: "马来文" },
-    { value: "IN", label: "印尼文" },
-    { value: "ID", label: "印度文" },
-    { value: "PH", label: "菲律宾文" },
-    { value: "PT", label: "葡萄牙" },
-  ];
+export interface CascadeSelectProps {
+  value?: string[];
+  items: { label: string; value: string | number | boolean }[];
+  onChange?: (value: string[]) => void;
+  placeholder?: string;
+}
+export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
+  const { items = [], onChange, placeholder = "请选择", value } = props;
   const [open, setOpen] = React.useState(false);
-  const [selectedItems, setSelectedItems] = React.useState<string[]>([]);
-  const toggleItem = React.useCallback((item: string) => {
-    setSelectedItems((current) => {
-      const safeCurrentArray = Array.isArray(current) ? current : [];
-      return safeCurrentArray.includes(item) ? safeCurrentArray.filter((i) => i !== item) : [...safeCurrentArray, item];
-    });
-  }, []);
+  const [selectedItems, setSelectedItems] = React.useState<string[]>(value || []);
+
+  React.useEffect(() => {
+    setSelectedItems(value || []);
+  }, [value]);
+
+  const toggleItem = React.useCallback(
+    (item: string) => {
+      setSelectedItems((current) => {
+        const safeCurrentArray = Array.isArray(current) ? current : [];
+        const result = safeCurrentArray.includes(item) ? safeCurrentArray.filter((i) => i !== item) : [...safeCurrentArray, item];
+        onChange?.(result);
+        return result;
+      });
+    },
+    [onChange]
+  );
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild className="relative w-full">
@@ -44,7 +49,7 @@ export function CascadeSelect() {
               })}
             </div>
           ) : (
-            <span className="w-full opacity-50 text-left">支持按不同语言组合界面</span>
+            <span className="w-full opacity-50 text-left">{placeholder}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -55,7 +60,7 @@ export function CascadeSelect() {
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-              {Langue.map((fruit) => (
+              {items.map((fruit) => (
                 <CommandItem key={fruit.value} onSelect={() => toggleItem(fruit.value)}>
                   <Check className={cn("mr-2 h-4 w-4", selectedItems.includes(fruit.value) ? "opacity-100" : "opacity-0")} />
                   {fruit.label}
@@ -68,4 +73,4 @@ export function CascadeSelect() {
       </PopoverContent>
     </Popover>
   );
-}
+};

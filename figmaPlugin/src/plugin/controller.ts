@@ -37,28 +37,9 @@ async function exportHandel(
 const initUIData = () => {
   const currentPage = figma.currentPage;
   const selectedNodes = currentPage.selection[0];
-  // figma.clientStorage.setAsync("selectedNodes", currentPage).then(() => {});
-  //const clones = clone(currentPage);
-  // const proxy = new Proxy(currentPage, {
-  //   get(target, prop) {
-  //     //@ts-ignore
-  //     console.log(target, prop, "代理");
-  //     return target[prop];
-  //   },
-  // });
+  //@ts-ignore
+  const children = currentPage.selection[0].children;
   const prototype = Object.getPrototypeOf(selectedNodes);
-
-  const test = {
-    id: "test",
-    name: "wg",
-  };
-
-  Object.defineProperty(test, "sex", {
-    value: "男",
-    writable: true,
-    enumerable: false,
-  });
-
   console.log(currentPage, "当前页面", prototype);
   if (selectedNodes) {
     figma.ui.postMessage({
@@ -68,7 +49,7 @@ const initUIData = () => {
         name: currentPage.name,
         width: selectedNodes.width,
         height: selectedNodes.height,
-        children: currentPage.children,
+        children: children,
         selection: selectedNodes,
       },
     });
