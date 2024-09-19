@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 export interface CascadeSelectProps {
   value?: string[];
-  items: { label: string; value: string | number | boolean }[];
+  items: { label: string; value: string }[];
   onChange?: (value: string[]) => void;
   placeholder?: string;
 }
@@ -60,10 +60,10 @@ export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-              {items.map((fruit) => (
-                <CommandItem key={fruit.value} onSelect={() => toggleItem(fruit.value)}>
-                  <Check className={cn("mr-2 h-4 w-4", selectedItems.includes(fruit.value) ? "opacity-100" : "opacity-0")} />
-                  {fruit.label}
+              {items.map((item) => (
+                <CommandItem key={item.value} onSelect={() => toggleItem(item.value)}>
+                  <Check className={cn("mr-2 h-4 w-4", selectedItems.includes(item.value) ? "opacity-100" : "opacity-0")} />
+                  {item.label}
                 </CommandItem>
               ))}
             </CommandGroup>

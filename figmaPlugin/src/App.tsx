@@ -6,6 +6,7 @@ import { Button } from "./components/ui/button";
 import { ExportService } from "./components/module/exportService";
 import { ExportPreview, Preview } from "./components/module/Preview";
 import { ExportForm, FormValues } from "./components/module/exportForm";
+import { usePluginContext } from "./context";
 
 export interface initDataProps {
   id: string;
@@ -17,9 +18,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("config");
   const [pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
   const [previewData, setPreviewData] = useState<ExportPreview[] | null>(null);
-  const [formValues, setFormValues] = useState<FormValues | undefined>();
-  const { id, name } = pageData;
-
+  const [formValues, setFormValues] = useState<FormValues>({
+    id: pageData.id,
+    name: pageData.name,
+  });
+  const {setState} = usePluginContext();
+  setState((prev) => ({ ...prev, nodes: previewData }));
   const exportHandel = () => {
     // window.open("https://www.bilibili.com/?spm_id_from=333.1007.0.0");
     // parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
@@ -30,7 +34,7 @@ export default function App() {
     window.onmessage = (event) => {
       const { type, data } = event.data.pluginMessage;
       if (type === "init") {
-        console.log(data, "当前节点数据",data.test);
+        console.log(data, "当前节点数据", data.test);
         setPageData(data);
         setFormValues({ id: data.id, name: data.name });
         parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
@@ -67,7 +71,7 @@ export default function App() {
           {/**config */}
           {activeTab === "config" && (
             <>
-              {<ExportForm defaultValues={{ id, name }} values={formValues}></ExportForm>}
+              {<ExportForm defaultValues={formValues}></ExportForm>}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">导出预览</h3>
                 <div className="grid grid-cols-2 gap-4">

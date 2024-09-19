@@ -215,7 +215,7 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="i18n">页面节点配置</Label>
-                    <CascadeSelect></CascadeSelect>
+                    <CascadeSelect items={[]}></CascadeSelect>
                   </div>
                 </CardContent>
               </Card>

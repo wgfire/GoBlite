@@ -2,11 +2,14 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import { PluginProvider } from "./context/index.tsx";
 
 document.addEventListener("DOMContentLoaded", function () {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
-      <App />
+      <PluginProvider>
+        <App />
+      </PluginProvider>
     </StrictMode>
   );
 });
