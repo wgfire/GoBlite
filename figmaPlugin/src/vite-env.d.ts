@@ -1,5 +1,2 @@
 /// <reference types="vite/client" />
-
-/**
- * 声明一个svg模块
- */
+/// <reference types="@figma/plugin-typings" />

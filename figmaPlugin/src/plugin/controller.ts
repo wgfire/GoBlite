@@ -25,7 +25,7 @@ async function exportHandel(
   for (const node of selectedNodes) {
     const res = await node.exportAsync({ format: "PNG" });
     const base64Image = figma.base64Encode(res);
-    result.push({ props: { src: base64Image, name: node.name, id: node.id } });
+    result.push({ src: base64Image, name: node.name, id: node.id });
   }
 
   if (callback) {
@@ -38,9 +38,17 @@ const initUIData = () => {
   const currentPage = figma.currentPage;
   const selectedNodes = currentPage.selection[0];
   //@ts-ignore
-  const children = currentPage.selection[0].children;
-  const prototype = Object.getPrototypeOf(selectedNodes);
-  console.log(currentPage, "当前页面", prototype);
+  const allChildren = currentPage.selection[0].parent.children.map((item) => {
+    //@ts-ignore
+    return item.children.map((child) => {
+      return {
+        value: child.id,
+        label: child.name,
+      };
+    });
+  }).flat();
+  // const prototype = Object.getPrototypeOf(selectedNodes);
+  console.log(currentPage, "当前页面", allChildren);
   if (selectedNodes) {
     figma.ui.postMessage({
       type: "init",
@@ -49,7 +57,7 @@ const initUIData = () => {
         name: currentPage.name,
         width: selectedNodes.width,
         height: selectedNodes.height,
-        children: children,
+        allChildren: allChildren,
         selection: selectedNodes,
       },
     });
@@ -74,11 +82,9 @@ figma.ui.onmessage = (msg) => {
     initUIData();
     initPreview();
   });
-
-  // message.addHandler("FigmaPreview", () => {});
-
   message.trigger(type);
 };
+
 figma.on("selectionchange", () => {
   initUIData();
   initPreview();

@@ -13,15 +13,20 @@ export interface CascadeSelectProps {
   items: { label: string; value: string }[];
   onChange?: (value: string[]) => void;
   placeholder?: string;
+  renderItem?: (item: { label: string; value: string }) => React.ReactNode;
 }
 export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
-  const { items = [], onChange, placeholder = "请选择", value } = props;
+  const { items = [], onChange, placeholder = "请选择", value, renderItem } = props;
   const [open, setOpen] = React.useState(false);
   const [selectedItems, setSelectedItems] = React.useState<string[]>(value || []);
 
   React.useEffect(() => {
     setSelectedItems(value || []);
   }, [value]);
+
+  const showLabel = (value: string) => {
+    return items.find((item) => item.value === value)?.label;
+  };
 
   const toggleItem = React.useCallback(
     (item: string) => {
@@ -43,7 +48,7 @@ export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
               {selectedItems.map((item) => {
                 return (
                   <Badge className="mr-2" key={item}>
-                    {item}
+                    {showLabel(item)}
                   </Badge>
                 );
               })}
@@ -63,7 +68,7 @@ export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
               {items.map((item) => (
                 <CommandItem key={item.value} onSelect={() => toggleItem(item.value)}>
                   <Check className={cn("mr-2 h-4 w-4", selectedItems.includes(item.value) ? "opacity-100" : "opacity-0")} />
-                  {item.label}
+                  {renderItem ? renderItem(item) : item.label}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -74,3 +79,5 @@ export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
     </Popover>
   );
 };
+
+ 

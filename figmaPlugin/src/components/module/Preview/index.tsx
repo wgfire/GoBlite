@@ -4,11 +4,9 @@ export interface PreviewProps {
   height?: number;
 }
 export interface ExportPreview {
-  props: {
-    src: string;
-    name: string;
-    id: string;
-  };
+  src: string;
+  name: string;
+  id: string;
 }
 export const Preview: React.FC<PreviewProps> = (props) => {
   const { data, width, height } = props;
@@ -16,7 +14,7 @@ export const Preview: React.FC<PreviewProps> = (props) => {
   return (
     <div className="flex flex-col " style={{ width: width, height: height ?? "auto" }}>
       {data.map((item, index) => {
-        const { src } = item.props;
+        const { src } = item;
         const base64 = `data:image/png;base64,${src}`;
         return <img key={index} src={base64} className="w-full" />;
       })}

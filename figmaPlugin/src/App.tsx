@@ -1,7 +1,7 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "./components/ui/button";
 import { ExportService } from "./components/module/exportService";
 import { ExportPreview, Preview } from "./components/module/Preview";
@@ -18,25 +18,23 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("config");
   const [pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
   const [previewData, setPreviewData] = useState<ExportPreview[] | null>(null);
-  const [formValues, setFormValues] = useState<FormValues>({
-    id: pageData.id,
-    name: pageData.name,
-  });
-  const {setState} = usePluginContext();
-  setState((prev) => ({ ...prev, nodes: previewData }));
+  const [formValues, setFormValues] = useState<FormValues>({ id: "", name: "" });
+  const { setState } = usePluginContext();
+
   const exportHandel = () => {
     // window.open("https://www.bilibili.com/?spm_id_from=333.1007.0.0");
     // parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
   };
-
+  console.log(formValues, "formValues");
   useEffect(() => {
     parent.postMessage({ pluginMessage: { type: "init" } }, "*");
     window.onmessage = (event) => {
       const { type, data } = event.data.pluginMessage;
       if (type === "init") {
-        console.log(data, "当前节点数据", data.test);
+        console.log(data, "当前节点数据");
         setPageData(data);
         setFormValues({ id: data.id, name: data.name });
+        setState((prev) => ({ ...prev, nodes: data.allChildren }));
         parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
       }
       if (type === "FigmaPreview") {
@@ -71,12 +69,29 @@ export default function App() {
           {/**config */}
           {activeTab === "config" && (
             <>
-              {<ExportForm defaultValues={formValues}></ExportForm>}
+              {
+                <ExportForm
+                  defaultValues={{ id: pageData.id, name: pageData.name }}
+                  values={formValues}
+                  onChange={(data) => {
+                    console.log(data, "表单数据");
+                    setFormValues(data);
+                  }}
+                ></ExportForm>
+              }
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">导出预览</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
-                </div>
+                <Tabs>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="config">配置1</TabsTrigger>
+                    <TabsTrigger value="service">配置2</TabsTrigger>
+                  </TabsList>
+                  {/* <TabsContent value="preview">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
+                    </div>
+                  </TabsContent> */}
+                </Tabs>
               </div>
             </>
           )}

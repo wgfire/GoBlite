@@ -6,81 +6,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CascadeSelect } from "@/components/ui/cascadeSelect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { DeviceType, PageType, Device } from "./types";
+import { devicesData, languageData, pageTypeData } from "./const";
+import { usePluginContext } from "@/context";
+import { ChevronRight } from "lucide-react";
 export interface FormValues {
   id: string;
   name: string;
   devices?: Device[];
   format?: "PNG" | "JPG";
 }
-// 设备对象接口
-interface Device {
-  type: DeviceType; // 设备类型，如PC，iPad，H5
-  pageType: PageType; // 页面类型，如静态图片，图文并茂
-  languagePageMap: Partial<Record<Language, object[]>>;
-}
-
-enum DeviceType {
-  PC = "pc",
-  IPad = "ipad",
-  H5 = "h5",
-}
-// 页面类型枚举
-enum PageType {
-  StaticImage = "STATIC_IMAGE",
-  GraphicSite = "GRAPHIC_SITE",
-}
-
-// 语言类型枚举
-enum Language {
-  ZH = "ZH",
-  EN = "EN",
-  KR = "KR",
-  TH = "TH",
-  VN = "VN",
-  MY = "MY",
-  IN = "IN",
-  ID = "ID",
-  PH = "PH",
-  PT = "PT",
-}
-
-const languageData: { label: string; value: Language }[] = [
-  { value: Language.ZH, label: "中文" },
-  { value: Language.EN, label: "英文" },
-  { value: Language.KR, label: "韩文" },
-  { value: Language.TH, label: "泰文" },
-  { value: Language.VN, label: "越南文" },
-  { value: Language.MY, label: "马来文" },
-  { value: Language.IN, label: "印尼文" },
-  { value: Language.ID, label: "印度文" },
-  { value: Language.PH, label: "菲律宾文" },
-  { value: Language.PT, label: "葡萄牙" },
-];
-const devicesData: { label: keyof typeof DeviceType; value: DeviceType }[] = [
-  {
-    label: "PC",
-    value: DeviceType.PC,
-  },
-  {
-    label: "IPad",
-    value: DeviceType.IPad,
-  },
-  {
-    label: "H5",
-    value: DeviceType.H5,
-  },
-];
-const pageTypeData: { label: string; value: PageType; disabled?: boolean }[] = [
-  {
-    label: "静态图片",
-    value: PageType.StaticImage,
-  },
-  {
-    label: "图文并茂",
-    value: PageType.GraphicSite,
-    disabled: true,
-  },
-];
 
 interface FormProps {
   defaultValues: FormValues;
@@ -91,8 +26,19 @@ interface FormProps {
 export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChange }) => {
   const [formValues, setFormValues] = useState<FormValues>({
     format: "PNG",
+    devices: [
+      {
+        type: DeviceType.PC,
+        pageType: PageType.StaticImage,
+        languagePageMap: {
+          EN: [],
+        },
+      },
+    ],
     ...defaultValues,
   });
+  const { state } = usePluginContext();
+  const { nodes } = state;
   console.log(formValues, "values", defaultValues);
   useEffect(() => {
     if (values) {
@@ -101,9 +47,11 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
   }, [values]);
   const initDevices = (): Device => {
     let type = DeviceType.PC;
-    const h5Exist = formValues.devices?.find((item) => item.type === DeviceType.H5);
-    const ipadExist = formValues.devices?.find((item) => item.type === DeviceType.IPad);
-    type = !ipadExist ? DeviceType.IPad : !h5Exist ? DeviceType.H5 : DeviceType.PC;
+    if (formValues.devices?.length !== 0) {
+      const h5Exist = formValues.devices?.find((item) => item.type === DeviceType.H5);
+      const ipadExist = formValues.devices?.find((item) => item.type === DeviceType.IPad);
+      type = !ipadExist ? DeviceType.IPad : !h5Exist ? DeviceType.H5 : DeviceType.PC;
+    }
     return {
       type,
       pageType: PageType.StaticImage,
@@ -170,7 +118,13 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                 <CardContent className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="deviceType">设备类型</Label>
-                    <Select>
+                    <Select
+                      value={device.type}
+                      onValueChange={(value) => {
+                        const updatedDevices = formValues.devices!.map((d, i) => (i === index ? { ...d, type: value as DeviceType } : d));
+                        handleChange("devices", updatedDevices);
+                      }}
+                    >
                       <SelectTrigger id="pageType">
                         <SelectValue placeholder="选择设备类型" />
                       </SelectTrigger>
@@ -185,7 +139,13 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pageType">页面类型</Label>
-                    <Select>
+                    <Select
+                      value={device.pageType}
+                      onValueChange={(value) => {
+                        const updatedDevices = formValues.devices!.map((d, i) => (i === index ? { ...d, pageType: value as PageType } : d));
+                        handleChange("devices", updatedDevices);
+                      }}
+                    >
                       <SelectTrigger id="pageType">
                         <SelectValue placeholder="选择页面类型" />
                       </SelectTrigger>
@@ -200,22 +160,20 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="i18n">多语言设置</Label>
-                    <Select>
-                      <SelectTrigger id="i18n">
-                        <SelectValue placeholder="选择多语言" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {languageData.map((item) => (
-                          <SelectItem value={item.value} key={item.value}>
-                            {item.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <CascadeSelect
+                      items={languageData}
+                      value={Object.keys(device.languagePageMap)}
+                      renderItem={(item) => (
+                        <div className="w-[200px] flex justify-between">
+                          {item.label}
+                          <ChevronRight className="cursor-pointer"></ChevronRight>
+                        </div>
+                      )}
+                    ></CascadeSelect>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="i18n">页面节点配置</Label>
-                    <CascadeSelect items={[]}></CascadeSelect>
+                    <CascadeSelect items={nodes}></CascadeSelect>
                   </div>
                 </CardContent>
               </Card>
