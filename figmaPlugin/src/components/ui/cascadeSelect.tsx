@@ -14,9 +14,11 @@ export interface CascadeSelectProps {
   onChange?: (value: string[]) => void;
   placeholder?: string;
   renderItem?: (item: { label: string; value: string }) => React.ReactNode;
+  children?: React.ReactNode;
 }
 export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
-  const { items = [], onChange, placeholder = "请选择", value, renderItem } = props;
+  const { items = [], onChange, placeholder = "请选择", value, renderItem, children } = props;
+
   const [open, setOpen] = React.useState(false);
   const [selectedItems, setSelectedItems] = React.useState<string[]>(value || []);
 
@@ -42,33 +44,45 @@ export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild className="relative w-full">
-        <Button variant="outline" role="combobox" aria-expanded={open} className="text-ellipsis justify-between w-full">
-          {selectedItems.length > 0 ? (
-            <div className="w-full text-ellipsis overflow-hidden text-left">
-              {selectedItems.map((item) => {
-                return (
-                  <Badge className="mr-2" key={item}>
-                    {showLabel(item)}
-                  </Badge>
-                );
-              })}
-            </div>
-          ) : (
-            <span className="w-full opacity-50 text-left">{placeholder}</span>
-          )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
+        {children ? (
+          children
+        ) : (
+          <Button variant="outline" role="combobox" aria-expanded={open} className="text-ellipsis justify-between w-full">
+            {selectedItems.length > 0 ? (
+              <div className="w-full text-ellipsis overflow-hidden text-left">
+                {selectedItems.map((item) => {
+                  return (
+                    <Badge className="mr-2" key={item}>
+                      {showLabel(item)}
+                    </Badge>
+                  );
+                })}
+              </div>
+            ) : (
+              <span className="w-full opacity-50 text-left">{placeholder}</span>
+            )}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        )}
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="p-0 ">
         <Command className="w-full">
           <CommandInput placeholder="Type a command or search..." />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup heading="Suggestions">
-              {items.map((item) => (
-                <CommandItem key={item.value} onSelect={() => toggleItem(item.value)}>
+              {items.map((item, index) => (
+                <CommandItem
+                  key={item.value}
+                  onSelect={(e) => {
+                    toggleItem(item.value);
+                    console.log(e, "触发");
+                  }}
+                  className="w-full"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <Check className={cn("mr-2 h-4 w-4", selectedItems.includes(item.value) ? "opacity-100" : "opacity-0")} />
-                  {renderItem ? renderItem(item) : item.label}
+                  {renderItem ? renderItem(item) : item.label + " " + (index + 1)}
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -79,5 +93,3 @@ export const CascadeSelect: React.FC<CascadeSelectProps> = (props) => {
     </Popover>
   );
 };
-
- 

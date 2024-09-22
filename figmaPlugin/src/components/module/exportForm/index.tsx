@@ -158,23 +158,29 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-2  col-start-1 col-span-2">
                     <Label htmlFor="i18n">多语言设置</Label>
                     <CascadeSelect
                       items={languageData}
                       value={Object.keys(device.languagePageMap)}
                       renderItem={(item) => (
-                        <div className="w-[200px] flex justify-between">
-                          {item.label}
-                          <ChevronRight className="cursor-pointer"></ChevronRight>
+                        <div className="w-[200px] flex justify-between" onClick={(e) => e.stopPropagation()}>
+                          <span className="flex-shrink-0"> {item.label}</span>
+                          <CascadeSelect items={nodes}>
+                            <ChevronRight
+                              className="cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                            ></ChevronRight>
+                          </CascadeSelect>
                         </div>
                       )}
                     ></CascadeSelect>
                   </div>
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="i18n">页面节点配置</Label>
-                    <CascadeSelect items={nodes}></CascadeSelect>
-                  </div>
+                  </div> */}
                 </CardContent>
               </Card>
             );

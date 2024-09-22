@@ -86,11 +86,11 @@ export default function App() {
                     <TabsTrigger value="config">配置1</TabsTrigger>
                     <TabsTrigger value="service">配置2</TabsTrigger>
                   </TabsList>
-                  {/* <TabsContent value="preview">
+                  <TabsContent value="preview">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
                     </div>
-                  </TabsContent> */}
+                  </TabsContent>
                 </Tabs>
               </div>
             </>
