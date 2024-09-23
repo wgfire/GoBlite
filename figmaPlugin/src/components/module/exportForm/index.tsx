@@ -3,13 +3,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CascadeSelect } from "@/components/ui/cascadeSelect";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DeviceType, PageType, Device } from "./types";
+import { DeviceType, PageType, Device, Language } from "./types";
 import { devicesData, languageData, pageTypeData } from "./const";
 import { usePluginContext } from "@/context";
-import { ChevronRight } from "lucide-react";
+// import { ChevronRight } from "lucide-react";
+import { CascadeMultiSelect } from "@/components/ui/cascadMSelect";
 export interface FormValues {
   id: string;
   name: string;
@@ -38,8 +39,14 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
     ...defaultValues,
   });
   const { state } = usePluginContext();
-  const { nodes } = state;
+  const { nodes: _nodes } = state;
   console.log(formValues, "values", defaultValues);
+  const languageNodes = languageData.map((item) => {
+    return {
+      ...item,
+      children: _nodes,
+    };
+  });
   useEffect(() => {
     if (values) {
       setFormValues((prev) => ({ ...prev, ...values }));
@@ -94,7 +101,7 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2 w-full col-start-1 col-span-2">
           <Label htmlFor="pageId">页面ID</Label>
-          <Input id="pageId" value={formValues.id} disabled onChange={(e) => handleChange("id", e.target.value)} />
+          <Input id="pageId" value={formValues.id} disabled />
         </div>
         <div className="space-y-2 w-full col-start-1 col-span-2">
           <Label htmlFor="pageName">页面名称</Label>
@@ -160,7 +167,22 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                   </div>
                   <div className="space-y-2  col-start-1 col-span-2">
                     <Label htmlFor="i18n">多语言设置</Label>
-                    <CascadeSelect
+                    <CascadeMultiSelect
+                      items={languageNodes}
+                      onSelect={(value) => {
+                        console.log(value);
+                        if (!value) return false;
+                        const currentLanguage = { ...formValues.devices?.[index].languagePageMap };
+                        const setKey = value[0] as Language;
+                        if (currentLanguage) {
+                          currentLanguage[setKey] = value;
+                        }
+                        const updatedDevices = formValues.devices!.map((d, i) => (i === index ? { ...d, languagePageMap: currentLanguage } : d));
+
+                        handleChange("devices", updatedDevices);
+                      }}
+                    ></CascadeMultiSelect>
+                    {/* <CascadeSelect
                       items={languageData}
                       value={Object.keys(device.languagePageMap)}
                       renderItem={(item) => (
@@ -176,7 +198,7 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                           </CascadeSelect>
                         </div>
                       )}
-                    ></CascadeSelect>
+                    ></CascadeSelect> */}
                   </div>
                   {/* <div className="space-y-2">
                     <Label htmlFor="i18n">页面节点配置</Label>
