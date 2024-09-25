@@ -1,13 +1,16 @@
-// import { deepCloneWithEnumerableProperties } from "@/lib/utils";
+
 import { EventManager } from "./message";
 import { ExportPreview } from "@/components/module/Preview";
-// import { clone } from "lodash-es";
+
 
 figma.showUI(__html__, {
   width: 1000,
   height: 1000,
 });
-const message = new EventManager();
+
+/**有其他类型的arg后可不传此泛型 */
+const message = new EventManager<string[]>();
+
 /**
  * 导出选中节点下的所有图片。
  * @param selectedNodes
@@ -38,17 +41,27 @@ const initUIData = () => {
   const currentPage = figma.currentPage;
   const selectedNodes = currentPage.selection[0];
   //@ts-ignore
-  const allChildren = currentPage.selection[0].parent.children.map((item) => {
-    //@ts-ignore
-    return item.children.map((child) => {
-      return {
-        value: child.id,
-        label: child.name,
-      };
-    });
-  }).flat();
-  // const prototype = Object.getPrototypeOf(selectedNodes);
-  console.log(currentPage, "当前页面", allChildren);
+  const allChildren = currentPage.selection[0].parent.children
+    .map((item) => {
+      //@ts-ignore
+      return item.children.map((child) => {
+        return {
+          value: child.id,
+          label: child.name,
+        };
+      });
+    })
+    .flat();
+  //@ts-ignore
+  const previewData = selectedNodes.children.map((el) => {
+    return {
+      value: el.id,
+      label: el.name,
+    };
+  });
+
+  console.log(currentPage, "当前页面", previewData);
+
   if (selectedNodes) {
     figma.ui.postMessage({
       type: "init",
@@ -59,13 +72,14 @@ const initUIData = () => {
         height: selectedNodes.height,
         allChildren: allChildren,
         selection: selectedNodes,
+        previewData: previewData,
       },
     });
   }
 };
-const initPreview = () => {
+const initPreview = (nodes?: BaseNode[]) => {
   //@ts-ignore
-  const selectedNodes = figma.currentPage.selection[0].children;
+  const selectedNodes = nodes || figma.currentPage.selection[0].children;
   if (selectedNodes.length > 0) {
     exportHandel(selectedNodes, (data) => {
       figma.ui.postMessage({
@@ -77,16 +91,29 @@ const initPreview = () => {
 };
 
 figma.ui.onmessage = (msg) => {
-  const { type } = msg;
-  message.addHandler("init", () => {
-    initUIData();
-    initPreview();
-  });
-  message.trigger(type);
+  const { type, data } = msg;
+  console.log(type, data, "插件接收消息");
+  message.trigger(type, data);
 };
 
 figma.on("selectionchange", () => {
   initUIData();
   initPreview();
 });
+
+message.addHandler("init", () => {
+  initUIData();
+  initPreview();
+});
+
+message.addHandler("FigmaPreview", async (arg) => {
+  console.log(arg, "FigmaPreview接收消息");
+  const sceneNodePromise = arg.map(async (el: string) => {
+    const result = await figma.getNodeByIdAsync(el);
+    return result;
+  });
+  const sceneNode = (await Promise.all(sceneNodePromise)).filter((node) => !!node);
+  initPreview(sceneNode);
+});
+
 //figma.closePlugin();

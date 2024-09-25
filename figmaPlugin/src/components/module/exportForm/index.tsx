@@ -14,33 +14,21 @@ import { CascadeMultiSelect } from "@/components/ui/cascadMSelect";
 export interface FormValues {
   id: string;
   name: string;
-  devices?: Device[];
+  devices: Device[];
   format?: "PNG" | "JPG";
 }
 
 interface FormProps {
-  defaultValues: FormValues;
+  defaultValues?: FormValues;
   values?: FormValues;
   onChange?: (values: FormValues) => void;
 }
 
 export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChange }) => {
-  const [formValues, setFormValues] = useState<FormValues>({
-    format: "PNG",
-    devices: [
-      {
-        type: DeviceType.PC,
-        pageType: PageType.StaticImage,
-        languagePageMap: {
-          EN: [],
-        },
-      },
-    ],
-    ...defaultValues,
-  });
+  const [formValues, setFormValues] = useState<FormValues>({ ...(defaultValues ?? ({} as FormValues)) });
   const { state } = usePluginContext();
   const { nodes: _nodes } = state;
-  console.log(formValues, "values", defaultValues);
+  console.log(formValues, "values");
   const languageNodes = languageData.map((item) => {
     return {
       ...item,
@@ -62,9 +50,7 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
     return {
       type,
       pageType: PageType.StaticImage,
-      languagePageMap: {
-        EN: [],
-      },
+      languagePageMap: {},
     };
   };
 
@@ -79,8 +65,8 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
       alert("最多只能添加3个设备");
       return;
     }
-    const newDevice = initDevices();
-    setFormValues((prev) => ({ ...prev, devices: [...prev.devices!, newDevice] }));
+    const newDevices = initDevices();
+    handleChange("devices", [...formValues.devices, newDevices]);
   };
   const deleteDevice = (type: string) => {
     if (formValues.devices?.length === 1) {
@@ -88,13 +74,8 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
       return;
     }
     const newDevices = formValues.devices?.filter((item) => item.type !== type);
-    setFormValues((prev) => ({ ...prev, devices: newDevices }));
+    handleChange("devices", [...newDevices]);
   };
-  useEffect(() => {
-    const init = initDevices();
-    console.log(init.languagePageMap, "init");
-    setFormValues((prev) => ({ ...prev, devices: [init] }));
-  }, []);
 
   return (
     <form className="space-y-6">
@@ -169,40 +150,21 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                     <Label htmlFor="i18n">多语言设置</Label>
                     <CascadeMultiSelect
                       items={languageNodes}
+                      values={Object.values(formValues.devices[index].languagePageMap) as string[][]}
                       onSelect={(value) => {
-                        console.log(value);
+                        console.log(value, "选中");
                         if (!value) return false;
-                        const currentLanguage = { ...formValues.devices?.[index].languagePageMap };
-                        const setKey = value[0] as Language;
-                        if (currentLanguage) {
-                          currentLanguage[setKey] = value;
-                        }
+                        const currentLanguage = {} as Device["languagePageMap"];
+                        value.forEach((arr) => {
+                          const setKey = arr[0] as Language;
+                          currentLanguage[setKey] = arr;
+                        });
                         const updatedDevices = formValues.devices!.map((d, i) => (i === index ? { ...d, languagePageMap: currentLanguage } : d));
 
                         handleChange("devices", updatedDevices);
                       }}
                     ></CascadeMultiSelect>
-                    {/* <CascadeSelect
-                      items={languageData}
-                      value={Object.keys(device.languagePageMap)}
-                      renderItem={(item) => (
-                        <div className="w-[200px] flex justify-between" onClick={(e) => e.stopPropagation()}>
-                          <span className="flex-shrink-0"> {item.label}</span>
-                          <CascadeSelect items={nodes}>
-                            <ChevronRight
-                              className="cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                            ></ChevronRight>
-                          </CascadeSelect>
-                        </div>
-                      )}
-                    ></CascadeSelect> */}
                   </div>
-                  {/* <div className="space-y-2">
-                    <Label htmlFor="i18n">页面节点配置</Label>
-                  </div> */}
                 </CardContent>
               </Card>
             );

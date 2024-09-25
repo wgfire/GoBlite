@@ -17,7 +17,7 @@ export enum PageType {
 
 // 语言类型枚举
 export enum Language {
-  ZH = "ZH",
+  ZH = "CN",
   EN = "EN",
   KR = "KR",
   TH = "TH",

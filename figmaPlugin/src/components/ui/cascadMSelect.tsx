@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
@@ -7,43 +7,39 @@ import { Check, ChevronDown, ChevronRight } from "lucide-react";
 interface TreeNode {
   label: string;
   value: string;
-  children?: TreeNode[];
+  children?: ReadonlyArray<TreeNode>;
 }
 
 interface CascadeMultiSelectProps {
-  items?: TreeNode[];
-  values?: string[][];
-  onSelect: (current: string[], values: string[][]) => void;
+  items?: ReadonlyArray<TreeNode>;
+  values?: ReadonlyArray<ReadonlyArray<string>>;
+  onSelect: (values: Array<Array<string>>) => void;
 }
 
 export function CascadeMultiSelect({ items = [], values = [], onSelect }: CascadeMultiSelectProps) {
-  const [selectedValues, setSelectedValues] = useState<string[][]>(values || []);
   const [openPopover, setOpenPopover] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  useEffect(() => {
-    //setSelectedValues(values || []);
+  const getDisplayValue = useMemo(() => {
+    if (values.length === 0) return "配置多语言及节点";
+    return values.map((arr) => arr[0]).join(", ");
   }, [values]);
-
-  const getDisplayValue = useCallback(() => {
-    if (selectedValues.length === 0) return "配置多语言及节点";
-    return selectedValues.map((arr) => arr[0]).join(", ");
-  }, [selectedValues]);
 
   const findChildrenValues = useCallback(
     (value: string) => {
-      return selectedValues
+      return values
         .filter((arr) => arr[0] === value)
         .map((arr) => arr.slice(1))
         .flat();
     },
-    [selectedValues]
+    [values]
   );
 
   const handleSelect = useCallback(
     (value: string, parentValue: string | null) => {
-      const newValues = [...selectedValues];
+      const newValues = values.map((arr) => [...arr]); // 深拷贝数组
       const parentIndex = newValues.findIndex((arr) => arr[0] === parentValue);
+
       if (parentValue) {
         if (parentIndex !== -1) {
           const childIndex = newValues[parentIndex].indexOf(value);
@@ -66,66 +62,64 @@ export function CascadeMultiSelect({ items = [], values = [], onSelect }: Cascad
           newValues.push([value]);
         }
       }
-
-      setSelectedValues(newValues);
-      const current = newValues[parentIndex];
-      onSelect(current, newValues);
+      console.log(newValues, "选中语言");
+      onSelect(newValues);
     },
-    [selectedValues, onSelect]
+    [values, onSelect]
   );
 
   const isSelected = useCallback(
     (value: string, parentValue: string | null) => {
       if (parentValue) {
-        return selectedValues.some((arr) => arr[0] === parentValue && arr.includes(value));
+        return values.some((arr) => arr[0] === parentValue && arr.includes(value));
       }
-      return selectedValues.some((arr) => arr[0] === value);
+      return values.some((arr) => arr[0] === value);
     },
-    [selectedValues]
+    [values]
   );
 
-  const renderTreeNodes = useCallback(
-    (nodes: TreeNode[], parentValue: string | null = null) => {
-      return nodes.map((node) => (
-        <CommandItem
-          key={node.value}
-          // onSelect={(e) => {
-          //   console.log("点击", e);
-          //   handleSelect(node.value, parentValue);
-          // }}
-        >
-          <div className="flex items-center  w-full">
-            <div
-              className="flex items-center flex-1 mr-2"
-              onClick={(e) => {
-                handleSelect(node.value, parentValue);
-                e.stopPropagation();
-              }}
-            >
-              <Check className={`mr-2 h-4 w-4 ${isSelected(node.value, parentValue) ? "opacity-100" : "opacity-0"}`} />
-              <span>{node.label}</span>
-            </div>
-            {node.children && node.children.length > 0 && (
-              <Popover open={openPopover === node.value} onOpenChange={(open) => setOpenPopover(open ? node.value : null)}>
-                <PopoverTrigger asChild>
-                  <Button variant="link" size="sm" className={`ml-auto ${findChildrenValues(node.value).length > 0 && "bg-blue-100"}`}>
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-60 p-0" align="start" data-side="bottom">
-                  <Command>
-                    <CommandInput placeholder="节点搜索" />
-                    <CommandList>
-                      <CommandEmpty>No results found.</CommandEmpty>
-                      <CommandGroup>{renderTreeNodes(node.children, node.value)}</CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        </CommandItem>
-      ));
+  const TreeNodeComponent = useCallback(
+    ({ nodes, parentValue }: { nodes: ReadonlyArray<TreeNode>; parentValue: string | null }) => {
+      return (
+        <>
+          {nodes.map((node) => (
+            <CommandItem key={node.value}>
+              <div className="flex items-center w-full">
+                <div
+                  className="flex items-center flex-1 mr-2"
+                  onClick={(e) => {
+                    handleSelect(node.value, parentValue);
+                    e.stopPropagation();
+                  }}
+                >
+                  <Check className={`mr-2 h-4 w-4 ${isSelected(node.value, parentValue) ? "opacity-100" : "opacity-0"}`} />
+                  <span>{node.label}</span>
+                </div>
+                {node.children && node.children.length > 0 && (
+                  <Popover open={openPopover === node.value} onOpenChange={(open) => setOpenPopover(open ? node.value : null)}>
+                    <PopoverTrigger asChild>
+                      <Button variant="link" size="sm" className={`ml-auto ${findChildrenValues(node.value).length > 0 && "bg-blue-100"}`}>
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-60 p-0" align="start" data-side="bottom">
+                      <Command>
+                        <CommandInput placeholder="节点搜索" />
+                        <CommandList>
+                          <CommandEmpty>No results found.</CommandEmpty>
+                          <CommandGroup>
+                            {TreeNodeComponent({nodes:node.children,parentValue:node.value})}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
+            </CommandItem>
+          ))}
+        </>
+      );
     },
     [findChildrenValues, handleSelect, isSelected, openPopover]
   );
@@ -140,16 +134,17 @@ export function CascadeMultiSelect({ items = [], values = [], onSelect }: Cascad
     >
       <PopoverTrigger asChild>
         <Button variant="outline" className="w-full flex justify-between" aria-haspopup="listbox">
-          {getDisplayValue()}
+          {getDisplayValue}
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className=" p-0">
+      <PopoverContent className="p-0">
         <Command className="border">
           <CommandInput placeholder="多语言搜索" />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup>{items && items.length > 0 && renderTreeNodes(items)}</CommandGroup>
+            {/**不使用jsx组件调用 可以避免优化不当产生多个组件实例 */}
+            <CommandGroup>{items &&  TreeNodeComponent({nodes:items,parentValue:null})}</CommandGroup>
           </CommandList>
         </Command>
       </PopoverContent>

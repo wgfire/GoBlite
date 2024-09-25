@@ -7,18 +7,35 @@ import { ExportService } from "./components/module/exportService";
 import { ExportPreview, Preview } from "./components/module/Preview";
 import { ExportForm, FormValues } from "./components/module/exportForm";
 import { usePluginContext } from "./context";
-
+import { DeviceType, Language, PageType } from "./components/module/exportForm/types";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
+import { debounce } from "lodash-es";
 export interface initDataProps {
   id: string;
   name: string;
   width: number;
   height: number;
+  allChildren?: { label: string; value: string }[];
+  previewData?: { label: string; value: string }[];
 }
 export default function App() {
   const [activeTab, setActiveTab] = useState("config");
-  const [pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
+  const [_pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
   const [previewData, setPreviewData] = useState<ExportPreview[] | null>(null);
-  const [formValues, setFormValues] = useState<FormValues>({ id: "", name: "" });
+  const defaultValues: FormValues = {
+    id: "",
+    name: "",
+    format: "PNG",
+    devices: [
+      {
+        type: DeviceType.PC,
+        pageType: PageType.StaticImage,
+        languagePageMap: {},
+      },
+    ],
+  };
+  const [formValues, setFormValues] = useState<FormValues>(defaultValues);
+  const [previewTab, setPreviewTab] = useState(formValues.devices[0].type);
   const { setState } = usePluginContext();
 
   const exportHandel = () => {
@@ -26,22 +43,44 @@ export default function App() {
     // parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
   };
   console.log(formValues, "formValues");
+  const initTakeOverData = (data: initDataProps) => {
+    console.log(data, "当前页面数据");
+    const devices = defaultValues.devices;
+    devices[0].languagePageMap.EN = ["EN", ...data.previewData!.map((el) => el.value)];
+    setPageData(data);
+    setFormValues({ ...defaultValues, id: data.id, name: data.name, devices: devices });
+    setState((prev) => ({ ...prev, nodes: data.allChildren }));
+    // parent.postMessage({ pluginMessage: { type: "FigmaPreview", ddL: "xx" } }, "*");
+  };
   useEffect(() => {
     parent.postMessage({ pluginMessage: { type: "init" } }, "*");
     window.onmessage = (event) => {
       const { type, data } = event.data.pluginMessage;
       if (type === "init") {
-        console.log(data, "当前节点数据");
-        setPageData(data);
-        setFormValues({ id: data.id, name: data.name });
-        setState((prev) => ({ ...prev, nodes: data.allChildren }));
-        parent.postMessage({ pluginMessage: { type: "FigmaPreview" } }, "*");
+        initTakeOverData(data);
       }
       if (type === "FigmaPreview") {
         setPreviewData(data);
       }
     };
   }, []);
+
+  const previewChange = debounce(
+    (type: DeviceType, _language?: Language) => {
+      const current = formValues.devices.find((el) => el.type === type);
+      const key = _language ?? (Object.keys(current!.languagePageMap)[0] as Language);
+
+      const nodeIds = current?.languagePageMap[key]?.slice(1);
+      console.log(type, "type", nodeIds);
+      if (nodeIds) {
+        setPreviewTab(type);
+        parent.postMessage({ pluginMessage: { type: "FigmaPreview", data: nodeIds } }, "*");
+      } else {
+        console.log("无多语言");
+      }
+    },
+    500,
+  );
 
   return (
     <div className="flex h-screen bg-background">
@@ -71,7 +110,7 @@ export default function App() {
             <>
               {
                 <ExportForm
-                  defaultValues={{ id: pageData.id, name: pageData.name }}
+                  defaultValues={defaultValues}
                   values={formValues}
                   onChange={(data) => {
                     console.log(data, "表单数据");
@@ -81,17 +120,49 @@ export default function App() {
               }
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">导出预览</h3>
-                <Tabs>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="config">配置1</TabsTrigger>
-                    <TabsTrigger value="service">配置2</TabsTrigger>
+                <Tabs
+                  value={previewTab}
+                  onValueChange={(e) => {
+                    const type = e as unknown as DeviceType;
+                    previewChange(type);
+                  }}
+                >
+                  <TabsList className="grid w-full grid-cols-3">
+                    {formValues.devices.map((el, index) => {
+                      return (
+                        <TabsTrigger key={el.type} value={el.type} className="space-x-2">
+                          <span>{"页面配置-" + (index + 1)}</span>
+                          <Select value={Object.keys(el.languagePageMap)[0]}>
+                            <SelectTrigger className="border-solid">
+                              <SelectValue placeholder="预览语言" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(el.languagePageMap).map((key) => {
+                                return (
+                                  <SelectItem value={key} key={key}>
+                                    {key}
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        </TabsTrigger>
+                      );
+                    })}
                   </TabsList>
-                  <TabsContent value="preview">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
-                    </div>
-                  </TabsContent>
+                  {/* {formValues.devices.map((el, index) => {
+                    return (
+                      <TabsContent value={el.type} key={index}>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
+                        </div>
+                      </TabsContent>
+                    );
+                  })} */}
                 </Tabs>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">{previewData && <Preview data={previewData} width={400}></Preview>}</div>
+                </div>
               </div>
             </>
           )}
