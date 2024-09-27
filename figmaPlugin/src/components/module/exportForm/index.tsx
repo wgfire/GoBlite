@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +11,7 @@ import { devicesData, languageData, pageTypeData } from "./const";
 import { usePluginContext } from "@/context";
 // import { ChevronRight } from "lucide-react";
 import { CascadeMultiSelect } from "@/components/ui/cascadMSelect";
+import { useOnce } from "@/hooks/useOnce";
 export interface FormValues {
   id: string;
   name: string;
@@ -28,7 +29,8 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
   const [formValues, setFormValues] = useState<FormValues>({ ...(defaultValues ?? ({} as FormValues)) });
   const { state } = usePluginContext();
   const { nodes: _nodes } = state;
-  console.log(formValues, "values");
+
+  const defaultNodes = useRef<string[]>([]);
   const languageNodes = languageData.map((item) => {
     return {
       ...item,
@@ -40,6 +42,12 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
       setFormValues((prev) => ({ ...prev, ...values }));
     }
   }, [values]);
+
+  useOnce(() => {
+    defaultNodes.current = Object.values(values!.devices[0].languagePageMap)[0].ids;
+    console.log(defaultNodes.current, "defaultNodes.current");
+  }, [values]);
+
   const initDevices = (): Device => {
     let type = DeviceType.PC;
     if (formValues.devices?.length !== 0) {
@@ -56,7 +64,6 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
 
   const handleChange = <K extends keyof FormValues>(field: K, value: FormValues[K]) => {
     const newValues = { ...formValues, [field]: value };
-    setFormValues(newValues);
     onChange?.(newValues);
   };
 
@@ -150,15 +157,25 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
                     <Label htmlFor="i18n">多语言设置</Label>
                     <CascadeMultiSelect
                       items={languageNodes}
-                      values={Object.values(formValues.devices[index].languagePageMap) as string[][]}
+                      values={Object.values(formValues.devices[index].languagePageMap).reduce((arr: string[][], item) => {
+                        return arr.concat([item.ids]);
+                      }, [])}
                       onSelect={(value) => {
                         console.log(value, "选中");
                         if (!value) return false;
                         const currentLanguage = {} as Device["languagePageMap"];
                         value.forEach((arr) => {
                           const setKey = arr[0] as Language;
-                          currentLanguage[setKey] = arr;
+                          if (arr.length === 1) {
+                            // 未选中子节点，默认设置为初始节点
+                            arr = arr.concat(defaultNodes.current.slice(1));
+                          }
+                          if (!currentLanguage[setKey]) {
+                            currentLanguage[setKey] = { ids: [], nodes: [], schema: {} };
+                          }
+                          currentLanguage[setKey].ids = arr as string[];
                         });
+                        console.log(currentLanguage, "currentLanguage");
                         const updatedDevices = formValues.devices!.map((d, i) => (i === index ? { ...d, languagePageMap: currentLanguage } : d));
 
                         handleChange("devices", updatedDevices);

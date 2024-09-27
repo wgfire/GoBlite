@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 
 type ServiceType = "online" | "development";
 
-interface ServiceData {
+export interface ServiceData {
   type: ServiceType;
   address: string;
   token?: string;

@@ -166,12 +166,14 @@ export const Resizer = ({ propKey, children, ...props }: any) => {
   return (
     <Resizable
       enable={["top", "left", "bottom", "right", "topLeft", "topRight", "bottomLeft", "bottomRight"].reduce((acc: any, key) => {
-        acc[key] = active && inNodeContext;
+        acc[key] = active && inNodeContext && !isRootNode;
         return acc;
       }, {})}
       className={cx([
         {
           "m-auto": isRootNode,
+          "max-h-full":isRootNode,
+          "overflow-hidden":isRootNode,
           flex: true,
         },
       ])}

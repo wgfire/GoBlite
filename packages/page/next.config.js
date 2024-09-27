@@ -31,6 +31,13 @@ module.exports = {
   },
   webpack(config, { dev, isServer }) {
     console.log(dev, isServer, "环境");
+    config.resolve = {
+      ...config.resolve,
+      alias: {
+        ...config.resolve.alias,
+      },
+      mainFields: ["module", "main", "browser"],
+    };
     if (!dev && !isServer) {
       console.log("config.externals", config.externals);
       config.externals = config.externals || [];

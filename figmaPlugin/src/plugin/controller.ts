@@ -1,7 +1,5 @@
-
 import { EventManager } from "./message";
 import { ExportPreview } from "@/components/module/Preview";
-
 
 figma.showUI(__html__, {
   width: 1000,
@@ -27,7 +25,7 @@ async function exportHandel(
   console.log(selectedNodes, "选中的节点");
   for (const node of selectedNodes) {
     const res = await node.exportAsync({ format: "PNG" });
-    const base64Image = figma.base64Encode(res);
+    const base64Image = `data:image/png;base64,${figma.base64Encode(res)}`;
     result.push({ src: base64Image, name: node.name, id: node.id });
   }
 
@@ -40,7 +38,7 @@ async function exportHandel(
 const initUIData = () => {
   const currentPage = figma.currentPage;
   const selectedNodes = currentPage.selection[0];
-  //@ts-ignore
+  //@ts-ignore ts类型有误无法识别 children
   const allChildren = currentPage.selection[0].parent.children
     .map((item) => {
       //@ts-ignore
@@ -107,7 +105,6 @@ message.addHandler("init", () => {
 });
 
 message.addHandler("FigmaPreview", async (arg) => {
-  console.log(arg, "FigmaPreview接收消息");
   const sceneNodePromise = arg.map(async (el: string) => {
     const result = await figma.getNodeByIdAsync(el);
     return result;

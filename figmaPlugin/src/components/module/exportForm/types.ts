@@ -2,7 +2,7 @@
 export interface Device {
   type: DeviceType; // 设备类型，如PC，iPad，H5
   pageType: PageType; // 页面类型，如静态图片，图文并茂
-  languagePageMap: Partial<Record<Language, object[] | string[]>>;
+  languagePageMap: Partial<Record<Language, { ids: string[]; nodes: unknown[]; schema: object }>>;
 }
 export enum DeviceType {
   PC = "pc",

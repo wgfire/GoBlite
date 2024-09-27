@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from "react";
 
 export interface StateProps {
-  nodes: any;
+  nodes: {label: string, value: string}[];
 }
 
 const PluginContext = createContext<{
