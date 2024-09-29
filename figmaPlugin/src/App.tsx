@@ -98,7 +98,7 @@ export default function App() {
       {/* Sidebar */}
       <div className="w-64 border-r">
         <div className="p-4">
-          <h2 className="text-lg font-semibold mb-4">Go Blity Figma </h2>
+          <h2 className="text-lg font-semibold mb-4">Go Blite Figma </h2>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="config">导出配置</TabsTrigger>

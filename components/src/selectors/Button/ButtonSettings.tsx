@@ -2,7 +2,7 @@ import React from "react";
 
 import { ToolbarSection, ToolbarItem } from "../../editor/Toolbar";
 import { ToolbarRadio } from "../../editor/Toolbar/ToolbarRadio";
-import events from "@goblit/events";
+import events from "@go-blite/events";
 import { FormControl, Input, InputLabel } from "@material-ui/core";
 export const ButtonSettings = () => {
   const eventOptions = Object.values(events).map((key) => {

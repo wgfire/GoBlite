@@ -9,7 +9,6 @@ module.exports = {
       ...config.resolve,
       alias: {
         ...config.resolve.alias,
-        // "@goblit/components": path.resolve(__dirname, "node_modules/@goblit/components")
       },
       mainFields: ["module", "main", "browser"],
     };

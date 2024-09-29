@@ -1,5 +1,5 @@
 {
-  "name": "@goblit/components",
+  "name": "@go-blite/components",
   "version": "1.0.0",
   "private": false,
   "type": "module",
@@ -19,7 +19,7 @@
     "@craftjs/layers": "0.2.5",
     "@material-ui/core": "4.5.2",
     "@material-ui/icons": "4.5.1",
-    "@goblit/events": "workspace:^",
+    "@go-blite/events": "workspace:^",
     "autoprefixer": "latest",
     "classnames": "2.2.6",
     "cssnano": "4.1.10",

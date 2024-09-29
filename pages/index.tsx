@@ -1,5 +1,5 @@
 "use client";
-import { Design } from "@goblit/components";
+import { Design } from "@go-blite/components";
 function App() {
   return (
     <div className="h-full">

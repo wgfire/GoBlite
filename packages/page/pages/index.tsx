@@ -1,7 +1,7 @@
 import { createMuiTheme } from "@material-ui/core";
 import { ThemeProvider } from "@material-ui/core/styles";
 import React from "react";
-import { Preview } from "@goblit/components";
+import { Preview } from "@go-blite/components";
 import data from "../database1.json";
 const theme = createMuiTheme({
   typography: {

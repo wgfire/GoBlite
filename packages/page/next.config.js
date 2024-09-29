@@ -11,7 +11,7 @@ const events = ["register", "login"];
 // 获取要插入的脚本路径
 const scriptsToInsert = events
   .map((event) => {
-    const scriptPath = path.resolve(__dirname, "node_modules/@goblit/events/dist/umd", `${event}/${event}.umd.js`);
+    const scriptPath = path.resolve(__dirname, "node_modules/@go-blite/events/dist/umd", `${event}/${event}.umd.js`);
     if (fs.existsSync(scriptPath)) {
       return scriptPath;
     }
@@ -22,7 +22,7 @@ const scriptsToInsert = events
 console.log("scriptsToInsert", scriptsToInsert);
 module.exports = {
   assetPrefix: ".",
-  transpilePackages: ["@goblit/components"],
+  transpilePackages: ["@go-blite/components"],
   exportPathMap: async function (defaultPathMap, ctx) {
     ctx.outDir = "out";
     return {
@@ -42,7 +42,7 @@ module.exports = {
       console.log("config.externals", config.externals);
       config.externals = config.externals || [];
       config.externals.push({
-        "@goblit/events": "[]",
+        "@go-blite/events": "[]",
       });
     }
     if (process.env.NODE_ENV === "production") {

@@ -1,5 +1,5 @@
 {
-  "name": "@goblit/figma-plugin",
+  "name": "@go-blite/figma-plugin",
   "private": true,
   "version": "0.0.0",
   "type": "module",

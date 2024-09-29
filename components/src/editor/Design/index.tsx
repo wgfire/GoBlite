@@ -25,7 +25,7 @@ export const Design: React.FC<DesignProps> = (props) => {
   return (
     <PlatformProvider >
       <div className="h-full">
-        <NextSeo title="Craft.js" description="A React framework for building drag-n-drop page editors." />
+        <NextSeo title="Go-Blite design" description="简单、高效的静态设计器平台" />
         <Editor resolver={resolvers} enabled={false} onRender={RenderNode}>
           <Viewport>
             <Frame data={props.schema}>
