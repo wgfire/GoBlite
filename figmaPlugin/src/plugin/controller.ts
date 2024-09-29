@@ -58,12 +58,13 @@ const initUIData = () => {
     };
   });
 
-  console.log(currentPage, "当前页面", previewData);
+  console.log(currentPage, "当前页面", previewData,figma.fileKey, "文件key");
 
   if (selectedNodes) {
     figma.ui.postMessage({
       type: "init",
       data: {
+        fileKey: figma.fileKey,
         id: selectedNodes.id,
         name: currentPage.name,
         width: selectedNodes.width,
@@ -100,6 +101,7 @@ figma.on("selectionchange", () => {
 });
 
 message.addHandler("init", () => {
+
   initUIData();
   initPreview();
 });
@@ -112,5 +114,6 @@ message.addHandler("FigmaPreview", async (arg) => {
   const sceneNode = (await Promise.all(sceneNodePromise)).filter((node) => !!node);
   initPreview(sceneNode);
 });
+
 
 //figma.closePlugin();

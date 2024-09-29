@@ -4,7 +4,8 @@
   "api": "1.0.0",
   "main": "./dist/code.js",
   "capabilities": [],
-  "enableProposedApi": false,
+  "enableProposedApi": true,
+  "enablePrivatePluginApi":true,
   "documentAccess": "dynamic-page",
   "editorType": [
     "figma"

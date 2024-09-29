@@ -99,7 +99,7 @@ export const ExportForm: React.FC<FormProps> = ({ defaultValues, values, onChang
         <>
           {formValues.devices?.map((device, index) => {
             return (
-              <Card className="space-y-2 col-span-2" key={device.type}>
+              <Card className="space-y-2 col-span-2 fade-in-5 animate-in duration-500  " key={device.type}>
                 <CardHeader>
                   <CardTitle>
                     <div className="flex justify-between items-center">

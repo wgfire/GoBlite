@@ -10,6 +10,7 @@ import { debounce } from "lodash-es";
 import { ExportPreview } from "./components/module/exportPreview";
 import { ExportPreviewType } from "./components/module/Preview";
 export interface initDataProps {
+  fileKey: string;
   id: string;
   name: string;
   width: number;
@@ -32,7 +33,7 @@ const defaultValues: FormValues = {
 export default function App() {
   const [serviceData, setServiceData] = useState<ServiceData | null>(null);
   const [activeTab, setActiveTab] = useState("config");
-  const [_pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0 });
+  const [_pageData, setPageData] = useState<initDataProps>({ id: "", name: "", width: 0, height: 0, fileKey: "" });
   const [previewData, setPreviewData] = useState<ExportPreviewType[]>();
   const [formValues, setFormValues] = useState<FormValues>(defaultValues);
   const [previewTab, setPreviewTab] = useState({
@@ -48,7 +49,7 @@ export default function App() {
       alert("请先配置线上服务");
     }
   };
-  console.log(formValues, "formValues");
+  console.log(formValues, "formValues", _pageData.fileKey);
   const initTakeOverData = (data: initDataProps) => {
     const devices = defaultValues.devices;
     devices[0].languagePageMap[Language.EN] = {
@@ -94,7 +95,7 @@ export default function App() {
   }, 500);
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex  bg-background">
       {/* Sidebar */}
       <div className="w-64 border-r">
         <div className="p-4">
