@@ -1,0 +1,15 @@
+{
+  "name": "落地页 插件",
+  "id": "1414097839361310991",
+  "api": "1.0.0",
+  "main": "./dist/code.js",
+  "capabilities": [],
+  "enableProposedApi": true,
+  "enablePrivatePluginApi": true,
+  "documentAccess": "dynamic-page",
+  "editorType": ["figma"],
+  "ui": "./dist/index.html",
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  }
+}

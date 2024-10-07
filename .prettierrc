@@ -1,0 +1,12 @@
+{
+  "endOfLine": "auto",
+  "singleQuote": false,
+  "bracketSpacing": true,
+  "trailingComma": "none",
+  "useTabs": false,
+  "semi": true,
+  "printWidth": 120,
+  "jsxSingleQuote": false,
+  "arrowParens": "avoid",
+  "plugins": ["prettier-plugin-classnames"]
+}

@@ -1,0 +1,8 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  "plugins": ["react-refresh", "@figma/eslint-plugin-figma-plugins"],
+  "rules": {
+    "react-refresh/only-export-components": "warn",
+    "@typescript-eslint/no-require-imports": "off"
+  }
+}

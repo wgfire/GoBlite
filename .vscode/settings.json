@@ -1,0 +1,10 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.insertSpaces": false, // 禁用空格
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // 设置 Prettier 为默认格式化工具
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "editor.formatOnSave": true,
+  "files.eol": "\n"
+}

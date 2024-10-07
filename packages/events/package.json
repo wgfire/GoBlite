@@ -1,0 +1,23 @@
+{
+  "name": "@go-blite/events",
+  "version": "1.0.0",
+  "main": "./dist/lib/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/src/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "rollup --config rollup.config.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {},
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup-plugin-copy": "^3.5.0",
+    "globby": "^14.0.2",
+    "rollup": "^4.21.0",
+    "rollup-plugin-typescript2": "^0.36.0"
+  }
+}
