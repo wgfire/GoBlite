@@ -4,10 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "build": "tsc -b && vite build --watch",
+    "build": "vite build --watch",
     "lint": "eslint ."
   },
   "dependencies": {
+    "@go-blite/shadcn": "workspace:^",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",

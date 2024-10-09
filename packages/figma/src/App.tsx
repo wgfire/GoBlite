@@ -1,7 +1,8 @@
 import "./App.css";
 import { useEffect, useState } from "react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "./components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@go-blite/shadcn/tabs";
+import { Button } from "@go-blite/shadcn/button";
+// import { Button } from "@go-blite/shadcn/button";
 import { ExportService, ServiceData } from "./components/module/exportService";
 import { ExportForm, FormValues } from "./components/module/exportForm";
 import { usePluginContext } from "./context";

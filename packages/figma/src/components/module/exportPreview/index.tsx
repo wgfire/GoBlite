@@ -1,6 +1,6 @@
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@go-blite/shadcn/tabs";
 import { Device, DeviceType, Language } from "../exportForm/types";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@go-blite/shadcn/select";
 import { useState } from "react";
 import { ExportPreviewType, Preview } from "../Preview";
 

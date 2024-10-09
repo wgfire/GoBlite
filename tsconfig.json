@@ -16,6 +16,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "packages/shadcn/scripts/autoIndexImport.js"],
   "exclude": ["node_modules"]
 }

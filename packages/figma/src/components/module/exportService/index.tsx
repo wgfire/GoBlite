@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn/tabs";
+import { Input } from "@go-blite/shadcn/input";
+import { Button } from "@go-blite/shadcn/button";
+import { Label } from "@go-blite/shadcn/label";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@go-blite/shadcn/card";
 
 type ServiceType = "online" | "development";
 

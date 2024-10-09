@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@go-blite/shadcn/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@go-blite/shadcn/command";
+import { Button } from "@go-blite/shadcn/button";
 import { Check, ChevronDown, ChevronRight } from "lucide-react";
 
 interface TreeNode {

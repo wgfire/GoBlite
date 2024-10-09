@@ -1,15 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@go-blite/shadcn/input";
+import { Label } from "@go-blite/shadcn/label";
+import { Separator } from "@go-blite/shadcn/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@go-blite/shadcn";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@go-blite/shadcn/card";
+import { Button } from "@go-blite/shadcn/button";
 import { DeviceType, PageType, Device, Language } from "./types";
 import { devicesData, languageData, pageTypeData } from "./const";
 import { usePluginContext } from "@/context";
-import { CascadeMultiSelect } from "@/components/ui/cascadMSelect";
+import { CascadeMultiSelect } from "@go-blite/shadcn/cascadMSelect";
 import { useOnce } from "@/hooks/useOnce";
 export interface FormValues {
   id: string;
