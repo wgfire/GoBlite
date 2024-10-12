@@ -1,0 +1,11 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer utilities {
+  .clear-child-borders > * {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}

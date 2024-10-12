@@ -1,0 +1,33 @@
+{
+  "name": "@go-blite/design",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@craftjs/core": "^0.2.0",
+    "@craftjs/layers": "0.2.5",
+    "@go-blite/events": "workspace:*",
+    "@go-blite/shadcn": "workspace:*",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.439.0",
+    "react-contenteditable": "^3.3.7"
+  },
+  "peerDependencies": {
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react-swc": "^3.5.0",
+    "vite": "^4.4.5",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.3.2"
+  }
+}

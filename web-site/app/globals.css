@@ -25,3 +25,19 @@ body {
     text-wrap: balance;
   }
 }
+
+
+@layer components {
+  .bg-douyin {
+    @apply bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500;
+  }
+  
+  .text-douyin {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500;
+  }
+  
+  .btn-douyin {
+    @apply bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600;
+  }
+}
+

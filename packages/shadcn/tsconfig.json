@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "scripts/autoIndexImport.js"],
+  "include": ["**/*.ts", "**/*.tsx", "scripts/*.js"],
   "exclude": ["node_modules", "postcss.config.js"]
 }

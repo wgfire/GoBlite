@@ -1,0 +1,47 @@
+# Go-Blite 静态站点生成平台
+
+Go-Blite 为静态站点生成平台,支持从Figma导入静态资源到平台进行渲染构建、一键部署以及页面管理。
+
+# 项目介绍（仓库搭建中-未完成）
+
+## 项目结构
+
+该项目采用 monorepo 结构,包含以下子项目:
+
+- `web-site`: Web端开发平台,使用Next.js开发
+- `packages/design`: 静态站点设计器，核心开发平台
+- `packages/shadcn`: 基础UI组件库,使用TailwindCSS
+- `packages/figma`: Figma插件,用于将设计稿导入平台
+- `packages/events`: 静态站点业务事件库,处理静态站点业务逻辑
+
+## 技术栈
+
+- React 18
+- Next.js 14
+- TypeScript
+- TailwindCSS
+- Vite
+- Rollup (用于packages/events)
+- ESLint
+- Prettier
+
+## 开发指南
+
+### 提交规范
+
+- 使用 npm run commit 选择信息进行提交，提交规范使用了git-cz来进行自定义
+- 除了初始化项目搭建外，其他提交不超过5个文件
+- 提交必须过eslint ，不可盲目修改 eslint rules
+
+### 环境要求
+
+- Node.js 18+
+- pnpm 8+
+
+### 安装依赖
+
+- pnpm install
+
+## 待处理问题
+
+- [ ] eslint-config-next 目前支持eslint 8.x 版本,但是eslint 8有些依赖已经废弃,后续需要单独安装eslint各个依赖并升级到eslint 9.x 版本

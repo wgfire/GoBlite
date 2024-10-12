@@ -6,6 +6,7 @@ import { globby } from "globby";
 import path from "path";
 import { defineConfig } from "vite";
 import typescript from "vite-plugin-dts";
+import componentCssPlugin from "./scripts/vite-plugin-component-css";
 export default async () => {
   const files = await globby(["src/components/**/*.tsx"], {
     // ignore: ["src/components/index.tsx"]
@@ -16,7 +17,7 @@ export default async () => {
       react(),
       typescript({
         outDir: "dist", // 类型文件的输出目录
-        exclude: ["vite.config.ts", "scripts"],
+        exclude: ["vite.config.ts", "scripts", "tailwind.config.ts"],
         beforeWriteFile: (filePath, content) => {
           // 根据文件路径名称提取文件夹名称,并且移除文件后缀
           const filename = path.basename(filePath).split(".")[0];
@@ -29,7 +30,8 @@ export default async () => {
           const newFilePath = path.join(pathname, filename, "index.d.ts");
           return { filePath: newFilePath, content };
         }
-      })
+      }),
+      componentCssPlugin()
     ],
     resolve: {
       alias: {
@@ -52,8 +54,8 @@ export default async () => {
             dir: "dist",
             exports: "named",
             chunkFileNames: "vendor/[name].js",
+            assetFileNames: "style/[name].[ext]",
             entryFileNames: chunk => {
-              console.log(chunk, "chunk");
               if (chunk.name === "index") {
                 return "components/index.js";
               }

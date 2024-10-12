@@ -6,14 +6,20 @@
   "scripts": {
     "build": " vite build  ",
     "tsc": "tsc --build",
+    "build-css": "node ./scripts/build-css.js",
     "autoIndex": "node ./scripts/autoIndexImport.js"
   },
   "exports": {
+    "./style": {
+      "import": "./dist/components/style.css",
+      "require": "./dist/components/style.css"
+    },
+    "./tailwind.config": "./tailwind.config.ts",
     "./*": {
       "import": "./dist/components/ui/*/index.js",
       "types": "./dist/components/ui/*/index.d.ts"
     },
-    ".":{
+    ".": {
       "import": "./dist/components/index.js",
       "types": "./dist/components/index.d.ts"
     }
@@ -21,7 +27,8 @@
   "types": "./dist/components/index.d.ts",
   "files": [
     "dist",
-    "package.json"
+    "package.json",
+    "tailwind.config.ts"
   ],
   "sideEffects": false,
   "dependencies": {

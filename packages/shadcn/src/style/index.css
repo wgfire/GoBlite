@@ -57,13 +57,14 @@ body {
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
+    --radius: 0.75rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
   }
+
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
@@ -83,7 +84,7 @@ body {
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 212.7 26.8% 83.9;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -94,9 +95,57 @@ body {
 
 @layer base {
   * {
-    @apply border;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
   }
 }
+
+/*第二套主题*/
+/* @layer base {
+  :root {
+    --background: 30 63% 99%;
+    --foreground: 30 63% 1%;
+    --muted: 150 20% 85%;
+    --muted-foreground: 150 15% 33%;
+    --popover: 30 63% 99%;
+    --popover-foreground: 30 63% 1%;
+    --card: 30 63% 99%;
+    --card-foreground: 30 63% 1%;
+    --border: 30 14% 91%;
+    --input: 30 14% 91%;
+    --primary: 30 67% 12%;
+    --primary-foreground: 30 67% 72%;
+    --secondary: 150 67% 12%;
+    --secondary-foreground: 150 67% 52%;
+    --accent: 270 67% 12%;
+    --accent-foreground: 270 67% 72%;
+    --destructive: 1 96% 33%;
+    --destructive-foreground: 1 96% 93%;
+    --ring: 30 67% 12%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 30 47% 0%;
+    --foreground: 30 28% 100%;
+    --muted: 150 20% 15%;
+    --muted-foreground: 150 15% 67%;
+    --popover: 30 47% 0%;
+    --popover-foreground: 30 28% 100%;
+    --card: 30 47% 0%;
+    --card-foreground: 30 28% 100%;
+    --border: 30 14% 13%;
+    --input: 30 14% 13%;
+    --primary: 30 67% 12%;
+    --primary-foreground: 30 67% 72%;
+    --secondary: 150 67% 12%;
+    --secondary-foreground: 150 67% 52%;
+    --accent: 270 67% 12%;
+    --accent-foreground: 270 67% 72%;
+    --destructive: 1 96% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 30 67% 12%;
+  }
+} */

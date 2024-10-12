@@ -1,4 +1,6 @@
 import Image from "next/image";
+import { Button } from "@go-blite/shadcn/button";
+
 export default function Home() {
   return (
     <div
@@ -14,6 +16,7 @@ export default function Home() {
           height={38}
           priority
         />
+        <Button>Next.js</Button>
       </main>
     </div>
   );
