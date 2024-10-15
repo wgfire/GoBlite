@@ -1,8 +1,6 @@
 import { useNode, useEditor } from "@craftjs/core";
-import _ContentEditable from "react-contenteditable";
+import ContentEditable from "react-contenteditable";
 import { TextSettings } from "./TextSettings";
-
-const ContentEditable = _ContentEditable.default;
 
 export type TextProps = {
   fontSize: string;
@@ -25,16 +23,16 @@ export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, mar
   return (
     <ContentEditable
       innerRef={connect}
-      html={text} // innerHTML of the editable div
+      html={text}
       disabled={!enabled}
       onChange={e => {
         setProp(prop => (prop.text = e.target.value), 500);
-      }} // use true to disable editing
-      tagName="h2" // Use a custom HTML tag (uses a div by default)
+      }}
+      tagName="h2"
       style={{
         width: "100%",
-        margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
-        color: `rgba(${Object.values(color)})`,
+        margin: `${margin?.[0]}px ${margin?.[1]}px ${margin?.[2]}px ${margin?.[3]}px`,
+        color: `rgba(${Object.values(color || { r: 0, g: 0, b: 0, a: 1 })})`,
         fontSize: `${fontSize}px`,
         textShadow: `0px 0px 2px rgba(0,0,0,${(shadow || 0) / 100})`,
         fontWeight,

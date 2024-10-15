@@ -6,9 +6,7 @@ import { Container } from "@/selectors/Container";
 import { useDesignContext } from "@/context/useDesignContext";
 
 export const Design: React.FC = React.memo(() => {
-  const { resolver, schema, onRender, publish } = useDesignContext({ publish: true });
-
-  console.log(resolver, publish, "xx");
+  const { resolver, schema, onRender } = useDesignContext({ publish: true });
 
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
@@ -18,7 +16,6 @@ export const Design: React.FC = React.memo(() => {
         canvas
         is={Container}
         width="100%"
-        height="100%"
         background={{ r: 255, g: 255, b: 255, a: 1 }}
         padding={["10", "10", "10", "10"]}
         custom={{ displayName: "App" }}
@@ -28,7 +25,7 @@ export const Design: React.FC = React.memo(() => {
   );
 
   return (
-    <div className="h-full w-full">
+    <div className="h-screen">
       <Editor resolver={resolver} enabled={true} onRender={renderCallback}>
         <ViewImport>
           <Frame data={schema}>{frameElement}</Frame>

@@ -1,9 +1,12 @@
 export const isPercentage = (val: string) => typeof val === "string" && val.indexOf("%") > -1;
 
-export const percentToPx = (value: string, comparativeValue: number) => {
-  if (value.indexOf("px") > -1 || value === "auto" || !comparativeValue) return value;
-  const percent = parseInt(value);
-  return (percent / 100) * comparativeValue + "px";
+export const percentToPx = (value: string | number, comparativeValue: number) => {
+  if (typeof value === "string") {
+    if (value.indexOf("px") > -1 || value === "auto" || !comparativeValue) return value;
+    const percent = parseInt(value);
+    return (percent / 100) * comparativeValue + "px";
+  }
+  return (value / 100) * comparativeValue + "px";
 };
 export const pxToPercent = (value: number, comparativeValue: number) => {
   const val = (Math.abs(value) / comparativeValue) * 100;

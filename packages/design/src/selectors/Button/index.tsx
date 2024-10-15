@@ -16,7 +16,7 @@ export const Button: UserComponent<ButtonProps> = ({ text, variant = "default", 
   } = useNode();
 
   return (
-    <ShadcnButton ref={ref => connect(drag(ref as HTMLElement))} variant={variant} size={size}>
+    <ShadcnButton ref={ref => connect(drag(ref as HTMLElement))} variant={variant} size={size} className="rounded-sm">
       {text}
     </ShadcnButton>
   );

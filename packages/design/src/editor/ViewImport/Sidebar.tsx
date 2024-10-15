@@ -5,7 +5,7 @@ import clsx from "clsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn/collapsible";
 import { Edit, Layers as LayersIcon, ChevronDown } from "lucide-react";
 import { Toolbar } from "../Toolbar";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn";
 const SidebarItem: React.FC<{
   title: string;
   icon: React.ReactNode;
@@ -29,24 +29,42 @@ const SidebarItem: React.FC<{
 };
 
 export const Sidebar: React.FC = () => {
-  const { enabled } = useEditor(state => ({
-    enabled: state.options.enabled
-  }));
+  const { enabled, name } = useEditor(state => {
+    const [currentNodeId] = state.events.selected;
+    return {
+      enabled: state.options.enabled,
+      name: state.nodes[currentNodeId]?.data?.displayName
+    };
+  });
 
-  // if (!enabled) return null;
+  if (!enabled) return null;
 
   return (
-    <div className={clsx("w-64 bg-white shadow-md transition-all", enabled ? "opacity-100" : "opacity-0 w-0")}>
-      <div className="flex flex-col h-full">
-        <SidebarItem title="Customize" icon={<Edit className="h-4 w-4" />} className="flex-[0.6]">
-          <Toolbar />
-        </SidebarItem>
-        <SidebarItem title="Layers" icon={<LayersIcon className="h-4 w-4" />}>
-          <div className="h-64 overflow-auto">
-            <Layers expandRootOnLoad={true} />
+    <div
+      className={clsx(
+        " bg-white shadow-md transition-all flex-shrink-0",
+        "py-2",
+        enabled ? "opacity-100" : "opacity-0 w-0"
+      )}
+    >
+      <Tabs defaultValue="props" className="h-full w-[300px]">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="props">属性配置</TabsTrigger>
+          <TabsTrigger value="build">部署信息</TabsTrigger>
+        </TabsList>
+        <TabsContent value="props">
+          <div className="flex flex-col h-full">
+            <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="flex-[0.6]">
+              <Toolbar />
+            </SidebarItem>
+            <SidebarItem title="层级" icon={<LayersIcon className="h-4 w-4" />} className="flex-[0.4]">
+              <div className="h-64 overflow-auto">
+                <Layers expandRootOnLoad={true} />
+              </div>
+            </SidebarItem>
           </div>
-        </SidebarItem>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

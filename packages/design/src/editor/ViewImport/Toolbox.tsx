@@ -29,7 +29,7 @@ export const Toolbox: React.FC = () => {
   if (!enabled) return null;
 
   return (
-    <div className="h-full flex flex-col bg-white shadow-md px-4 space-y-2">
+    <div className="h-full flex flex-col bg-white shadow-md px-4 space-y-2 flex-shrink-0">
       <div className="h-12 flex items-center">
         <Select defaultValue="toolbox">
           <SelectTrigger className="w-[120px]">
@@ -53,9 +53,7 @@ export const Toolbox: React.FC = () => {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div
-                      ref={ref => create(ref!, <Element canvas is={Container} height="300px" width="300px"></Element>)}
-                    >
+                    <div ref={ref => create(ref!, <Element canvas is={Container} height="300px"></Element>)}>
                       <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-start">
                         <LayoutGrid className="w-4 h-4 mr-2" />
                         容器

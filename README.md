@@ -27,6 +27,12 @@ Go-Blite 为静态站点生成平台,支持从Figma导入静态资源到平台�
 
 ## 开发指南
 
+### 协作方式
+
+1. fork此仓库到自己的项目里，项目最新分支默认为main分支
+2. 从main分支拉取一个新分支，分支名以feature/开头，例如feature/add-login-component
+3. 提交合并发起pr,选择对应的进行合并
+
 ### 提交规范
 
 - 使用 npm run commit 选择信息进行提交，提交规范使用了git-cz来进行自定义

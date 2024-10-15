@@ -4,17 +4,28 @@ import { ToolbarItem } from "./ToolbarItem";
 import { ToolbarSection } from "./ToolbarSection";
 
 export const Toolbar: React.FC = () => {
-  const { selected } = useEditor(state => {
-    const currentNodeId = state.events.selected;
+  const { active, related } = useEditor((state, query) => {
+    const currentlySelectedNodeId = query.getEvent("selected").first();
     return {
-      selected: currentNodeId && state.nodes[currentNodeId]
+      active: currentlySelectedNodeId,
+      related: currentlySelectedNodeId && state.nodes[currentlySelectedNodeId].related
     };
   });
 
   return (
     <div className="p-4 bg-background border-border">
-      {selected && selected.related && selected.related.toolbar && <selected.related.toolbar />}
-      {!selected && <div className="text-center text-muted-foreground">Select an element to edit its properties</div>}
+      {active && related.toolbar && React.createElement(related.toolbar)}
+      {!active && (
+        <div
+          className="px-5 py-2 flex flex-col items-center h-full justify-center text-center"
+          style={{
+            color: "rgba(0, 0, 0, 0.5607843137254902)",
+            fontSize: "11px"
+          }}
+        >
+          <h2 className="text-sm">拖拽或者选中组件来开始配置</h2>
+        </div>
+      )}
     </div>
   );
 };

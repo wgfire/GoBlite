@@ -1,6 +1,7 @@
 import React, { CSSProperties } from "react";
-import { useNode, UserComponent } from "@craftjs/core";
+import { UserComponent } from "@craftjs/core";
 import { ContainerSettings } from "./ContainerSettings";
+import { Resizer } from "@/components/Resizer";
 
 export interface ContainerProps {
   background: Record<"r" | "g" | "b" | "a", number>;
@@ -23,7 +24,7 @@ const defaultProps: ContainerProps = {
   fillSpace: "no",
   padding: ["0", "0", "0", "0"],
   margin: ["0", "0", "0", "0"],
-  background: { r: 255, g: 255, b: 255, a: 0.5 },
+  background: { r: 0, g: 0, b: 0, a: 0.1 },
   color: { r: 0, g: 0, b: 0, a: 1 },
   shadow: 0,
   radius: 0,
@@ -32,9 +33,6 @@ const defaultProps: ContainerProps = {
 };
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
-  const {
-    connectors: { connect, drag }
-  } = useNode();
   const options = {
     ...defaultProps,
     ...props
@@ -53,29 +51,24 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     children
   } = options;
 
-  const bgColor = background
-    ? `rgba(${background.r}, ${background.g}, ${background.b}, ${background.a})`
-    : "transparent";
-
   return (
-    <div
-      ref={ref => connect(drag(ref as HTMLElement))}
+    <Resizer
+      propKey={{ width: "width", height: "height" }}
       style={{
+        justifyContent,
         flexDirection,
         alignItems,
-        justifyContent,
-        background: bgColor,
-        padding: padding ? padding.join(" ") : undefined,
-        margin: margin ? margin.join(" ") : undefined,
-        boxShadow: shadow ? `0 0 ${shadow}px 0 rgba(0, 0, 0, 0.1)` : undefined,
-        borderRadius: radius ? `${radius}px` : undefined,
-        flex: fillSpace === "yes" ? 1 : undefined,
-        color: color ? `rgba(${Object.values(color)})` : undefined
+        background: `rgba(${Object.values(background)})`,
+        color: `rgba(${Object.values(color)})`,
+        padding: `${padding[0]}px ${padding[1]}px ${padding[2]}px ${padding[3]}px`,
+        margin: `${margin[0]}px ${margin[1]}px ${margin[2]}px ${margin[3]}px`,
+        boxShadow: shadow === 0 ? "none" : `0px 3px 100px ${shadow}px rgba(0, 0, 0, 0.13)`,
+        borderRadius: `${radius}px`,
+        flex: fillSpace === "yes" ? 1 : "unset"
       }}
-      className="w-full h-full min-h-[50px] relative"
     >
       {children}
-    </div>
+    </Resizer>
   );
 };
 

@@ -38,8 +38,8 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
   }, [setOptions]);
 
   return (
-    <div className="view">
-      <div className={clsx("flex h-full overflow-hidden flex-row w-full fixed")}>
+    <div className="viewport h-full">
+      <div className={clsx("flex h-full overflow-hidden flex-row w-full")}>
         <Toolbox />
         <div className="page-container flex flex-1 h-full flex-col">
           <Header />

@@ -71,10 +71,10 @@ export const Header: React.FC = () => {
 
       {/* 中间回退前进操作 */}
       <div className="flex space-x-2">
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => actions.history.undo()}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" onClick={() => actions.history.redo()}>
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>

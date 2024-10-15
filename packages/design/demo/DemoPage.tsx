@@ -17,9 +17,9 @@ const DemoContent: React.FC = () => {
     []
   );
 
-  const { resolver, schema, assets, publish } = useDesignContext(initialProps);
+  const { resolver, schema } = useDesignContext(initialProps);
 
-  console.log({ resolver, schema, assets, publish }, "Design context data");
+  console.log({ resolver, schema }, "Design context data");
 
   return <Design />;
 };

@@ -1,0 +1,59 @@
+.indicator-1 {
+  left: -0.375rem;
+  top: -0.375rem;
+}
+
+.indicator-2 {
+  right: -0.375rem;
+  top: -0.375rem;
+}
+
+.indicator-3 {
+  left: -0.375rem;
+  bottom: -0.375rem;
+}
+
+.indicator-4 {
+  right: -0.375rem;
+  bottom: -0.375rem;
+}
+
+.bound-row .indicator-1 {
+  left: 50%;
+  top: -0.375rem;
+  transform: translateX(-50%);
+}
+
+.bound-row .indicator-2 {
+  display: none;
+}
+
+.bound-row .indicator-3 {
+  left: 50%;
+  bottom: -0.375rem;
+  transform: translateX(-50%);
+}
+
+.bound-row .indicator-4 {
+  display: none;
+}
+
+.bound-column .indicator-1 {
+  left: -0.375rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.bound-column .indicator-2 {
+  display: none;
+}
+
+.bound-column .indicator-3 {
+  left: -0.375rem;
+  bottom: 50%;
+  transform: translateY(50%);
+}
+
+.bound-column .indicator-4 {
+  display: none;
+}
