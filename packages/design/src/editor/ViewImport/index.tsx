@@ -49,7 +49,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
             })}
             ref={ref => ref && connectors.select(connectors.hover(ref, null), null)}
           >
-            <div className="relative px-4 py-4 h-full shadow-md">{children}</div>
+            <div className="relative px-4 py-4">{children}</div>
           </div>
         </div>
         <Sidebar />

@@ -1,35 +1,57 @@
-import React, { useMemo } from "react";
-import { Editor, Frame, Element } from "@craftjs/core";
+import React, { useMemo, useEffect } from "react";
+import { Editor, Frame, useEditor, SerializedNodes } from "@craftjs/core";
 import { RenderNode } from "../RenderNode";
 import { ViewImport } from "../ViewImport";
-import { Container } from "@/selectors/Container";
 import { useDesignContext } from "@/context/useDesignContext";
+
+const defaultNode: SerializedNodes = {
+  ROOT: {
+    type: {
+      resolvedName: "Container"
+    },
+    isCanvas: true,
+    props: {
+      width: "100%",
+      background: { r: 255, g: 255, b: 255, a: 1 },
+      padding: 10
+    },
+    nodes: [],
+    linkedNodes: {},
+    parent: null,
+    hidden: false,
+    displayName: "Container",
+    custom: { displayName: "App" }
+  }
+};
+
+const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> = ({ schema }) => {
+  const { actions } = useEditor();
+
+  useEffect(() => {
+    console.log(schema, "schema");
+    if (schema && Object.keys(schema).length > 0) {
+      actions.deserialize(schema);
+    } else {
+      actions.deserialize(defaultNode);
+    }
+  }, [schema, actions]);
+
+  return (
+    <ViewImport>
+      <Frame></Frame>
+    </ViewImport>
+  );
+};
 
 export const Design: React.FC = React.memo(() => {
   const { resolver, schema, onRender } = useDesignContext({ publish: true });
 
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
-  const frameElement = useMemo(
-    () => (
-      <Element
-        canvas
-        is={Container}
-        width="100%"
-        background={{ r: 255, g: 255, b: 255, a: 1 }}
-        padding={["10", "10", "10", "10"]}
-        custom={{ displayName: "App" }}
-      />
-    ),
-    []
-  );
-
   return (
     <div className="h-screen">
       <Editor resolver={resolver} enabled={true} onRender={renderCallback}>
-        <ViewImport>
-          <Frame data={schema}>{frameElement}</Frame>
-        </ViewImport>
+        <EditorContent schema={schema} />
       </Editor>
     </div>
   );

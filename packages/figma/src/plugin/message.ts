@@ -4,7 +4,7 @@ interface Events<T> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export class EventManager<T = any> {
+export class EventManager<T> {
   private events: Events<T> = {};
 
   // 注册事件处理程序

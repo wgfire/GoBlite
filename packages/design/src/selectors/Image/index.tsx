@@ -1,4 +1,6 @@
-import { useNode, UserComponent } from "@craftjs/core";
+import { Resizer } from "@/components/Resizer";
+import { UserComponent } from "@craftjs/core";
+import ImageSettings from "./ImageSettings";
 
 export interface ImageProps {
   src: string;
@@ -9,34 +11,36 @@ export interface ImageProps {
 }
 
 export const Image: UserComponent<ImageProps> = ({ src, alt, width, height, objectFit = "cover" }) => {
-  const {
-    connectors: { connect, drag }
-  } = useNode();
-
   return (
-    <div ref={ref => connect(drag(ref as HTMLElement))} className="w-full">
+    <Resizer propKey={{ width: "width", height: "height" }}>
       <img
         src={src}
         alt={alt}
-        className={"max-w-full h-auto cursor-pointer"}
+        loading="lazy"
+        className="max-w-full h-auto cursor-pointer"
         style={{
-          width: typeof width === "number" ? `${width}px` : width,
-          height: typeof height === "number" ? `${height}px` : height,
-          objectFit
+          objectFit,
+          width,
+          height
         }}
       />
-    </div>
+    </Resizer>
   );
 };
 
 Image.craft = {
-  displayName: "Image",
   props: {
     src: "",
-    alt: "",
+    alt: "Image description",
     width: "100%",
     height: "auto",
     objectFit: "cover"
+  },
+  custom: {
+    displayName: "Image"
+  },
+  related: {
+    settings: ImageSettings
   },
   rules: {
     canDrag: () => true

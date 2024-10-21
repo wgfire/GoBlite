@@ -13,11 +13,13 @@ const defaultResolver = {
   Image
 };
 
+export type assetsType = "Image" | "PDF";
+
 export interface DesignContextProps {
   publish?: boolean;
   resolver?: Resolver;
   schema?: string | SerializedNodes;
-  assets?: { name: string; url: string }[];
+  assets?: { name: string; url: string; type: assetsType }[];
   onRender?: React.ComponentType<{ render: React.ReactElement }>;
 }
 

@@ -1,9 +1,7 @@
 import React from "react";
 import { useEditor } from "@craftjs/core";
-import { ToolbarItem } from "./ToolbarItem";
-import { ToolbarSection } from "./ToolbarSection";
 
-export const Toolbar: React.FC = () => {
+export const Settings: React.FC = () => {
   const { active, related } = useEditor((state, query) => {
     const currentlySelectedNodeId = query.getEvent("selected").first();
     return {
@@ -14,7 +12,7 @@ export const Toolbar: React.FC = () => {
 
   return (
     <div className="p-4 bg-background border-border">
-      {active && related.toolbar && React.createElement(related.toolbar)}
+      {active && related.settings && React.createElement(related.settings)}
       {!active && (
         <div
           className="px-5 py-2 flex flex-col items-center h-full justify-center text-center"
@@ -29,5 +27,3 @@ export const Toolbar: React.FC = () => {
     </div>
   );
 };
-
-export { ToolbarItem, ToolbarSection };

@@ -13,7 +13,7 @@ import {
 } from "@go-blite/shadcn/select";
 
 export const Header: React.FC = () => {
-  const { enabled, actions } = useEditor(state => ({
+  const { enabled, actions, query } = useEditor(state => ({
     enabled: state.options.enabled
   }));
 
@@ -84,6 +84,7 @@ export const Header: React.FC = () => {
         <Button
           size="sm"
           onClick={() => {
+            console.log("enabled", query.getSerializedNodes());
             actions.setOptions(options => (options.enabled = !enabled));
           }}
         >

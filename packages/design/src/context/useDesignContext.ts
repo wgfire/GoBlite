@@ -20,7 +20,7 @@ export const useDesignContext = (initialProps?: DesignContextProps) => {
     (newValue: Partial<DesignContextProps>) => {
       updateContext(prevState => {
         const updatedState = { ...prevState, ...newValue };
-        return isEqual(updatedState, prevState) ? updatedState : prevState;
+        return isEqual(updatedState, prevState) ? prevState : updatedState;
       });
     },
     [updateContext]

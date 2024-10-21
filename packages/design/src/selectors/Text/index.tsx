@@ -6,13 +6,14 @@ export type TextProps = {
   fontSize: string;
   textAlign: string;
   fontWeight: string;
-  color: Record<"r" | "g" | "b" | "a", string>;
+  color: Record<"r" | "g" | "b" | "a", number>;
   shadow: number;
   text: string;
-  margin: [string, string, string, string];
+  margin: number;
+  padding: number;
 };
 
-export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, margin }: Partial<TextProps>) => {
+export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, margin, padding }: Partial<TextProps>) => {
   const {
     connectors: { connect },
     setProp
@@ -23,18 +24,18 @@ export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, mar
   return (
     <ContentEditable
       innerRef={connect}
-      html={text}
+      html={text || ""}
       disabled={!enabled}
       onChange={e => {
         setProp(prop => (prop.text = e.target.value), 500);
       }}
       tagName="h2"
       style={{
-        width: "100%",
-        margin: `${margin?.[0]}px ${margin?.[1]}px ${margin?.[2]}px ${margin?.[3]}px`,
+        margin: `${margin}px`,
+        padding: `${padding}px`,
         color: `rgba(${Object.values(color || { r: 0, g: 0, b: 0, a: 1 })})`,
         fontSize: `${fontSize}px`,
-        textShadow: `0px 0px 2px rgba(0,0,0,${(shadow || 0) / 100})`,
+        textShadow: `0px 0px 2px rgba(0,0,0,${shadow || 0})`,
         fontWeight,
         textAlign
       }}
@@ -43,17 +44,20 @@ export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, mar
 };
 
 Text.craft = {
-  displayName: "Text",
+  custom: {
+    displayName: "Text"
+  },
   props: {
-    fontSize: "15",
+    fontSize: "16",
     textAlign: "left",
     fontWeight: "500",
     color: { r: 92, g: 90, b: 90, a: 1 },
-    margin: [0, 0, 0, 0],
+    margin: 0,
+    padding: 0,
     shadow: 0,
     text: "Text"
   },
   related: {
-    toolbar: TextSettings
+    settings: TextSettings
   }
 };

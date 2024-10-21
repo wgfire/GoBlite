@@ -4,8 +4,9 @@ import { Layers } from "@craftjs/layers";
 import clsx from "clsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn/collapsible";
 import { Edit, Layers as LayersIcon, ChevronDown } from "lucide-react";
-import { Toolbar } from "../Toolbar";
+import { Settings } from "../../Settings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn";
+
 const SidebarItem: React.FC<{
   title: string;
   icon: React.ReactNode;
@@ -23,7 +24,7 @@ const SidebarItem: React.FC<{
         </div>
         <ChevronDown className={clsx("h-4 w-4 transition-transform", isOpen ? "transform rotate-180" : "")} />
       </CollapsibleTrigger>
-      <CollapsibleContent className="p-2">{children}</CollapsibleContent>
+      <CollapsibleContent className="h-full overflow-auto pb-10">{children}</CollapsibleContent>
     </Collapsible>
   );
 };
@@ -42,7 +43,7 @@ export const Sidebar: React.FC = () => {
   return (
     <div
       className={clsx(
-        " bg-white shadow-md transition-all flex-shrink-0",
+        "bg-white shadow-md transition-all flex-shrink-0",
         "py-2",
         enabled ? "opacity-100" : "opacity-0 w-0"
       )}
@@ -52,17 +53,13 @@ export const Sidebar: React.FC = () => {
           <TabsTrigger value="props">属性配置</TabsTrigger>
           <TabsTrigger value="build">部署信息</TabsTrigger>
         </TabsList>
-        <TabsContent value="props">
-          <div className="flex flex-col h-full">
-            <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="flex-[0.6]">
-              <Toolbar />
-            </SidebarItem>
-            <SidebarItem title="层级" icon={<LayersIcon className="h-4 w-4" />} className="flex-[0.4]">
-              <div className="h-64 overflow-auto">
-                <Layers expandRootOnLoad={true} />
-              </div>
-            </SidebarItem>
-          </div>
+        <TabsContent value="props" className="h-[calc(100vh-10px)] flex flex-col">
+          <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="max-h-[80%] overflow-hidden">
+            <Settings />
+          </SidebarItem>
+          <SidebarItem title="层级" icon={<LayersIcon className="h-4 w-4" />} className="max-h-[20%] overflow-hidden">
+            <Layers expandRootOnLoad={true} />
+          </SidebarItem>
         </TabsContent>
       </Tabs>
     </div>

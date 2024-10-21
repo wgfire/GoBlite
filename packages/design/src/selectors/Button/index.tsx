@@ -1,6 +1,7 @@
 import { useNode, UserComponent } from "@craftjs/core";
 import { Button as ShadcnButton } from "@go-blite/shadcn/button";
 import { ButtonSettings } from "./ButtonSettings";
+import { Text } from "../Text";
 export interface ButtonProps {
   text: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -8,30 +9,51 @@ export interface ButtonProps {
   background?: Record<"r" | "g" | "b" | "a", number>;
   color?: Record<"r" | "g" | "b" | "a", number>;
   buttonStyle?: "full" | "outline";
-  margin?: [string, string, string, string];
+  margin?: 0;
+  events: {
+    onLoad?: string;
+    onClick?: string;
+  };
 }
-export const Button: UserComponent<ButtonProps> = ({ text, variant = "default", size = "default" }) => {
+export const Button: UserComponent<ButtonProps> = ({
+  text,
+  variant = "default",
+  size = "default",
+  color,
+  background,
+  margin
+}) => {
   const {
     connectors: { connect, drag }
   } = useNode();
-
+  console.log(background, "背景");
   return (
-    <ShadcnButton ref={ref => connect(drag(ref as HTMLElement))} variant={variant} size={size} className="rounded-sm">
-      {text}
+    <ShadcnButton
+      style={{
+        background: `${background ? `rgba(${Object.values(background)})` : ""}`,
+        margin: `${margin}px`
+      }}
+      ref={ref => connect(drag(ref as HTMLElement))}
+      variant={variant}
+      size={size}
+      className="rounded-sm"
+    >
+      <Text text={text} color={color} />
     </ShadcnButton>
   );
 };
 
 Button.craft = {
-  displayName: "Button",
   props: {
-    background: { r: 255, g: 255, b: 255, a: 0.5 },
-    color: { r: 92, g: 90, b: 90, a: 1 },
+    // color: { r: 255, g: 255, b: 255, a: 1 },
     buttonStyle: "full",
     text: "Button",
-    margin: ["5", "0", "5", "0"]
+    margin: 0
+  },
+  custom: {
+    displayName: "Button"
   },
   related: {
-    toolbar: ButtonSettings
+    settings: ButtonSettings
   }
 };
