@@ -3,7 +3,10 @@ import { Editor, Frame, useEditor, SerializedNodes } from "@craftjs/core";
 import { RenderNode } from "../RenderNode";
 import { ViewImport } from "../ViewImport";
 import { useDesignContext } from "@/context/useDesignContext";
-
+import { Container } from "@/selectors/Container";
+import { Text } from "@/selectors/Text";
+import { Button } from "@/selectors/Button";
+import { Image } from "@/selectors/Image";
 const defaultNode: SerializedNodes = {
   ROOT: {
     type: {
@@ -48,9 +51,19 @@ export const Design: React.FC = React.memo(() => {
 
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
+  const defaultResolver = {
+    Container,
+    Text,
+    Button,
+    Image
+  };
+  const setResolver = {
+    ...defaultResolver,
+    ...resolver
+  };
   return (
     <div className="h-screen">
-      <Editor resolver={resolver} enabled={true} onRender={renderCallback}>
+      <Editor resolver={setResolver} enabled={true} onRender={renderCallback}>
         <EditorContent schema={schema} />
       </Editor>
     </div>

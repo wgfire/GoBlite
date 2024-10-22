@@ -24,7 +24,7 @@ const SidebarItem: React.FC<{
         </div>
         <ChevronDown className={clsx("h-4 w-4 transition-transform", isOpen ? "transform rotate-180" : "")} />
       </CollapsibleTrigger>
-      <CollapsibleContent className="h-full overflow-auto pb-10">{children}</CollapsibleContent>
+      <CollapsibleContent className="">{children}</CollapsibleContent>
     </Collapsible>
   );
 };
@@ -44,7 +44,7 @@ export const Sidebar: React.FC = () => {
     <div
       className={clsx(
         "bg-white shadow-md transition-all flex-shrink-0",
-        "py-2",
+        "pt-2",
         enabled ? "opacity-100" : "opacity-0 w-0"
       )}
     >
@@ -53,11 +53,11 @@ export const Sidebar: React.FC = () => {
           <TabsTrigger value="props">属性配置</TabsTrigger>
           <TabsTrigger value="build">部署信息</TabsTrigger>
         </TabsList>
-        <TabsContent value="props" className="h-[calc(100vh-10px)] flex flex-col">
-          <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="max-h-[80%] overflow-hidden">
+        <TabsContent value="props" className="h-[calc(100vh-60px)] overflow-auto mt-0">
+          <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="">
             <Settings />
           </SidebarItem>
-          <SidebarItem title="层级" icon={<LayersIcon className="h-4 w-4" />} className="max-h-[20%] overflow-hidden">
+          <SidebarItem title="层级" icon={<LayersIcon className="h-4 w-4" />} className="">
             <Layers expandRootOnLoad={true} />
           </SidebarItem>
         </TabsContent>

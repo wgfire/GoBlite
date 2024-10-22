@@ -11,7 +11,7 @@ export const Settings: React.FC = () => {
   });
 
   return (
-    <div className="p-4 bg-background border-border">
+    <div className="p-4 pt-0 bg-background border-border">
       {active && related.settings && React.createElement(related.settings)}
       {!active && (
         <div

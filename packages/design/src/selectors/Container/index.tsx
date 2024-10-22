@@ -21,6 +21,7 @@ export interface ContainerProps {
   gap?: number;
   padding: number;
   background?: { r: number; g: number; b: number; a: number };
+  backgroundImage?: string;
   events: {
     onLoad?: string;
     onClick?: string;
@@ -39,16 +40,22 @@ const defaultProps: ContainerProps = {
   background: { r: 0, g: 0, b: 0, a: 0.1 },
   width: "100%",
   height: "auto",
+  backgroundImage: "none",
   customStyle: {}
 };
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
   const {
-    id
-    // actions: { setProp }
+    id,
+    actions: { setProp }
   } = useNode();
   const { translateX, translateY } = useTranslate(id, ROOT_NODE !== id);
 
+  useEffect(() => {
+    setProp((p: ContainerProps) => {
+      p.customStyle!.transform = `translate(${translateX}px, ${translateY}px)`;
+    });
+  }, [translateX, translateY]);
   const options = {
     ...defaultProps,
     ...props
@@ -68,6 +75,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     events,
     display,
     gap,
+    backgroundImage,
     customStyle
   } = options;
 
@@ -76,6 +84,15 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       eval(events.onLoad);
     }
   }, [events]);
+  const styleBg = useMemo(() => {
+    return {
+      background: background ? `rgba(${Object.values(background)})` : undefined,
+      backgroundImage: backgroundImage && backgroundImage !== "none" ? `url(${backgroundImage})` : undefined,
+      backgroundRepeat: "no-repeat",
+      backgroundPosition: "center",
+      backgroundSize: "100% 100%"
+    };
+  }, [background, backgroundImage]);
   const styled = useMemo(() => {
     const style = { ...customStyle };
     if (display === "grid") {
@@ -85,6 +102,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     return style;
   }, [gridCols, gridRows, display, customStyle]);
 
+  console.log(backgroundImage, "图片");
   return (
     <Resizer
       id={id}
@@ -94,12 +112,11 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
         flexDirection,
         alignItems,
         display,
-        transform: `translate(${translateX}px, ${translateY}px)`,
         gap: gap ?? 0,
-        background: background ? `rgba(${Object.values(background)})` : undefined,
         padding: `${padding}px`,
         margin: `${margin}px`,
         flex: fillSpace === "yes" ? 1 : "unset",
+        ...styleBg,
         ...styled
       }}
     >

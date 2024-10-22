@@ -13,7 +13,7 @@ export const ItemColor = <T,>({ label, propKey }: defaultProps<T>) => {
     <div>
       <Label>{label}</Label>
       <div
-        className="w-full h-8 rounded cursor-pointer"
+        className="w-full h-8 rounded cursor-pointer border border-ring"
         style={{ backgroundColor: background ? `rgba(${Object.values(background)})` : "transparent" }}
         onClick={() => setShowColorPicker(!showColorPicker)}
       ></div>

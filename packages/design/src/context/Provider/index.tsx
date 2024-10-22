@@ -1,17 +1,8 @@
 import React, { useReducer, useMemo, useCallback } from "react";
 import { Resolver, SerializedNodes } from "@craftjs/core";
 import { isEqual } from "lodash-es";
-import { Container } from "@/selectors/Container";
-import { Text } from "@/selectors/Text";
-import { Button } from "@/selectors/Button";
-import { Image } from "@/selectors/Image";
 
-const defaultResolver = {
-  Container,
-  Text,
-  Button,
-  Image
-};
+const defaultResolver = {};
 
 export type assetsType = "Image" | "PDF";
 

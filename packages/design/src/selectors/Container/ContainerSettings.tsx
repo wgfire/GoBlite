@@ -2,16 +2,23 @@ import React from "react";
 import { ContainerProps } from "./index";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
+import { useDesignContext } from "@/context";
 
 const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps>> = ({ Settings }) => {
   const { props, displayName } = useNode(node => ({
     props: node.data.props as ContainerProps,
     displayName: node.data.custom.displayName
   }));
+  const { assets } = useDesignContext();
+
+  const assetsOptions = [{ url: "none", name: "无" }, ...(assets ?? [])].map(asset => ({
+    label: asset.name,
+    value: asset.url
+  }));
 
   return (
     <Settings defaultValue={props}>
-      <Settings.Layout tabs={["基础配置", "颜色", "行为"]}>
+      <Settings.Layout tabs={["基础配置", "样式", "行为"]}>
         <Settings.Content>
           <Settings.Section defaultOpen title={"组件名称"}>
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
@@ -89,6 +96,7 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
 
         <Settings.Content>
           <Settings.ItemColor propKey="background" label="背景颜色" />
+          <Settings.ItemSelect propKey="backgroundImage" options={assetsOptions}></Settings.ItemSelect>
         </Settings.Content>
 
         <Settings.Content>

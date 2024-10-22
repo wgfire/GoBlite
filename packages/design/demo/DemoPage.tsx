@@ -93,18 +93,18 @@ const DemoContent: React.FC = () => {
           type: "Image"
         },
         {
-          name: "content-1000/400",
-          url: "https://picsum.photos/1000/400",
+          name: "content-500/400",
+          url: "https://picsum.photos/500/400",
           type: "Image"
         },
         {
-          name: "content1-1000/400",
-          url: "https://picsum.photos/1000/400",
+          name: "content1-800/700",
+          url: "https://picsum.photos/800/700",
           type: "Image"
         },
         {
-          name: "content2-1000/400",
-          url: "https://picsum.photos/1000/400",
+          name: "content2-1000/900",
+          url: "https://picsum.photos/1000/900",
           type: "Image"
         }
       ],
