@@ -19,7 +19,7 @@ export const Section = ({ title, children, defaultOpen }: SectionProps) => {
           <ChevronsUpDown className="h-4 w-4" />
         </div>
       </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-2">
+      <CollapsibleContent className="space-y-4">
         {children}
         <Separator className="my-4" />
       </CollapsibleContent>

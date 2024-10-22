@@ -8,6 +8,7 @@ import { isPercentage, pxToPercent, percentToPx, getElementDimensions } from "..
 import { ResizerIndicators } from "./ResizerIndicators";
 
 interface ResizerProps extends Omit<ResizableProps, "size"> {
+  id?: string;
   propKey: {
     width: string;
     height: string;
@@ -49,6 +50,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
   const editingDimensions = useRef<Dimensions | null>(null);
   const nodeDimensions = useRef<Dimensions | null>(null);
   nodeDimensions.current = { width: nodeWidth, height: nodeHeight };
+  //   const maxWidth = useRef<number>(0);
 
   const [internalDimensions, setInternalDimensions] = useState<Dimensions>({
     width: nodeWidth,
@@ -188,6 +190,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
     <Resizable
       enable={resizableEnable}
       className={resizableClassName}
+      id={id}
       ref={ref => {
         if (ref) {
           resizable.current = ref;

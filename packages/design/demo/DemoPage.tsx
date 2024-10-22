@@ -9,7 +9,7 @@ const mockSchema = {
     },
     isCanvas: true,
     props: {
-      flexDirection: "row",
+      flexDirection: "column",
       alignItems: "flex-start",
       justifyContent: "flex-start",
       fillSpace: "no",
@@ -65,7 +65,7 @@ const mockSchema = {
       },
       shadow: 0,
       radius: 0,
-      width: "100%",
+      width: "300px",
       height: "300px"
     },
     custom: {

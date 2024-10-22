@@ -13,7 +13,7 @@ export function ItemInput<T>({ label, placeholder, type, propKey }: ItemInputPro
   const inputValue = propKey ? (value[propKey as keyof T] as string) : undefined;
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="text-gray-400">{label}</Label>
       <Input
         type={type}
         placeholder={placeholder}

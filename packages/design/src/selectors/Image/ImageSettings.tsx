@@ -17,17 +17,10 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
           </Settings.Section>
           <Settings.Section defaultOpen title={"图片设置"}>
-            <Settings.ItemInput propKey="src" label="图片地址" placeholder="输入图片URL" />
-            <Settings.ItemInput propKey="alt" label="替代文本" placeholder="输入图片描述" />
-          </Settings.Section>
-        </Settings.Content>
-
-        <Settings.Content>
-          <Settings.Section defaultOpen title={"尺寸设置"}>
-            <Settings.ItemSlide propKey="width" min={0} max={1000} step={1} label="宽度" />
-            <Settings.ItemSlide propKey="height" min={0} max={1000} step={1} label="高度" />
-          </Settings.Section>
-          <Settings.Section defaultOpen title={"填充方式"}>
+            <div className="grid grid-cols-2 gap-2">
+              <Settings.ItemInput propKey="width" type="text" />
+              <Settings.ItemInput propKey="height" type="text" />
+            </div>
             <Settings.ItemSelect
               propKey="objectFit"
               label="填充方式"
@@ -36,9 +29,12 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
                 { value: "cover", label: "覆盖" },
                 { value: "fill", label: "填充" },
                 { value: "none", label: "无" },
+                { value: "initial", label: "初始" },
                 { value: "scale-down", label: "缩小" }
               ]}
             />
+            <Settings.ItemInput propKey="src" label="图片地址" placeholder="输入图片URL" />
+            <Settings.ItemInput propKey="alt" label="替代文本" placeholder="输入提示文案" />
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>

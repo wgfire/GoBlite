@@ -5,23 +5,25 @@ import ImageSettings from "./ImageSettings";
 export interface ImageProps {
   src: string;
   alt: string;
-  width?: number | string;
-  height?: number | string;
-  objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down";
+  width: string;
+  height: string;
+  objectFit: "contain" | "cover" | "fill" | "none" | "scale-down";
+  maxWidth: string;
 }
 
-export const Image: UserComponent<ImageProps> = ({ src, alt, width, height, objectFit = "cover" }) => {
+export const Image: UserComponent<ImageProps> = ({ src, alt, height, objectFit = "cover", maxWidth }) => {
   return (
     <Resizer propKey={{ width: "width", height: "height" }}>
       <img
         src={src}
         alt={alt}
         loading="lazy"
-        className="max-w-full h-auto cursor-pointer"
+        className="cursor-pointer"
         style={{
           objectFit,
-          width,
-          height
+          width: "100%",
+          height,
+          maxWidth
         }}
       />
     </Resizer>
@@ -34,7 +36,8 @@ Image.craft = {
     alt: "Image description",
     width: "100%",
     height: "auto",
-    objectFit: "cover"
+    objectFit: "cover",
+    maxWidth: "100%"
   },
   custom: {
     displayName: "Image"

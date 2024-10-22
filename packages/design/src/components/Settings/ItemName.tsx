@@ -13,7 +13,7 @@ export function ItemName<T>({ label, placeholder, type, value }: ItemInputProps<
   const inputValue = value;
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label className="text-gray-400">{label}</Label>
       <Input
         type={type}
         placeholder={placeholder}

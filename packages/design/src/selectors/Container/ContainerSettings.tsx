@@ -25,20 +25,20 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
           <Settings.Section defaultOpen title={"布局"}>
             <Settings.ItemSelect
               className="w-full"
-              propKey="layout"
+              propKey="display"
               defaultValue="flex"
               options={[
                 { value: "flex", label: "Flex 布局" },
                 { value: "grid", label: "Grid 布局" }
               ]}
             />
-            {props.layout === "grid" && (
+            {props.display === "grid" && (
               <div className="grid grid-cols-2 gap-2">
                 <Settings.ItemInput propKey="gridRows" type="number" placeholder="行数" />
                 <Settings.ItemInput propKey="gridCols" type="number" placeholder="列数" />
               </div>
             )}
-            {props.layout === "flex" && (
+            {props.display === "flex" && (
               <Settings.ItemSelect
                 propKey="flexDirection"
                 label="排列方向"
@@ -48,6 +48,9 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
                 ]}
               />
             )}
+            <div className="grid grid-cols-1 gap-4">
+              <Settings.ItemSlide propKey="gap" min={0} max={100} step={1} label="内部间距" />
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <Settings.ItemSelect
                 className=""

@@ -6,7 +6,7 @@ import { defaultProps } from "./types";
 import { useSettings } from "./Context";
 
 export interface ItemSelectProps<T> extends defaultProps<T> {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
 }
 
 export const ItemSelect = <T,>({ label, options, className, propKey }: ItemSelectProps<T>) => {
@@ -28,7 +28,7 @@ export const ItemSelect = <T,>({ label, options, className, propKey }: ItemSelec
         </SelectTrigger>
         <SelectContent>
           {options.map(option => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </SelectItem>
           ))}

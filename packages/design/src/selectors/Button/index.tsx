@@ -2,6 +2,8 @@ import { useNode, UserComponent } from "@craftjs/core";
 import { Button as ShadcnButton } from "@go-blite/shadcn/button";
 import { ButtonSettings } from "./ButtonSettings";
 import { Text } from "../Text";
+import { useTranslate } from "@/hooks/useTranslate";
+
 export interface ButtonProps {
   text: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -11,10 +13,11 @@ export interface ButtonProps {
   buttonStyle?: "full" | "outline";
   margin?: 0;
   events: {
-    onLoad?: string;
-    onClick?: string;
+    onLoad: string;
+    onClick: string;
   };
 }
+
 export const Button: UserComponent<ButtonProps> = ({
   text,
   variant = "default",
@@ -22,16 +25,23 @@ export const Button: UserComponent<ButtonProps> = ({
   color,
   background,
   margin
-}) => {
+}: ButtonProps) => {
   const {
+    id,
     connectors: { connect, drag }
   } = useNode();
-  console.log(background, "背景");
+
+  const { translateX, translateY } = useTranslate(id);
+
   return (
     <ShadcnButton
+      id={id}
       style={{
         background: `${background ? `rgba(${Object.values(background)})` : ""}`,
-        margin: `${margin}px`
+        margin: `${margin}px`,
+        transform: `translate(${translateX}px, ${translateY}px)`,
+        position: "relative",
+        zIndex: 1
       }}
       ref={ref => connect(drag(ref as HTMLElement))}
       variant={variant}
@@ -45,7 +55,7 @@ export const Button: UserComponent<ButtonProps> = ({
 
 Button.craft = {
   props: {
-    // color: { r: 255, g: 255, b: 255, a: 1 },
+    color: { r: 255, g: 255, b: 255, a: 1 },
     buttonStyle: "full",
     text: "Button",
     margin: 0

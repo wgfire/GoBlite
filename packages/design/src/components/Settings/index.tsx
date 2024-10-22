@@ -27,7 +27,7 @@ export interface SettingsComponent<T> extends React.FC<SettingsProps<T>> {
 }
 
 function createSettings<T>(): SettingsComponent<T> {
-  const SettingsBase: React.FC<SettingsProps<T>> = ({ defaultValue, children }) => {
+  const Settings: React.FC<SettingsProps<T>> & SettingsComponent<T> = ({ defaultValue, children }) => {
     const {
       actions: { setProp, setCustom }
     } = useNode();
@@ -43,8 +43,6 @@ function createSettings<T>(): SettingsComponent<T> {
 
     return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
   };
-
-  const Settings = SettingsBase as SettingsComponent<T>;
 
   Settings.ItemInput = ItemInput;
   Settings.ItemSelect = ItemSelect;
