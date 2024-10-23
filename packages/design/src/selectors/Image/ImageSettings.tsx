@@ -43,5 +43,3 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
 };
 
 export const ImageSettings = SettingsHOC<ImageProps>(ImageSettingsComponent);
-
-export default ImageSettings;

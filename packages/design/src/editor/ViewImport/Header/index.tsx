@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useEditor } from "@craftjs/core";
-import { Button } from "@go-blite/shadcn/button";
+import { Button } from "@go-blite/shadcn";
 import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Upload } from "lucide-react";
 import {
   Select,
@@ -10,7 +10,7 @@ import {
   SelectGroup,
   SelectLabel,
   SelectItem
-} from "@go-blite/shadcn/select";
+} from "@go-blite/shadcn";
 
 export const Header: React.FC = () => {
   const { enabled, actions, query } = useEditor(state => ({

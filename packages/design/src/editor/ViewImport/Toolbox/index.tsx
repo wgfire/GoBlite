@@ -8,7 +8,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue
-} from "@go-blite/shadcn/select";
+} from "@go-blite/shadcn";
 import { Selectors } from "./Selectors";
 import { Assets } from "./Assets";
 

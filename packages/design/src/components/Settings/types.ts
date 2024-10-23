@@ -1,16 +1,19 @@
-type Primitive = string | number | boolean | null | undefined;
+type Primitive = string | number | boolean | undefined | null;
+type PathArray<T> = T extends Array<infer U> ? (U extends object ? keyof U & string : never) : never;
 
 type PathImpl<T, K extends keyof T> = K extends string
   ? T[K] extends Primitive
     ? K
-    : T[K] extends (infer V)[]
-      ? K | `${K}.${number}` | `${K}.${number}.${PathImpl<V, keyof V & string>}`
-      : T[K] extends object
-        ? K | `${K}.${PathImpl<T[K], keyof T[K] & string>}`
+    : T[K] extends Array<infer U>
+      ? U extends Primitive | object
+        ? K | `${K}.${number}` | PathArray<U>
+        : K
+      : T[K] extends Record<string, unknown> | undefined
+        ? K | `${K}.${PathImpl<NonNullable<T[K]>, keyof NonNullable<T[K]>>}`
         : K
   : never;
 
-export type PropPath<T> = PathImpl<T, keyof T & string>;
+export type PropPath<T> = PathImpl<T, keyof T>;
 
 export type PropValue<T, P extends PropPath<T>> = P extends keyof T
   ? T[P]

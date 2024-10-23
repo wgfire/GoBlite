@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from "react";
 import { useNode, useEditor, ROOT_NODE } from "@craftjs/core";
 import { createPortal } from "react-dom";
 import { ArrowUp, Move, Trash2, Copy } from "lucide-react";
-import { Button } from "@go-blite/shadcn/button";
+import { Button } from "@go-blite/shadcn";
 import { useCopyNode } from "@/hooks/useCopyNode";
 import expect from "@/utils/expect";
 export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render }) => {

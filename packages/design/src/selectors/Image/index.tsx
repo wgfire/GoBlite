@@ -1,6 +1,6 @@
 import { Resizer } from "@/components/Resizer";
 import { UserComponent } from "@craftjs/core";
-import ImageSettings from "./ImageSettings";
+import { ImageSettings } from "./ImageSettings";
 
 export interface ImageProps {
   src: string;

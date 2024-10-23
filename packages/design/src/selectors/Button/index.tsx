@@ -1,5 +1,5 @@
 import { useNode, UserComponent } from "@craftjs/core";
-import { Button as ShadcnButton } from "@go-blite/shadcn/button";
+import { Button as ShadcnButton } from "@go-blite/shadcn";
 import { ButtonSettings } from "./ButtonSettings";
 import { Text } from "../Text";
 import { useTranslate } from "@/hooks/useTranslate";
@@ -12,7 +12,7 @@ export interface ButtonProps {
   color?: Record<"r" | "g" | "b" | "a", number>;
   buttonStyle?: "full" | "outline";
   margin?: 0;
-  events: {
+  events?: {
     onLoad: string;
     onClick: string;
   };

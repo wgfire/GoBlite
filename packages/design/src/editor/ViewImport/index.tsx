@@ -41,13 +41,13 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
     <div className="viewport h-full">
       <div className={clsx("flex h-full overflow-hidden flex-row w-full")}>
         <Toolbox />
-        <div className="page-container flex flex-1 h-full flex-col">
+        <div className="page-container flex flex-1 h-full flex-col overflow-hidden">
           <Header />
           <div
             className={clsx("craftjs-renderer flex-1 h-full w-full transition overflow-auto ", {
               "bg-slate-300/30": enabled
             })}
-            ref={ref => ref && connectors.select(connectors.hover(ref, null), null)}
+            ref={ref => ref && connectors.select(connectors.hover(ref, "root"), "root")}
           >
             <div className="relative">{children}</div>
           </div>

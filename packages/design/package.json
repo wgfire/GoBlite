@@ -8,6 +8,13 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "types": "./dist/esm/src/index.d.ts",
+  "main": "./dist/lib/index.js",
+  "module": "./dist/esm/index.js",
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "dependencies": {
     "@craftjs/core": "^0.2.0",
     "@craftjs/layers": "0.2.5",

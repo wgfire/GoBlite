@@ -40,7 +40,8 @@ const mockSchema = {
     },
     hidden: false,
     nodes: ["gzsEdhIaot", "_p4zH0Iiru", "YwGGHTeYv6", "1G8NiWdS4Q"],
-    linkedNodes: {}
+    linkedNodes: {},
+    parent: null
   },
   "6BTUHH35yt": {
     type: {

@@ -67,5 +67,3 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
 };
 
 export const ButtonSettings = SettingsHOC<ButtonProps>(ButtonSettingsComponent);
-
-export default ButtonSettings;

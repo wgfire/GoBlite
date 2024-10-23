@@ -1,6 +1,6 @@
-import { Slider } from "@go-blite/shadcn/slider";
-import { Input } from "@go-blite/shadcn/input";
-import { Label } from "@go-blite/shadcn/label";
+import { Slider } from "@go-blite/shadcn";
+import { Input } from "@go-blite/shadcn";
+import { Label } from "@go-blite/shadcn";
 import { defaultProps } from "./types";
 import { useSettings } from "./Context";
 

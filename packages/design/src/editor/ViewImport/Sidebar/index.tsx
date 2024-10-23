@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useEditor } from "@craftjs/core";
 import { Layers } from "@craftjs/layers";
 import clsx from "clsx";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn";
 import { Edit, Layers as LayersIcon, ChevronDown } from "lucide-react";
 import { Settings } from "../../Settings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn";

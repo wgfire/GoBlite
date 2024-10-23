@@ -1,5 +1,5 @@
 import React, { memo, ReactNode } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn";
 
 interface LayoutProps {
   tabs: string[];

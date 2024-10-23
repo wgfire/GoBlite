@@ -1,6 +1,6 @@
 import { useDesignContext } from "@/context";
 
-import { Card, CardContent } from "@go-blite/shadcn/card";
+import { Card, CardContent } from "@go-blite/shadcn";
 import { useEditor } from "@craftjs/core";
 import { assetsType } from "@/context/Provider";
 import { Image } from "@/selectors/Image";
@@ -12,7 +12,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandSeparator
-} from "@go-blite/shadcn/command";
+} from "@go-blite/shadcn";
 
 interface AssetItem {
   name: string;

@@ -1,5 +1,5 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@go-blite/shadcn/select";
-import { Label } from "@go-blite/shadcn/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@go-blite/shadcn";
+import { Label } from "@go-blite/shadcn";
 
 import clsx from "clsx";
 import { defaultProps } from "./types";

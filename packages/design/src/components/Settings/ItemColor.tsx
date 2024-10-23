@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { Label } from "@go-blite/shadcn/label";
+import { Label, Input } from "@go-blite/shadcn";
 import { ColorResult, TwitterPicker } from "react-color";
-import { Input } from "@go-blite/shadcn/input";
 
 import { defaultProps } from "./types";
 import { useSettings } from "./Context";

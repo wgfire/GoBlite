@@ -1,8 +1,8 @@
 import React from "react";
 import { Element, useEditor } from "@craftjs/core";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@go-blite/shadcn/tooltip";
-import { Button } from "@go-blite/shadcn/button";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn/accordion";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@go-blite/shadcn";
+import { Button } from "@go-blite/shadcn";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn";
 import { Container } from "@/selectors/Container";
 import { Text } from "@/selectors/Text";
 import { Image } from "@/selectors/Image";

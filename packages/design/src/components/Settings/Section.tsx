@@ -1,5 +1,5 @@
 import { ReactNode, useState } from "react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn";
 import { ChevronsUpDown } from "lucide-react";
 import { Separator } from "@go-blite/shadcn";
 

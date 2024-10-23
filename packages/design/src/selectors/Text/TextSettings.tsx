@@ -72,5 +72,3 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
 };
 
 export const TextSettings = SettingsHOC<TextProps>(TextSettingsComponent);
-
-export default TextSettings;
