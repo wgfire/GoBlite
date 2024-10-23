@@ -20,7 +20,7 @@ export interface ContainerProps {
   margin: number;
   gap?: number;
   padding: number;
-  background?: { r: number; g: number; b: number; a: number };
+  background?: string;
   backgroundImage?: string;
   events: {
     onLoad?: string;
@@ -37,7 +37,7 @@ const defaultProps: ContainerProps = {
   fillSpace: "no",
   padding: 0,
   margin: 0,
-  background: { r: 0, g: 0, b: 0, a: 0.1 },
+  background: "rgba(255, 255, 255, 0.1)",
   width: "100%",
   height: "auto",
   backgroundImage: "none",
@@ -84,13 +84,19 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       eval(events.onLoad);
     }
   }, [events]);
+  console.log(background, "background");
   const styleBg = useMemo(() => {
+    // background 和 backgroundImage 应该不 同时存在
     return {
-      background: background ? `rgba(${Object.values(background)})` : undefined,
-      backgroundImage: backgroundImage && backgroundImage !== "none" ? `url(${backgroundImage})` : undefined,
-      backgroundRepeat: "no-repeat",
-      backgroundPosition: "center",
-      backgroundSize: "100% 100%"
+      background: background || "rgba(255, 255, 255, 1)",
+      ...(backgroundImage && backgroundImage !== "none"
+        ? {
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "100% 100%"
+          }
+        : {})
     };
   }, [background, backgroundImage]);
   const styled = useMemo(() => {
@@ -102,7 +108,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     return style;
   }, [gridCols, gridRows, display, customStyle]);
 
-  console.log(backgroundImage, "图片");
   return (
     <Resizer
       id={id}

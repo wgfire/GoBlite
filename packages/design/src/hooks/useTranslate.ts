@@ -30,10 +30,11 @@ export const useTranslate = (id: string, enable = true) => {
     if (elementRef.current && parentRef.current) {
       const parentRect = parentRef.current.getBoundingClientRect();
       const elementRect = elementRef.current.getBoundingClientRect();
+
       boundsRef.current = {
         minX: 0,
         maxX: parentRect.width - elementRect.width,
-        minY: 0,
+        minY: -(parentRect.height - elementRect.height),
         maxY: parentRect.height - elementRect.height
       };
     }
@@ -42,6 +43,7 @@ export const useTranslate = (id: string, enable = true) => {
   useEffect(() => {
     translateRef.current = translate;
   }, [translate]);
+
   const addFloatingEffect = useCallback(() => {
     if (elementRef.current) {
       elementRef.current.style.boxShadow = "0 6px 12px rgba(0,0,0,0.5)";
@@ -71,9 +73,11 @@ export const useTranslate = (id: string, enable = true) => {
       newTranslateX = Math.max(boundsRef.current.minX, Math.min(newTranslateX, boundsRef.current.maxX));
       newTranslateY = Math.max(boundsRef.current.minY, Math.min(newTranslateY, boundsRef.current.maxY));
 
+      console.log(newTranslateY, newTranslateX, boundsRef.current, "newTranslateY");
+
       setTranslate({ translateX: newTranslateX, translateY: newTranslateY });
     },
-    [id, translate]
+    [id]
   );
 
   const handleMouseUp = useCallback(() => {
@@ -95,9 +99,16 @@ export const useTranslate = (id: string, enable = true) => {
     (e: MouseEvent) => {
       e.preventDefault();
 
-      if (currentDraggingElement || e.target?.style.cssText.includes("absolute")) return; // 如果已有元素在拖拽，则不处理
+      if (currentDraggingElement || (e.target as HTMLElement)?.style.cssText.includes("absolute")) return; // 如果已有元素在拖拽，则不处理
 
       updateBounds();
+      //   console.log(
+      //     elementRef.current?.offsetLeft,
+      //     elementRef.current?.offsetTop,
+      //     elementRef.current?.offsetWidth,
+      //     elementRef.current?.offsetHeight,
+      //     "偏移"
+      //   );
       startPosRef.current = { x: e.clientX, y: e.clientY };
       initialTranslateRef.current = { x: translateRef.current.translateX, y: translateRef.current.translateY };
 
@@ -132,7 +143,7 @@ export const useTranslate = (id: string, enable = true) => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [id]);
+  }, [id, enable, handleMouseDown, handleMouseMove, handleMouseUp]);
 
   return translate;
 };

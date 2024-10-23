@@ -96,7 +96,7 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
 
         <Settings.Content>
           <Settings.ItemColor propKey="background" label="背景颜色" />
-          <Settings.ItemSelect propKey="backgroundImage" options={assetsOptions}></Settings.ItemSelect>
+          <Settings.ItemSelect propKey="backgroundImage" label="背景图片" options={assetsOptions}></Settings.ItemSelect>
         </Settings.Content>
 
         <Settings.Content>

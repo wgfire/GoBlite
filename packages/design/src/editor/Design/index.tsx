@@ -15,7 +15,7 @@ const defaultNode: SerializedNodes = {
     isCanvas: true,
     props: {
       width: "100%",
-      background: { r: 255, g: 255, b: 255, a: 1 },
+      background: "rgba(255,255,255,1)",
       padding: 10
     },
     nodes: [],

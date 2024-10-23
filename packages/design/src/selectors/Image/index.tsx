@@ -11,7 +11,7 @@ export interface ImageProps {
   maxWidth: string;
 }
 
-export const Image: UserComponent<ImageProps> = ({ src, alt, height, objectFit = "cover", maxWidth }) => {
+export const Image: UserComponent<Partial<ImageProps>> = ({ src, alt, height, objectFit = "cover", maxWidth }) => {
   return (
     <Resizer propKey={{ width: "width", height: "height" }}>
       <img

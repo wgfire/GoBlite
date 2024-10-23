@@ -1,11 +1,18 @@
-import React from "react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn/accordion";
 import { useDesignContext } from "@/context";
-import { ScrollArea } from "@go-blite/shadcn/scroll-area";
+
 import { Card, CardContent } from "@go-blite/shadcn/card";
 import { useEditor } from "@craftjs/core";
 import { assetsType } from "@/context/Provider";
 import { Image } from "@/selectors/Image";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+  CommandGroup,
+  CommandSeparator
+} from "@go-blite/shadcn/command";
 
 interface AssetItem {
   name: string;
@@ -27,10 +34,10 @@ export const Assets: React.FC = () => {
             ref={ref => ref && connectors.create(ref, <Image src={item.url} alt={item.name} />)}
           >
             <CardContent className="p-2 flex flex-col items-center">
-              <div className="w-full h-14 overflow-hidden">
+              <div className="h-10 overflow-hidden">
                 <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
               </div>
-              <p className="text-xs mt-1 text-center truncate w-full text-ellipsis">{item.name}</p>
+              <span className="text-xs mt-1 text-center truncate w-full text-ellipsis">{item.name}</span>
             </CardContent>
           </Card>
         );
@@ -69,19 +76,23 @@ export const Assets: React.FC = () => {
     ) || {};
 
   return (
-    <ScrollArea className="h-[calc(100vh-10px)]">
-      <Accordion type="multiple" className="w-full">
-        {Object.entries(groupedAssets).map(([category, items]) => (
-          <AccordionItem key={category} value={category}>
-            <AccordionTrigger>{category}</AccordionTrigger>
-            <AccordionContent>
-              <div className="grid grid-cols-2 gap-2">
-                {(items as AssetItem[]).map((item: AssetItem) => renderAssetItem(item))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </ScrollArea>
+    <div>
+      <Command className="rounded-lg border">
+        <CommandInput placeholder="搜索分类资源" />
+        <CommandList className="max-h-[90vh] overflow-y-auto">
+          <CommandEmpty>No results found.</CommandEmpty>
+          {Object.entries(groupedAssets).map(([category, items]) => (
+            <>
+              <CommandGroup key={category} heading={category}>
+                <CommandItem className="grid grid-cols-1 gap-2">
+                  {(items as AssetItem[]).map((item: AssetItem) => renderAssetItem(item))}
+                </CommandItem>
+              </CommandGroup>
+              <CommandSeparator />
+            </>
+          ))}
+        </CommandList>
+      </Command>
+    </div>
   );
 };

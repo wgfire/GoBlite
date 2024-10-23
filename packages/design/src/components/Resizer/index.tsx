@@ -185,7 +185,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
       }),
     [isRootNode]
   );
-
+  console.log(props, "props");
   return (
     <Resizable
       enable={resizableEnable}

@@ -1,32 +1,73 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Label } from "@go-blite/shadcn/label";
-import { Color, ColorResult, TwitterPicker } from "react-color";
+import { ColorResult, TwitterPicker } from "react-color";
+import { Input } from "@go-blite/shadcn/input";
 
 import { defaultProps } from "./types";
 import { useSettings } from "./Context";
+
 export const ItemColor = <T,>({ label, propKey }: defaultProps<T>) => {
   const { value, setProp } = useSettings<T>();
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const background = propKey ? (value[propKey as keyof T] as Color) : undefined;
+  const [inputColor, setInputColor] = useState("");
+  const colorPickerRef = useRef<HTMLDivElement>(null);
+  const background = propKey ? (value[propKey as keyof T] as string) : undefined;
+
+  useEffect(() => {
+    if (background) {
+      setInputColor(background);
+    }
+  }, [background]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
+        setShowColorPicker(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleColorChange = (color: ColorResult) => {
+    const newColor = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
+    setInputColor(newColor);
+    setProp(p => {
+      (p[propKey as keyof T] as string) = newColor;
+    });
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setInputColor(newValue);
+    setProp(p => {
+      (p[propKey as keyof T] as string) = newValue;
+    });
+  };
 
   return (
     <div>
-      <Label>{label}</Label>
-      <div
-        className="w-full h-8 rounded cursor-pointer border border-ring"
-        style={{ backgroundColor: background ? `rgba(${Object.values(background)})` : "transparent" }}
-        onClick={() => setShowColorPicker(!showColorPicker)}
-      ></div>
+      <Label className="text-gray-400">{label}</Label>
+      <div className="flex items-center">
+        <Input
+          type="text"
+          value={inputColor}
+          onChange={handleInputChange}
+          className="flex-grow mr-2"
+          placeholder="rgba(255,255,255,1) 或 linear-gradient(...)"
+        />
+        <div
+          className="w-8 h-8 rounded cursor-pointer border border-ring"
+          style={{ background: inputColor }}
+          onClick={() => setShowColorPicker(!showColorPicker)}
+        ></div>
+      </div>
       {showColorPicker && (
-        <div className="absolute z-10">
-          <TwitterPicker
-            color={background}
-            onChange={(color: ColorResult) =>
-              setProp(p => {
-                (p[propKey as keyof T] as Color) = color.rgb;
-              })
-            }
-          />
+        <div className="absolute z-10" ref={colorPickerRef}>
+          <TwitterPicker color={background as string} onChange={handleColorChange} />
         </div>
       )}
     </div>
