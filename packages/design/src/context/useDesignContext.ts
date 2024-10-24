@@ -1,7 +1,13 @@
-import { useContext, useEffect, useCallback } from "react";
-import { DesignContext, DesignContextProps } from "./Provider";
-import isEqual from "lodash-es/isEqual";
-export const useDesignContext = (initialProps?: DesignContextProps) => {
+import { useContext, useCallback, useMemo } from "react";
+import { DesignContext, DesignContextProps, DeviceType } from "./Provider";
+import { Resolver } from "@craftjs/core";
+
+interface FindSchemaParams {
+  device?: DeviceType;
+  language?: string;
+}
+
+export const useDesignContext = (initialProps?: Partial<DesignContextProps>) => {
   const context = useContext(DesignContext);
 
   if (!context) {
@@ -9,22 +15,51 @@ export const useDesignContext = (initialProps?: DesignContextProps) => {
   }
 
   const { state, updateContext } = context;
+  const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
+    if (!newResolver) return oldResolver;
+    return { ...oldResolver, ...newResolver };
+  };
 
-  useEffect(() => {
+  //   useEffect(() => {
+  //     console.log(initialProps, "initialProps");
+  //     if (initialProps) {
+  //       updateContext(initialProps);
+  //     }
+  //   }, [initialProps]);
+  //   if (initialProps) {
+  //     updateContext(initialProps);
+  //   }
+  useMemo(() => {
     if (initialProps) {
-      updateContext(initialProps);
+      const newValue = { ...state, ...initialProps };
+      if (initialProps.resolver) {
+        //默认对传入的resolver进行合并处理
+        newValue.resolver = mergeResolvers(state.resolver!, initialProps.resolver);
+      }
+
+      updateContext(newValue);
     }
   }, [initialProps]);
 
-  const setContext = useCallback(
-    (newValue: Partial<DesignContextProps>) => {
-      updateContext(prevState => {
-        const updatedState = { ...prevState, ...newValue };
-        return isEqual(updatedState, prevState) ? prevState : updatedState;
-      });
+  const findSchema = useCallback(
+    ({ device, language }: FindSchemaParams): boolean => {
+      if (!device || !state.device) {
+        return false;
+      }
+      const deviceData = state.device.find(d => d.type === device);
+      if (!deviceData) {
+        return false;
+      }
+      if (language) {
+        // 如果指定了语言，检查该设备下特定语言的 schema
+        return !!deviceData.languagePageMap[language]?.schema;
+      } else {
+        // 如果只指定了设备，检查该设备下是否有任何语言的 schema
+        return Object.values(deviceData.languagePageMap).some(lang => !!lang.schema);
+      }
     },
-    [updateContext]
+    [state.device]
   );
 
-  return { ...state, updateContext: setContext };
+  return { ...state, updateContext, findSchema };
 };

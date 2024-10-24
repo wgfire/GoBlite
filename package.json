@@ -10,10 +10,11 @@
     "prettier": "prettier --write ."
   },
   "dependencies": {
+    "ahooks": "^3.8.1",
     "lodash-es": "^4.17.21",
     "react": "^18",
     "react-dom": "^18",
-    "ahooks": "^3.8.1"
+    "use-immer": "^0.10.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.5.0",

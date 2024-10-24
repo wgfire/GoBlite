@@ -84,7 +84,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       eval(events.onLoad);
     }
   }, [events]);
-  console.log(background, "background");
+
   const styleBg = useMemo(() => {
     // background 和 backgroundImage 应该不 同时存在
     return {

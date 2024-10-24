@@ -7,6 +7,8 @@ import { Container } from "@/selectors/Container";
 import { Text } from "@/selectors/Text";
 import { Button } from "@/selectors/Button";
 import { Image } from "@/selectors/Image";
+import { Devices } from "@/context/Provider";
+
 const defaultNode: SerializedNodes = {
   ROOT: {
     type: {
@@ -26,6 +28,18 @@ const defaultNode: SerializedNodes = {
     custom: { displayName: "App" }
   }
 };
+
+export const defaultDevice: Devices = [
+  {
+    type: "desktop",
+    pageTemplate: "static-download",
+    languagePageMap: {
+      zh: {
+        schema: defaultNode
+      }
+    }
+  }
+];
 
 const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> = ({ schema }) => {
   const { actions } = useEditor();
@@ -47,23 +61,38 @@ const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> 
 };
 
 export const Design: React.FC = React.memo(() => {
-  const { resolver, schema, onRender } = useDesignContext({ publish: true });
+  const defaultResolver = useMemo(
+    () => ({
+      Container,
+      Text,
+      Button,
+      Image
+    }),
+    []
+  );
+  const initDesign = useMemo(
+    () => ({
+      resolver: defaultResolver
+    }),
+    [defaultResolver]
+  );
+
+  const contextData = useDesignContext(initDesign);
+  const { resolver, schema, onRender } = contextData;
+
+  const mergedResolver = useMemo(
+    () => ({
+      ...defaultResolver,
+      ...resolver
+    }),
+    [defaultResolver, resolver]
+  );
 
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
-  const defaultResolver = {
-    Container,
-    Text,
-    Button,
-    Image
-  };
-  const setResolver = {
-    ...defaultResolver,
-    ...resolver
-  };
   return (
     <div className="h-screen">
-      <Editor resolver={setResolver} enabled={true} onRender={renderCallback}>
+      <Editor resolver={mergedResolver} enabled={true} onRender={renderCallback}>
         <EditorContent schema={schema} />
       </Editor>
     </div>

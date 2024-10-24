@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { Toolbox } from "./Toolbox";
+import { useDesignContext } from "@/context/useDesignContext";
 
 interface ViewImportProps {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
   } = useEditor(state => ({
     enabled: state.options.enabled
   }));
+  const { currentInfo } = useDesignContext();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -36,6 +38,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
       });
     }
   }, [setOptions]);
+  console.log(currentInfo, "信息");
 
   return (
     <div className="viewport h-full">
@@ -44,12 +47,15 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
         <div className="page-container flex flex-1 h-full flex-col overflow-hidden">
           <Header />
           <div
-            className={clsx("craftjs-renderer flex-1 h-full w-full transition overflow-auto ", {
-              "bg-slate-300/30": enabled
+            className={clsx("blite-renderer flex-1 h-full transition overflow-auto mx-auto", {
+              "bg-slate-300/30": enabled,
+              "w-[430px]": currentInfo.device === "mobile",
+              "w-[750px]": currentInfo.device === "tablet",
+              "w-[100%]": currentInfo.device === "desktop"
             })}
             ref={ref => ref && connectors.select(connectors.hover(ref, "root"), "root")}
           >
-            <div className="relative">{children}</div>
+            <div className="relative p-2">{children}</div>
           </div>
         </div>
         <Sidebar />

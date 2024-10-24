@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useCallback } from "react";
+import React, { useRef, useEffect, useCallback, useState, useLayoutEffect } from "react";
 import { useNode, useEditor, ROOT_NODE } from "@craftjs/core";
 import { createPortal } from "react-dom";
 import { ArrowUp, Move, Trash2, Copy } from "lucide-react";
 import { Button } from "@go-blite/shadcn";
 import { useCopyNode } from "@/hooks/useCopyNode";
 import expect from "@/utils/expect";
+
 export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render }) => {
   const { id } = useNode();
   const { actions, query, isActive } = useEditor((_, query) => ({
@@ -32,6 +33,41 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
   }));
 
   const currentRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: "0px", left: "0px" });
+
+  const getPos = useCallback((dom: HTMLElement | null) => {
+    if (!dom || !currentRef.current) return { top: "0px", left: "0px" };
+    const { top, bottom, right } = dom.getBoundingClientRect();
+    const offset = right - currentRef.current.clientWidth;
+
+    return {
+      top: `${top > 0 ? top - 39 : bottom}px`,
+      left: `${offset}px`
+    };
+  }, []);
+
+  const updatePosition = useCallback(() => {
+    if (dom && currentRef.current) {
+      const newPos = getPos(dom);
+      setPosition(newPos);
+    }
+  }, [dom, getPos]);
+
+  useLayoutEffect(() => {
+    updatePosition();
+  }, [isHover, isActive, updatePosition]);
+
+  useEffect(() => {
+    const craftjsRenderer = document.querySelector(".blite-renderer");
+    if (craftjsRenderer) {
+      craftjsRenderer.addEventListener("scroll", updatePosition);
+    }
+    return () => {
+      if (craftjsRenderer) {
+        craftjsRenderer.removeEventListener("scroll", updatePosition);
+      }
+    };
+  }, [updatePosition]);
 
   useEffect(() => {
     if (dom) {
@@ -42,35 +78,6 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
       }
     }
   }, [dom, isActive, isHover]);
-
-  const getPos = useCallback((dom: HTMLElement | null) => {
-    const { top, left, bottom } = dom ? dom.getBoundingClientRect() : { top: 0, left: 0, bottom: 0 };
-
-    return {
-      top: `${top > 0 ? top - 39 : bottom}px`,
-      left: `${left}px`
-    };
-  }, []);
-
-  const scroll = useCallback(() => {
-    const el = currentRef.current;
-    if (!el) return;
-    const { top, left } = getPos(dom);
-    el.style.top = top;
-    el.style.left = left;
-  }, [dom, getPos]);
-
-  useEffect(() => {
-    const craftjsRenderer = document.querySelector(".craftjs-renderer");
-    if (craftjsRenderer) {
-      craftjsRenderer.addEventListener("scroll", scroll);
-    }
-    return () => {
-      if (craftjsRenderer) {
-        craftjsRenderer.removeEventListener("scroll", scroll);
-      }
-    };
-  }, [scroll]);
 
   const handleCopy = useCallback(() => {
     const node = query.node(id).get();
@@ -95,10 +102,10 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
         createPortal(
           <div
             ref={currentRef}
-            className="py-1 px-1 text-white bg-primary fixed flex items-center z-[9999] rounded-md"
+            className="py-1 px-1 text-white bg-primary fixed flex items-center z-[9999] rounded-md animate-accordion-down"
             style={{
-              left: getPos(dom).left,
-              top: getPos(dom).top
+              left: position.left,
+              top: position.top
             }}
           >
             <h4 className="flex-1 mr-2 text-sm">{name}</h4>
