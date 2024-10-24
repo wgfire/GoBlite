@@ -13,7 +13,16 @@ export default defineConfig({
     cssMinify: "esbuild",
 
     rollupOptions: {
-      external: ["react", "react-dom", "react/jsx-runtime", "@go-blite/events", "@go-blite/shadcn", "loadsh-es"],
+      external: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "@go-blite/events",
+        "@go-blite/shadcn",
+        "loadsh-es",
+        "use-immer",
+        "clsx"
+      ],
       treeshake: true,
       preserveEntrySignatures: "strict",
       input: ["src/index.ts"],
@@ -22,6 +31,7 @@ export default defineConfig({
           dir: "dist/esm",
           format: "esm",
           sourcemap: false,
+          entryFileNames: "[name].js",
           chunkFileNames: "vendor/[name].js",
           assetFileNames: "style/[name].[ext]",
           preserveModules: true, // 保持原始的模块结构
@@ -31,6 +41,7 @@ export default defineConfig({
           dir: "dist/lib",
           format: "cjs",
           sourcemap: false,
+          entryFileNames: "[name].js",
           chunkFileNames: "vendor/[name].js",
           assetFileNames: "style/[name].[ext]",
           preserveModules: true,

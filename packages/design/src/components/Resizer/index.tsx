@@ -1,6 +1,6 @@
 import { useNode, useEditor } from "@craftjs/core";
 import clsx from "clsx";
-import { debounce } from "lodash-es";
+import debounce from "lodash-es/debounce";
 import { Resizable, ResizableProps, ResizeStartCallback } from "re-resizable";
 import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 
@@ -181,7 +181,8 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
     () =>
       clsx("flex", {
         "m-auto": isRootNode,
-        "overflow-hidden": isRootNode
+        "overflow-hidden": isRootNode,
+        "max-w-full": true
       }),
     [isRootNode]
   );

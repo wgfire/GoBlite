@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "14.2.13",
-    "@go-blite/shadcn": "workspace:*"
-  },
-  "devDependencies": {}
+    "@go-blite/design": "workspace:^",
+    "@go-blite/shadcn": "workspace:*",
+    "next": "14.2.13"
+  }
 }

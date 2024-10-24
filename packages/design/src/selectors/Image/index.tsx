@@ -13,7 +13,7 @@ export interface ImageProps {
 
 export const Image: UserComponent<Partial<ImageProps>> = ({ src, alt, height, objectFit = "cover", maxWidth }) => {
   return (
-    <Resizer propKey={{ width: "width", height: "height" }}>
+    <Resizer propKey={{ width: "width", height: "height" }} style={{ maxWidth: "100%" }}>
       <img
         src={src}
         alt={alt}

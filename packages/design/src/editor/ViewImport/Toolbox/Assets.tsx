@@ -84,7 +84,7 @@ export const Assets: React.FC = () => {
           {Object.entries(groupedAssets).map(([category, items]) => (
             <>
               <CommandGroup key={category} heading={category}>
-                <CommandItem className="grid grid-cols-1 gap-2">
+                <CommandItem className="grid grid-cols-1 gap-2 w-[200px]">
                   {(items as AssetItem[]).map((item: AssetItem) => renderAssetItem(item))}
                 </CommandItem>
               </CommandGroup>
