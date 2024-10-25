@@ -9,6 +9,10 @@ export interface ImageProps {
   height: string;
   objectFit: "contain" | "cover" | "fill" | "none" | "scale-down";
   maxWidth: string;
+  events?: {
+    onClick: string;
+  };
+  watermark?: boolean;
 }
 
 export const Image: UserComponent<Partial<ImageProps>> = ({ src, alt, height, objectFit = "cover", maxWidth }) => {
@@ -37,7 +41,8 @@ Image.craft = {
     width: "100%",
     height: "auto",
     objectFit: "cover",
-    maxWidth: "100%"
+    maxWidth: "100%",
+    watermark: false
   },
   custom: {
     displayName: "Image"

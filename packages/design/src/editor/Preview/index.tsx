@@ -1,36 +1,43 @@
-import React from "react";
-import { Editor, Frame, Resolver } from "@craftjs/core";
-import { Container } from "../../selectors/Container";
-import { Text } from "../../selectors/Text";
-import { Button } from "../../selectors/Button";
-import { Image } from "../../selectors/Image";
-import { DesignProvider } from "../../context/Provider";
+import React, { useMemo } from "react";
+import { Editor, Frame } from "@craftjs/core";
+import { useDesignContext } from "@/context/useDesignContext";
+import { Container } from "@/selectors/Container";
+import { Text } from "@/selectors/Text";
+import { Button } from "@/selectors/Button";
+import { Image } from "@/selectors/Image";
 
-/**
- * 构建时使用此组件进行打包
- */
-interface PreviewProps {
-  schema: string;
-  resolver?: Partial<Resolver>;
-  publish?: boolean;
-}
+export const Preview: React.FC = React.memo(() => {
+  const defaultResolver = useMemo(
+    () => ({
+      Container,
+      Text,
+      Button,
+      Image
+    }),
+    []
+  );
+  const initDesign = useMemo(
+    () => ({
+      resolver: defaultResolver,
+      publish: true
+    }),
+    [defaultResolver]
+  );
 
-export const Preview: React.FC<PreviewProps> = ({ schema, resolver = {} }) => {
-  const defaultResolver = {
-    Container,
-    Text,
-    Button,
-    Image,
-    ...resolver
-  };
+  const contextData = useDesignContext(initDesign);
+  const { resolver, schema } = contextData;
+
+  const mergedResolver = useMemo(
+    () => ({
+      ...defaultResolver,
+      ...resolver
+    }),
+    [defaultResolver, resolver]
+  );
 
   return (
-    <DesignProvider>
-      <div className="w-full h-full">
-        <Editor enabled={false} resolver={defaultResolver}>
-          <Frame data={schema} />
-        </Editor>
-      </div>
-    </DesignProvider>
+    <Editor resolver={mergedResolver} enabled={false}>
+      <Frame data={schema}></Frame>
+    </Editor>
   );
-};
+});

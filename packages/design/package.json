@@ -8,9 +8,17 @@
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
+  "exports": {
+    "./style": {
+      "import": "./dist/esm/style/tailwind.css",
+      "require": "./dist/lib/style/tailwind.css"
+    },
+    ".": {
+      "import": "./dist/esm/index.js",
+      "require": "./dist/lib/index.js"
+    }
+  },
   "types": "./dist/esm/src/index.d.ts",
-  "main": "./dist/lib/index.js",
-  "module": "./dist/esm/index.js",
   "files": [
     "dist",
     "package.json"

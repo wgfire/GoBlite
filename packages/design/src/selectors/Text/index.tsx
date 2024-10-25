@@ -6,7 +6,7 @@ export type TextProps = {
   fontSize: string;
   textAlign: string;
   fontWeight: string;
-  color: Record<"r" | "g" | "b" | "a", number>;
+  color: string;
   shadow: number;
   text: string;
   margin: number;
@@ -33,7 +33,7 @@ export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, mar
       style={{
         margin: `${margin}px`,
         padding: `${padding}px`,
-        color: `rgba(${Object.values(color || { r: 0, g: 0, b: 0, a: 1 })})`,
+        color: `${color}`,
         fontSize: `${fontSize}px`,
         textShadow: `0px 0px 2px rgba(0,0,0,${shadow || 0})`,
         fontWeight,
@@ -51,7 +51,7 @@ Text.craft = {
     fontSize: "16",
     textAlign: "left",
     fontWeight: "500",
-    color: { r: 92, g: 90, b: 90, a: 1 },
+    color: "rgba(0,0,0,1)",
     margin: 0,
     padding: 0,
     shadow: 0,

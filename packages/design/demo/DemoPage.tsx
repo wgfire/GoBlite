@@ -466,10 +466,8 @@ export const DemoPage: React.FC = () => {
     []
   );
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <DesignProvider initialProps={initialProps}>
-        <DemoContent />
-      </DesignProvider>
-    </div>
+    <DesignProvider initialProps={initialProps}>
+      <DemoContent />
+    </DesignProvider>
   );
 };

@@ -6,29 +6,18 @@ interface FindSchemaParams {
   device?: DeviceType;
   language?: string;
 }
-
+const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
+  if (!newResolver) return oldResolver;
+  return { ...oldResolver, ...newResolver };
+};
 export const useDesignContext = (initialProps?: Partial<DesignContextProps>) => {
   const context = useContext(DesignContext);
-
   if (!context) {
     throw new Error("useDesignContext must be used within a DesignProvider");
   }
 
   const { state, updateContext } = context;
-  const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
-    if (!newResolver) return oldResolver;
-    return { ...oldResolver, ...newResolver };
-  };
 
-  //   useEffect(() => {
-  //     console.log(initialProps, "initialProps");
-  //     if (initialProps) {
-  //       updateContext(initialProps);
-  //     }
-  //   }, [initialProps]);
-  //   if (initialProps) {
-  //     updateContext(initialProps);
-  //   }
   useMemo(() => {
     if (initialProps) {
       const newValue = { ...state, ...initialProps };
@@ -55,7 +44,7 @@ export const useDesignContext = (initialProps?: Partial<DesignContextProps>) => 
         return !!deviceData.languagePageMap[language]?.schema;
       } else {
         // 如果只指定了设备，检查该设备下是否有任何语言的 schema
-        return Object.values(deviceData.languagePageMap).some(lang => !!lang.schema);
+        return Object.values(deviceData.languagePageMap).some(lang => Object.keys(lang.schema).length > 1);
       }
     },
     [state.device]

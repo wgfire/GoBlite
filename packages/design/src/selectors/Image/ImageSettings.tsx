@@ -2,16 +2,32 @@ import React from "react";
 import { ImageProps } from "./index";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
-
+import { useDesignContext } from "@/context";
+import events from "@go-blite/events";
+import { Label, Switch } from "@go-blite/shadcn";
 const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ Settings }) => {
-  const { props, displayName } = useNode(node => ({
+  const {
+    props,
+    displayName,
+    actions: { setProp }
+  } = useNode(node => ({
     props: node.data.props as ImageProps,
     displayName: node.data.custom.displayName
+  }));
+  const eventOptions = [{ url: "none", name: "无" }, ...Object.values(events)].map(key => ({
+    label: key.name,
+    value: key.name //key.handler
+  }));
+  const { assets } = useDesignContext();
+
+  const assetsOptions = [{ url: "none", name: "无" }, ...(assets ?? [])].map(asset => ({
+    label: asset.name,
+    value: asset.url
   }));
 
   return (
     <Settings defaultValue={props}>
-      <Settings.Layout tabs={["基础配置", "样式"]}>
+      <Settings.Layout tabs={["基础配置", "行为"]}>
         <Settings.Content>
           <Settings.Section defaultOpen title={"组件名称"}>
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
@@ -33,8 +49,33 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
                 { value: "scale-down", label: "缩小" }
               ]}
             />
+            <Settings.ItemSelect propKey="src" label="图片选择" options={assetsOptions}></Settings.ItemSelect>
             <Settings.ItemInput propKey="src" label="图片地址" placeholder="输入图片URL" />
             <Settings.ItemInput propKey="alt" label="替代文本" placeholder="输入提示文案" />
+          </Settings.Section>
+        </Settings.Content>
+        <Settings.Content>
+          <Settings.Section title="点击事件" defaultOpen>
+            <Settings.ItemSelect propKey="events.onClick" label="" options={eventOptions} />
+          </Settings.Section>
+          <Settings.Section title="水印设置" defaultOpen>
+            <div className="flex items-center space-x-2 justify-between mt-2">
+              <Label htmlFor="airplane-mode" className="text-gray-400">
+                图片水印
+              </Label>
+              <Switch
+                id="airplane-mode"
+                checked={props.watermark}
+                onCheckedChange={value => {
+                  setProp((p: ImageProps) => {
+                    p.watermark = value;
+                  });
+                }}
+              />
+            </div>
+            {props.watermark && (
+              <Settings.ItemSelect propKey="src" label="去水印图片" options={assetsOptions}></Settings.ItemSelect>
+            )}
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>
@@ -42,4 +83,4 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
   );
 };
 
-export const ImageSettings = SettingsHOC<ImageProps>(ImageSettingsComponent);
+export const ImageSettings = SettingsHOC(ImageSettingsComponent);

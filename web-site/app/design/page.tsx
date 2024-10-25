@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo } from "react";
-import "@go-blite/design/dist/esm/style/tailwind.css";
-import { Design, defaultDevice, DesignProvider, useDesignContext } from "@go-blite/design";
+import "@go-blite/design/style";
+import { Design, defaultDevice, DesignProvider } from "@go-blite/design";
 
 const mockSchema = {
   ROOT: {
@@ -367,13 +367,6 @@ const mockSchema = {
     linkedNodes: {}
   }
 };
-const DemoContent: React.FC = () => {
-  const contextData = useDesignContext();
-
-  console.log(contextData, "Design context data");
-
-  return <Design />;
-};
 
 const DesignPage: React.FC = () => {
   const Login = () => <div>Login</div>;
@@ -469,7 +462,7 @@ const DesignPage: React.FC = () => {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <DesignProvider initialProps={initialProps}>
-        <DemoContent />
+        <Design />
       </DesignProvider>
     </div>
   );

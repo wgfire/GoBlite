@@ -10,20 +10,20 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
     displayName: node.data.custom.displayName
   }));
 
-  const eventOptions = Object.values(events).map(key => ({
+  const eventOptions = [{ url: "none", name: "无" }, ...Object.values(events)].map(key => ({
     label: key.name,
     value: key.name //key.handler
   }));
 
   const sizeOptions = [
-    { value: "sm", label: "小" },
-    { value: "md", label: "中" },
-    { value: "icon", label: "大" }
+    { value: "default", label: "默认" },
+    { value: "sm", label: "中" },
+    { value: "icon", label: "无边距" }
   ];
 
   return (
     <Settings defaultValue={props}>
-      <Settings.Layout tabs={["基础配置", "样式", "事件"]}>
+      <Settings.Layout tabs={["基础配置", "样式", "行为"]}>
         <Settings.Content>
           <Settings.Section defaultOpen title={"组件名称"}>
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
@@ -32,7 +32,7 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
             <Settings.ItemInput propKey="text" placeholder="输入按钮文本" />
           </Settings.Section>
           <Settings.Section defaultOpen title={"尺寸设置"}>
-            <Settings.ItemSelect propKey="size" label="按钮大小" options={sizeOptions} />
+            <Settings.ItemSelect propKey="size" options={sizeOptions} />
           </Settings.Section>
           <Settings.Section defaultOpen title={"变体"}>
             <Settings.ItemSelect
@@ -40,6 +40,7 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
               label="按钮样式"
               options={[
                 { value: "default", label: "默认" },
+                { value: "destructive", label: "破坏性" },
                 { value: "secondary", label: "次要" },
                 { value: "outline", label: "轮廓" },
                 { value: "ghost", label: "幽灵" },
@@ -58,7 +59,7 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
 
         <Settings.Content>
           <Settings.Section defaultOpen title={"点击事件"}>
-            <Settings.ItemSelect propKey="events.onClick" options={eventOptions} />
+            <Settings.ItemSelect propKey="events.onClick" label="" options={eventOptions} />
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>

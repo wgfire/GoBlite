@@ -91,11 +91,9 @@ export const Design: React.FC = React.memo(() => {
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
   return (
-    <div className="h-screen">
-      <Editor resolver={mergedResolver} enabled={true} onRender={renderCallback}>
-        <EditorContent schema={schema} />
-      </Editor>
-    </div>
+    <Editor resolver={mergedResolver} enabled={true} onRender={renderCallback}>
+      <EditorContent schema={schema} />
+    </Editor>
   );
 });
 

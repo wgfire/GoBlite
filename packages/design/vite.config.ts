@@ -25,7 +25,7 @@ export default defineConfig({
       ],
       treeshake: true,
       preserveEntrySignatures: "strict",
-      input: ["src/index.ts"],
+      input: ["src/index.ts", "src/styles/tailwind.css"],
       output: [
         {
           dir: "dist/esm",

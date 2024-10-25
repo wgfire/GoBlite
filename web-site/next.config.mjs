@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  transpilePackages: ["@go-blite/shadcn"],
+  output: "export",
   webpack: config => {
     config.resolve = {
       ...config.resolve,

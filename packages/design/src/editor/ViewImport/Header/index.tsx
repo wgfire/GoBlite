@@ -12,46 +12,16 @@ import {
   SelectLabel,
   SelectItem
 } from "@go-blite/shadcn";
-
-const languages = [
-  { value: "en", label: "EN" },
-  { value: "zh", label: "Zh" },
-  { value: "vn", label: "VN" },
-  { value: "kr", label: "KR" },
-  { value: "id", label: "ID" }
-];
+import { useSaveSchema } from "@/hooks/useSaveSchema";
+import { languages } from "@/constant";
 
 export const Header: React.FC = () => {
-  const { enabled, actions, query } = useEditor(state => ({
+  const { enabled, actions } = useEditor(state => ({
     enabled: state.options.enabled
   }));
 
   const { updateContext, currentInfo, findSchema } = useDesignContext();
-
-  /**
-   * 保存当前的schema信息
-   */
-  const saveCurrentSchema = () => {
-    const currentSchema = query.getSerializedNodes();
-    updateContext(draft => {
-      const currentDevice = draft.device.find(device => device.type === draft.currentInfo.device);
-      if (currentDevice) {
-        currentDevice.languagePageMap[draft.currentInfo.language] = {
-          ...currentDevice.languagePageMap[draft.currentInfo.language],
-          schema: currentSchema
-        };
-      } else {
-        // 第一次点击
-        draft.device.push({
-          type: draft.currentInfo.device,
-          pageTemplate: draft.currentInfo.pageTemplate,
-          languagePageMap: {
-            [draft.currentInfo.language]: { schema: currentSchema }
-          }
-        });
-      }
-    });
-  };
+  const { saveCurrentSchema } = useSaveSchema();
 
   const handleDeviceChange = (newDevice: DeviceType) => {
     saveCurrentSchema();
@@ -134,7 +104,7 @@ export const Header: React.FC = () => {
         <Button
           size="sm"
           onClick={() => {
-            saveCurrentSchema();
+            saveCurrentSchema(true);
             actions.setOptions(options => (options.enabled = !enabled));
           }}
         >
