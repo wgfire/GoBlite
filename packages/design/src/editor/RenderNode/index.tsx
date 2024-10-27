@@ -37,16 +37,18 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   const getPos = useCallback((dom: HTMLElement | null) => {
     if (!dom || !currentRef.current) return { top: "0px", left: "0px" };
-    const { top, bottom, right } = dom.getBoundingClientRect();
-    const offset = right - currentRef.current.clientWidth;
+    const { top, bottom, right, width } = dom.getBoundingClientRect();
+    const offset = right - width * 0.5 - currentRef.current.offsetWidth / 2;
 
     return {
-      top: `${top > 0 ? top - 39 : bottom}px`,
+      top: `${top > 0 ? top - 41 : bottom}px`,
       left: `${offset}px`
     };
   }, []);
 
   const updatePosition = useCallback(() => {
+    const isDraging = dom?.getAttribute("data-dragging") === "true"; //是否正在拖拽
+    if (isDraging) return;
     if (dom && currentRef.current) {
       const newPos = getPos(dom);
       setPosition(newPos);
@@ -98,7 +100,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   return (
     <>
-      {(isHover || isActive) &&
+      {isActive &&
         createPortal(
           <div
             ref={currentRef}
