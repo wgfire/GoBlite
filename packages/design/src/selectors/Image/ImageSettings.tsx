@@ -74,7 +74,11 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
               />
             </div>
             {props.watermark && (
-              <Settings.ItemSelect propKey="src" label="去水印图片" options={assetsOptions}></Settings.ItemSelect>
+              <Settings.ItemSelect
+                propKey="noWatermarkSrc"
+                label="去水印图片"
+                options={assetsOptions}
+              ></Settings.ItemSelect>
             )}
           </Settings.Section>
         </Settings.Content>

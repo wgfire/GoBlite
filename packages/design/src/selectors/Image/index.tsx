@@ -13,13 +13,18 @@ export interface ImageProps {
     onClick: string;
   };
   watermark?: boolean;
+  noWatermarkSrc?: string;
 }
 
-export const Image: UserComponent<Partial<ImageProps>> = ({ src, alt, height, objectFit = "cover", maxWidth }) => {
+export const Image: UserComponent<Partial<ImageProps>> = props => {
+  const { src, alt, height, objectFit = "cover", maxWidth, watermark, noWatermarkSrc } = props;
+  const switchNoWatermarkSrc = false; // true
+
+  const renderSrc = switchNoWatermarkSrc && watermark ? noWatermarkSrc : src;
   return (
     <Resizer propKey={{ width: "width", height: "height" }} style={{ maxWidth: "100%" }}>
       <img
-        src={src}
+        src={renderSrc}
         alt={alt}
         loading="lazy"
         className="cursor-pointer"
