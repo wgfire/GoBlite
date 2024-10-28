@@ -41,7 +41,8 @@ export const useDesignContext = (initialProps?: Partial<DesignContextProps>) => 
       }
       if (language) {
         // 如果指定了语言，检查该设备下特定语言的 schema
-        return !!deviceData.languagePageMap[language]?.schema;
+        const schema = deviceData.languagePageMap[language]?.schema;
+        return schema && schema["ROOT"].nodes.length > 1;
       } else {
         // 如果只指定了设备，检查该设备下是否有任何语言的 schema
         return Object.values(deviceData.languagePageMap).some(lang => Object.keys(lang.schema).length > 1);

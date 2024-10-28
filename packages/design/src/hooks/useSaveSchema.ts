@@ -9,9 +9,9 @@ export const useSaveSchema = () => {
   const { query } = useEditor();
   /**
    *
-   * @param isPreview 是否保存后理解使用schema进行渲染
+   * @param isImmediately 是否保存后立即使用schema进行渲染
    */
-  const saveCurrentSchema = (isPreview = false) => {
+  const saveCurrentSchema = (isImmediately = false) => {
     const currentSchema = query.getSerializedNodes();
     updateContext(draft => {
       const currentDevice = draft.device.find(device => device.type === draft.currentInfo.device);
@@ -30,7 +30,7 @@ export const useSaveSchema = () => {
           }
         });
       }
-      if (isPreview) {
+      if (isImmediately) {
         draft.schema = currentSchema;
       }
     });

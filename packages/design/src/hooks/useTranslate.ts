@@ -55,7 +55,6 @@ export const useTranslate = (id: string, enable = true) => {
         minY: parentRect.top - elementRect.top,
         maxY: parentRect.bottom - elementRect.bottom
       };
-      console.log(moveRange.current, "moveRange.current", parentRect, elementRect);
     }
   }, []);
 
@@ -102,7 +101,7 @@ export const useTranslate = (id: string, enable = true) => {
       e.preventDefault();
 
       if (currentDraggingElement || (e.target as HTMLElement)?.style.cssText.includes("absolute")) return; // 如果已有元素在拖拽，则不处理
-      console.log(translateRef.current, "x");
+
       startPosRef.current = {
         x: e.clientX - translateRef.current.translateX,
         y: e.clientY - translateRef.current.translateY

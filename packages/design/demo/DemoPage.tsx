@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Design, defaultDevice } from "../src/editor/Design";
+import { Design } from "../src/editor/Design";
 import { DesignProvider, useDesignContext } from "../src/context";
 import { DesignContextProps } from "@/context/Provider";
 const mockSchema = {
@@ -379,7 +379,17 @@ export const DemoPage: React.FC = () => {
 
   const initialProps = useMemo<Partial<DesignContextProps>>(
     () => ({
-      device: defaultDevice,
+      device: [
+        {
+          type: "desktop",
+          pageTemplate: "static-download",
+          languagePageMap: {
+            zh: {
+              schema: mockSchema
+            }
+          }
+        }
+      ],
       schema: mockSchema,
       resolver: {
         Login: Login
