@@ -33,11 +33,13 @@ export const Header: React.FC = () => {
   };
 
   const handleLanguageChange = (newLanguage: string) => {
-    saveCurrentSchema(true);
+    saveCurrentSchema();
     updateContext(draft => {
-      // const currentDeviceData = draft.device.find(d => d.type === draft.currentInfo.device);
+      const currentDeviceData = draft.device.find(d => d.type === draft.currentInfo.device);
+      const oldSchema = currentDeviceData?.languagePageMap[draft.currentInfo.language]?.schema;
+      const newSchema = currentDeviceData?.languagePageMap[newLanguage]?.schema;
+      draft.schema = newSchema ?? oldSchema;
       draft.currentInfo.language = newLanguage;
-      // draft.schema = currentDeviceData?.languagePageMap[newLanguage]?.schema;
     });
   };
 

@@ -13,6 +13,9 @@ export const useSaveSchema = () => {
    */
   const saveCurrentSchema = (isImmediately = false) => {
     const currentSchema = query.getSerializedNodes();
+    // 对默认的schema不进行保存
+    if (Object.keys(currentSchema).length <= 1) return;
+
     updateContext(draft => {
       const currentDevice = draft.device.find(device => device.type === draft.currentInfo.device);
       if (currentDevice) {

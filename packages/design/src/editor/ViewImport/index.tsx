@@ -13,7 +13,6 @@ interface ViewImportProps {
 export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
   const {
     enabled,
-    connectors,
     actions: { setOptions }
   } = useEditor(state => ({
     enabled: state.options.enabled
@@ -53,7 +52,6 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
               "w-[750px]": currentInfo.device === "tablet",
               "w-[100%]": currentInfo.device === "desktop"
             })}
-            ref={ref => ref && connectors.select(connectors.hover(ref, "root"), "root")}
           >
             <div className="relative p-2">{children}</div>
           </div>
