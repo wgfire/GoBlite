@@ -1,6 +1,6 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@go-blite/shadcn";
 import { Label } from "@go-blite/shadcn";
-
+import { set } from "lodash-es";
 import clsx from "clsx";
 import { defaultProps } from "./types";
 import { useSettings } from "./Context";
@@ -13,9 +13,11 @@ export const ItemSelect = <T,>({ label, options, className, propKey }: ItemSelec
   const { setProp, value } = useSettings<T>();
   const selectValue = propKey ? value[propKey as keyof T] : "";
   const onChange = (value: string) => {
-    setProp(p => {
-      p[propKey as keyof T] = value as T[keyof T];
-    });
+    if (propKey) {
+      setProp(p => {
+        set(p as object, propKey, value);
+      });
+    }
   };
   return (
     <div className={clsx("space-y-2", className)}>

@@ -1,10 +1,10 @@
-import { useNode, UserComponent } from "@craftjs/core";
+import { useEditor, useNode, UserComponent } from "@craftjs/core";
 import { Button as ShadcnButton } from "@go-blite/shadcn";
 import { ButtonSettings } from "./ButtonSettings";
 import { Text } from "../Text";
 import { useTranslate } from "@/hooks/useTranslate";
 import { CSSProperties, useEffect } from "react";
-
+import eventScripts, { EventScript } from "@go-blite/events";
 export interface ButtonProps {
   text: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -26,7 +26,8 @@ export const Button: UserComponent<ButtonProps> = ({
   color,
   background,
   margin,
-  customStyle
+  customStyle,
+  events
 }: ButtonProps) => {
   const {
     id,
@@ -36,6 +37,22 @@ export const Button: UserComponent<ButtonProps> = ({
 
   const { translateX, translateY } = useTranslate(id);
 
+  const { enabled } = useEditor(state => ({
+    enabled: state.options.enabled
+  }));
+  /*
+   * 如果是构建部署环境，那么需要从window找到当前的脚本handler
+   */
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (events?.onClick) {
+      const handler = enabled
+        ? eventScripts[events.onClick]?.handler
+        : (window[events.onClick as keyof typeof window] as EventScript)?.handler;
+      if (handler) {
+        handler({ target: e.currentTarget, eventName: events.onClick, data: "携带的数据" });
+      }
+    }
+  };
   useEffect(() => {
     setProp((p: ButtonProps) => {
       p.customStyle!.transform = `translate(${translateX}px, ${translateY}px)`;
@@ -44,6 +61,7 @@ export const Button: UserComponent<ButtonProps> = ({
 
   return (
     <ShadcnButton
+      onClick={handleClick}
       id={id}
       style={{
         background: `${background}`,

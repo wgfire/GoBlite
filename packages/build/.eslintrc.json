@@ -1,0 +1,14 @@
+{
+  "extends": ["plugin:@next/next/recommended"],
+  "ignorePatterns": ["dist/*"],
+  "settings": {
+    "next": {
+      "rootDir": ["web-site"]
+    }
+  },
+  "env": {
+    "es6": true,
+    "browser": true,
+    "node": true
+  }
+}

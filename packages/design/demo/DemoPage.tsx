@@ -187,12 +187,7 @@ const mockSchema = {
     },
     isCanvas: false,
     props: {
-      color: {
-        r: 255,
-        g: 255,
-        b: 255,
-        a: 1
-      },
+      color: "rgba(255, 255, 255, 1)",
       buttonStyle: "full",
       text: "我是登录的业务组件",
       margin: 0
