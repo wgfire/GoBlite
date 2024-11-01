@@ -1,33 +1,23 @@
-import { useNode, useEditor } from "@craftjs/core";
+import { useNode, UserComponent } from "@craftjs/core";
 import ContentEditable from "react-contenteditable";
 import { TextSettings } from "./TextSettings";
+import { TextProps } from "./type";
 
-export type TextProps = {
-  fontSize: string;
-  textAlign: string;
-  fontWeight: string;
-  color: string;
-  shadow: number;
-  text: string;
-  margin: number;
-  padding: number;
-};
-
-export const Text = ({ fontSize, textAlign, fontWeight, color, shadow, text, margin, padding }: Partial<TextProps>) => {
+export const Text: UserComponent<TextProps> = props => {
   const {
     connectors: { connect },
     setProp
   } = useNode();
-  const { enabled } = useEditor(state => ({
-    enabled: state.options.enabled
-  }));
+  const { text, fontSize, textAlign, fontWeight, color, margin, padding, shadow } = props.baseStyle;
+
   return (
     <ContentEditable
       innerRef={connect}
       html={text || ""}
-      disabled={!enabled}
+      disabled={false}
       onChange={e => {
-        setProp(prop => (prop.text = e.target.value), 500);
+        console.log(e, "xx");
+        setProp(prop => (prop.baseStyle.text = e.target.value), 500);
       }}
       tagName="h2"
       style={{
@@ -48,14 +38,16 @@ Text.craft = {
     displayName: "Text"
   },
   props: {
-    fontSize: "16",
-    textAlign: "left",
-    fontWeight: "500",
-    color: "rgba(0,0,0,1)",
-    margin: 0,
-    padding: 0,
-    shadow: 0,
-    text: "Text"
+    baseStyle: {
+      fontSize: "16",
+      textAlign: "left",
+      fontWeight: "500",
+      color: "rgba(0,0,0,1)",
+      margin: 0,
+      padding: 0,
+      shadow: 0,
+      text: "Text"
+    }
   },
   related: {
     settings: TextSettings

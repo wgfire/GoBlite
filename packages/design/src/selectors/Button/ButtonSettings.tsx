@@ -1,10 +1,10 @@
 import React from "react";
-import { ButtonProps } from "./index";
+import { ButtonProps } from "./type";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
 import events from "@go-blite/events";
 
-const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = ({ Settings }) => {
+const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps["baseStyle"]>> = ({ Settings }) => {
   const { props, displayName } = useNode(node => ({
     props: node.data.props as ButtonProps,
     displayName: node.data.custom.displayName
@@ -22,7 +22,7 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
   ];
 
   return (
-    <Settings defaultValue={props}>
+    <Settings defaultValue={props.baseStyle}>
       <Settings.Layout tabs={["基础配置", "样式", "行为"]}>
         <Settings.Content>
           <Settings.Section defaultOpen title={"组件名称"}>
@@ -67,4 +67,4 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
   );
 };
 
-export const ButtonSettings = SettingsHOC<ButtonProps>(ButtonSettingsComponent);
+export const ButtonSettings = SettingsHOC(ButtonSettingsComponent);

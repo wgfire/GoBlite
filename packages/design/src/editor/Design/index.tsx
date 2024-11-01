@@ -4,8 +4,8 @@ import { RenderNode } from "../RenderNode";
 import { ViewImport } from "../ViewImport";
 import { useDesignContext } from "@/context/useDesignContext";
 import { Container } from "@/selectors/Container";
-import { Text } from "@/selectors/Text";
-import { Button } from "@/selectors/Button";
+import { Text } from "@/selectors/Text/Text.edit";
+import { Button } from "@/selectors/Button/Button.edit";
 import { Image } from "@/selectors/Image";
 import { Devices } from "@/context/Provider";
 

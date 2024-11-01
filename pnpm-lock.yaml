@@ -90,6 +90,9 @@ importers:
       '@go-blite/design':
         specifier: workspace:^
         version: link:../design
+      '@go-blite/events':
+        specifier: workspace:*
+        version: link:../events
       '@go-blite/shadcn':
         specifier: workspace:*
         version: link:../shadcn

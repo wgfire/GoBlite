@@ -4,9 +4,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@go-bl
 import { Button } from "@go-blite/shadcn";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn";
 import { Container } from "@/selectors/Container";
-import { Text } from "@/selectors/Text";
+import { Text } from "@/selectors/Text/Text.edit";
 import { Image } from "@/selectors/Image";
-import { Button as ButtonSelector } from "@/selectors/Button";
+import { Button as ButtonSelector } from "@/selectors/Button/Button.edit";
 import { LayoutGrid, Type, Image as ImageIcon, BoneIcon } from "lucide-react";
 
 export const Selectors: React.FC = () => {
@@ -39,7 +39,7 @@ export const Selectors: React.FC = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div ref={ref => create(ref!, <Text text="文本" />)}>
+                  <div ref={ref => create(ref!, <Text baseStyle={{ text: "文本" }} />)}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-start">
                       <Type className="w-4 h-4 mr-2" />
                       文本
@@ -71,7 +71,7 @@ export const Selectors: React.FC = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div ref={ref => create(ref!, <ButtonSelector text="按钮" />)}>
+                  <div ref={ref => create(ref!, <ButtonSelector baseStyle={{ text: "按钮" }} />)}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-start">
                       <BoneIcon className="w-4 h-4 mr-2" />
                       按钮

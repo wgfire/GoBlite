@@ -1,12 +1,15 @@
 import React, { useMemo } from "react";
-import { Editor, Frame } from "@craftjs/core";
-import { useDesignContext } from "@/context/useDesignContext";
+import { Editor, Frame, Resolver, SerializedNodes } from "@craftjs/core";
 import { Container } from "@/selectors/Container";
-import { Text } from "@/selectors/Text";
-import { Button } from "@/selectors/Button";
+import { Text } from "@/selectors/Text/Text.view";
+import { Button } from "@/selectors/Button/Button.edit";
 import { Image } from "@/selectors/Image";
 
-export const Preview: React.FC = React.memo(() => {
+export interface PreviewProps {
+  schema: SerializedNodes;
+  resolver?: Resolver;
+}
+export const Preview: React.FC<PreviewProps> = React.memo(({ schema, resolver }) => {
   const defaultResolver = useMemo(
     () => ({
       Container,
@@ -16,16 +19,6 @@ export const Preview: React.FC = React.memo(() => {
     }),
     []
   );
-  const initDesign = useMemo(
-    () => ({
-      resolver: defaultResolver,
-      publish: true
-    }),
-    [defaultResolver]
-  );
-
-  const contextData = useDesignContext(initDesign);
-  const { resolver, schema } = contextData;
 
   const mergedResolver = useMemo(
     () => ({

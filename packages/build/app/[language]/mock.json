@@ -209,6 +209,9 @@
                             "size": "default",
                             "text": "我是登录的业务组件",
                             "margin": 0,
+                            "events":{
+                                "onClick": "login"
+                            },
                             "customStyle": {
                                 "transform": "translate(0px, 0px)"
                             },
