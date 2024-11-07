@@ -1,8 +1,7 @@
 import React, { CSSProperties, useEffect, useMemo } from "react";
-import { useNode, UserComponent, ROOT_NODE } from "@craftjs/core";
+import { useNode, UserComponent } from "@craftjs/core";
 import { ContainerSettings } from "./ContainerSettings";
 import { Resizer } from "@/components/Resizer";
-import { useTranslate } from "@/hooks/useTranslate";
 
 export type EventType = "onClick" | "onLoad";
 
@@ -45,17 +44,8 @@ const defaultProps: ContainerProps = {
 };
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
-  const {
-    id,
-    actions: { setProp }
-  } = useNode();
-  const { translateX, translateY } = useTranslate(id, ROOT_NODE !== id);
+  const { id } = useNode();
 
-  useEffect(() => {
-    setProp((p: ContainerProps) => {
-      p.customStyle!.transform = `translate(${translateX}px, ${translateY}px)`;
-    });
-  }, [translateX, translateY]);
   const options = {
     ...defaultProps,
     ...props
@@ -112,7 +102,9 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     <Resizer
       id={id}
       propKey={{ width: "width", height: "height" }}
+      data-id={id}
       style={{
+        position: "relative",
         justifyContent,
         flexDirection,
         alignItems,
@@ -138,6 +130,8 @@ Container.craft = {
   related: {
     settings: ContainerSettings
   },
+  name: "Container",
+  displayName: "Container",
   custom: {
     displayName: "Container" // 设置默认的显示名称
   }

@@ -385,7 +385,7 @@ export const DemoPage: React.FC = () => {
           }
         }
       ],
-      schema: mockSchema,
+      schema: undefined,
       resolver: {
         Login: Login
       },

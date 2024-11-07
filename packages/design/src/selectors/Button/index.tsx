@@ -1,10 +1,11 @@
 import { useEditor, useNode, UserComponent } from "@craftjs/core";
 import { Button as ShadcnButton } from "@go-blite/shadcn";
 import { ButtonSettings } from "./ButtonSettings";
-import { Text } from "../Text";
-import { useTranslate } from "@/hooks/useTranslate";
-import { CSSProperties, useEffect } from "react";
+import { CSSProperties } from "react";
 import eventScripts, { EventScript } from "@go-blite/events";
+import { Resizer } from "@/components/Resizer";
+import ContentEditable from "react-contenteditable";
+
 export interface ButtonProps {
   text: string;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
@@ -23,7 +24,6 @@ export const Button: UserComponent<ButtonProps> = ({
   text,
   variant = "default",
   size = "default",
-  color,
   background,
   margin,
   customStyle,
@@ -35,7 +35,7 @@ export const Button: UserComponent<ButtonProps> = ({
     actions: { setProp }
   } = useNode();
 
-  const { translateX, translateY } = useTranslate(id);
+  // const { translateX, translateY } = useTranslate(id);
 
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
@@ -53,31 +53,44 @@ export const Button: UserComponent<ButtonProps> = ({
       }
     }
   };
-  useEffect(() => {
-    setProp((p: ButtonProps) => {
-      p.customStyle!.transform = `translate(${translateX}px, ${translateY}px)`;
-    });
-  }, [translateX, translateY]);
+  // useEffect(() => {
+  //   setProp((p: ButtonProps) => {
+  //     p.customStyle!.transform = `translate(${translateX}px, ${translateY}px)`;
+  //   });
+  // }, [translateX, translateY]);
 
   return (
-    <ShadcnButton
-      onClick={handleClick}
+    <Resizer
+      propKey={{ width: "width", height: "height" }}
       id={id}
+      data-id={id}
       style={{
         background: `${background}`,
         margin: `${margin}px`,
-        transform: `translate(${translateX}px, ${translateY}px)`,
         position: "relative",
         zIndex: 1,
         ...customStyle
       }}
-      ref={ref => connect(drag(ref as HTMLElement))}
-      variant={variant}
-      size={size}
-      className="rounded-sm"
     >
-      <Text text={text} color={color} />
-    </ShadcnButton>
+      <ShadcnButton
+        onClick={handleClick}
+        ref={ref => connect(drag(ref as HTMLElement))}
+        variant={variant}
+        size={size}
+        className="rounded-sm w-full h-full"
+      >
+        <ContentEditable
+          html={text || ""}
+          disabled={!enabled}
+          onChange={e => {
+            setProp((prop: ButtonProps) => {
+              prop.text = e.target.value;
+            });
+          }}
+          tagName="h2"
+        />
+      </ShadcnButton>
+    </Resizer>
   );
 };
 

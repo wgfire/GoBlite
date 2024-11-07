@@ -1,5 +1,5 @@
 import { Resizer } from "@/components/Resizer";
-import { UserComponent } from "@craftjs/core";
+import { useNode, UserComponent } from "@craftjs/core";
 import { ImageSettings } from "./ImageSettings";
 
 export interface ImageProps {
@@ -17,12 +17,13 @@ export interface ImageProps {
 }
 
 export const Image: UserComponent<Partial<ImageProps>> = props => {
+  const { id } = useNode();
   const { src, alt, height, objectFit = "cover", maxWidth, watermark, noWatermarkSrc } = props;
   const switchNoWatermarkSrc = false; // true
 
   const renderSrc = switchNoWatermarkSrc && watermark ? noWatermarkSrc : src;
   return (
-    <Resizer propKey={{ width: "width", height: "height" }} style={{ maxWidth: "100%" }}>
+    <Resizer propKey={{ width: "width", height: "height" }} style={{ maxWidth: "100%" }} id={id}>
       <img
         src={renderSrc}
         alt={alt}

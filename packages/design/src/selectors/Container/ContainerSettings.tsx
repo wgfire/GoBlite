@@ -108,4 +108,4 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
   );
 };
 
-export const ContainerSettings = SettingsHOC<ContainerProps>(ContainerSettingsComponent);
+export const ContainerSettings = SettingsHOC(ContainerSettingsComponent);

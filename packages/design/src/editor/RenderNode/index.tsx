@@ -21,7 +21,8 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
     moveable,
     deletable,
     parent,
-    connectors: { drag }
+    connectors: { drag },
+    props
   } = useNode(node => ({
     isHover: node.events.hovered,
     dom: node.dom,
@@ -34,6 +35,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   const currentRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: "0px", left: "0px" });
+  const [isDragging, setIsDragging] = useState(false);
 
   const getPos = useCallback((dom: HTMLElement | null) => {
     if (!dom || !currentRef.current) return { top: "0px", left: "0px" };
@@ -46,9 +48,22 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
     };
   }, []);
 
+  useEffect(() => {
+    let time = null;
+    if (props.customStyle?.transform) {
+      setIsDragging(true);
+      time = setTimeout(() => {
+        setIsDragging(false);
+      }, 1000);
+    }
+    return () => {
+      if (time) {
+        clearTimeout(time);
+      }
+    };
+  }, [props.customStyle?.transform]);
+
   const updatePosition = useCallback(() => {
-    const isDraging = dom?.getAttribute("data-dragging") === "true"; //是否正在拖拽
-    if (isDraging) return;
     if (dom && currentRef.current) {
       const newPos = getPos(dom);
       setPosition(newPos);
@@ -57,7 +72,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   useLayoutEffect(() => {
     updatePosition();
-  }, [isHover, isActive, updatePosition]);
+  }, [isHover, isActive, updatePosition, isDragging]);
 
   useEffect(() => {
     const craftjsRenderer = document.querySelector(".blite-renderer");
@@ -101,6 +116,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
   return (
     <>
       {isActive &&
+        !isDragging &&
         createPortal(
           <div
             ref={currentRef}

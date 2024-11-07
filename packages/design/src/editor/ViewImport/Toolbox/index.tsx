@@ -1,16 +1,9 @@
-import React, { useState } from "react";
 import { useEditor } from "@craftjs/core";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue
-} from "@go-blite/shadcn";
+
 import { Selectors } from "./Selectors";
 import { Assets } from "./Assets";
+import { Layout } from "./Layout";
+import { useDelayedState } from "@/hooks/useDelayedState";
 
 export type SelectType = "selectors" | "assets";
 
@@ -19,31 +12,21 @@ export const Toolbox: React.FC = () => {
     enabled: state.options.enabled
   }));
 
-  const [selected, setSelected] = useState<SelectType>("selectors");
+  const [shouldRender] = useDelayedState(enabled, {
+    delay: 300,
+    immediate: false
+  });
 
-  if (!enabled) return null;
+  if (!shouldRender) return null;
 
   return (
     <div
-      className="h-full flex flex-col bg-white shadow-md min-w-[150px] px-4 space-y-2 flex-shrink-0 flex-grow-[0] transition-all
-        duration-300"
+      className={`flex flex-col space-y-6 bg-white shadow-md px-4 flex-shrink-0 flex-grow-[0] transition-all duration-300 z-10
+        ${!enabled ? "opacity-0 translate-x-[-100%] " : "opacity-100 translate-x-0"}`}
     >
-      <div className="h-12 flex items-center">
-        <Select value={selected} defaultValue="selectors" onValueChange={value => setSelected(value as SelectType)}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="切换组件/资源" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>切换组件/资源</SelectLabel>
-              <SelectItem value="selectors">组件</SelectItem>
-              <SelectItem value="assets">资源</SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {selected === "selectors" ? <Selectors /> : <Assets />}
+      <Selectors />
+      <Assets />
+      <Layout />
     </div>
   );
 };

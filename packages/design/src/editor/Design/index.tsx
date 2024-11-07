@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { Editor, Frame, useEditor, SerializedNodes } from "@craftjs/core";
 import { RenderNode } from "../RenderNode";
 import { ViewImport } from "../ViewImport";
@@ -8,6 +8,7 @@ import { Text } from "@/selectors/Text";
 import { Button } from "@/selectors/Button";
 import { Image } from "@/selectors/Image";
 import { Devices } from "@/context/Provider";
+import Loading from "@/components/Loading";
 
 const defaultNode: SerializedNodes = {
   ROOT: {
@@ -18,7 +19,9 @@ const defaultNode: SerializedNodes = {
     props: {
       width: "100%",
       background: "rgba(255,255,255,1)",
-      padding: 10
+      padding: 10,
+      height: "100%",
+      flexDirection: "column"
     },
     nodes: [],
     linkedNodes: {},
@@ -43,6 +46,7 @@ export const defaultDevice: Devices = [
 
 const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> = ({ schema }) => {
   const { actions } = useEditor();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     console.log(schema, "schema");
@@ -53,10 +57,19 @@ const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> 
     }
   }, [schema, actions]);
 
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+  }, []);
+
   return (
-    <ViewImport>
-      <Frame></Frame>
-    </ViewImport>
+    <>
+      <ViewImport>
+        <Frame></Frame>
+      </ViewImport>
+      <Loading loading={loading} />
+    </>
   );
 };
 
@@ -70,16 +83,14 @@ export const Design: React.FC = React.memo(() => {
     }),
     []
   );
-  const initDesign = useMemo(
-    () => ({
-      resolver: defaultResolver
-    }),
-    [defaultResolver]
-  );
 
-  const contextData = useDesignContext(initDesign);
-  const { resolver, schema, onRender } = contextData;
-
+  const contextData = useDesignContext();
+  const { resolver, schema, onRender, updateContext } = contextData;
+  useEffect(() => {
+    updateContext(draft => {
+      draft.resolver = mergedResolver;
+    });
+  }, []);
   const mergedResolver = useMemo(
     () => ({
       ...defaultResolver,

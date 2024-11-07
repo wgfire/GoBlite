@@ -1,0 +1,73 @@
+.guideLine {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  animation: extend 0.3s ease-out;
+  transform-origin: left top;
+}
+
+.guideLabel {
+  position: absolute;
+  background: rgba(15, 23, 42, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transform: translate(-50%, -50%);
+  margin-top: -8px;
+  backdrop-filter: blur(4px);
+  letter-spacing: 0.5px;
+}
+.guideLine[data-type="vertical-top"] .guideLabel {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: 0;
+}
+
+.guideLine[data-type="horizontal-left"] .guideLabel {
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -100%);
+  margin-top: -4px;
+}
+
+.guideLine[data-type="horizontal-right"] .guideLabel {
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -100%);
+  margin-top: -4px;
+}
+
+/* 添加延伸动画 */
+@keyframes extend {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* 为垂直线添加特殊的动画 */
+.guideLine[data-type^="vertical"],
+.guideLine[data-type^="center-center-vertical"] {
+  animation: extendVertical 0.3s ease-out;
+  transform-origin: top;
+}
+
+@keyframes extendVertical {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}

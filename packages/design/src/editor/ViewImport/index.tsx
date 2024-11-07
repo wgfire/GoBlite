@@ -2,9 +2,10 @@ import React, { useEffect } from "react";
 import { useEditor } from "@craftjs/core";
 import clsx from "clsx";
 import { Header } from "./Header";
-import { Sidebar } from "./Sidebar";
+// import { Sidebar } from "./Sidebar";
 import { Toolbox } from "./Toolbox";
 import { useDesignContext } from "@/context/useDesignContext";
+import { Canvas } from "./Canvas";
 
 interface ViewImportProps {
   children: React.ReactNode;
@@ -41,9 +42,9 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
 
   return (
     <div className="viewport h-screen overflow-hidden">
-      <div className={clsx("flex h-full flex-row w-full")}>
+      <div className={clsx("flex h-full flex-row w-full relative")}>
         <Toolbox />
-        <div className="page-container flex flex-1 h-full flex-col overflow-hidden">
+        <div className="page-container flex flex-1 h-full flex-col overflow-hidden pb-3 bg-gray-100">
           <Header />
           <div
             className={clsx("blite-renderer flex-1 h-full transition overflow-auto mx-auto", {
@@ -53,10 +54,10 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
               "w-[100%]": currentInfo.device === "desktop"
             })}
           >
-            <div className="relative p-2">{children}</div>
+            <Canvas className="h-full w-full">{children}</Canvas>
           </div>
         </div>
-        <Sidebar />
+        {/* <Sidebar /> */}
       </div>
     </div>
   );
