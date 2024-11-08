@@ -1,46 +1,26 @@
-import React, { CSSProperties, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useNode, UserComponent } from "@craftjs/core";
 import { ContainerSettings } from "./ContainerSettings";
 import { Resizer } from "@/components/Resizer";
-
-export type EventType = "onClick" | "onLoad";
-
-export interface ContainerProps {
-  width?: string;
-  height?: string;
-  display?: "flex" | "grid";
-  flexDirection?: CSSProperties["flexDirection"];
-  fillSpace?: "yes" | "no";
-  gridRows?: number;
-  gridCols?: number;
-  justifyContent?: CSSProperties["justifyContent"];
-  alignItems?: CSSProperties["alignItems"];
-  customStyle?: CSSProperties;
-  margin: number;
-  gap?: number;
-  padding: number;
-  background?: string;
-  backgroundImage?: string;
-  events: {
-    onLoad?: string;
-    onClick?: string;
-  };
-}
+import { ContainerProps } from "./type";
 
 const defaultProps: ContainerProps = {
-  display: "flex",
+  style: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    padding: 0,
+    margin: 0,
+    background: "rgba(255, 255, 255, 0.1)",
+    width: "100%",
+    height: "auto",
+    backgroundImage: "none",
+    border: "1px solid rgba(255, 255, 255, 0.6)"
+  },
   events: {},
-  flexDirection: "row",
-  alignItems: "flex-start",
-  justifyContent: "flex-start",
-  fillSpace: "no",
-  padding: 0,
-  margin: 0,
-  background: "rgba(255, 255, 255, 0.1)",
-  width: "100%",
-  height: "auto",
-  backgroundImage: "none",
-  customStyle: {}
+  customStyle: {},
+  animation: []
 };
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
@@ -51,24 +31,8 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     ...props
   };
 
-  const {
-    flexDirection,
-    gridCols,
-    gridRows,
-    alignItems,
-    justifyContent,
-    fillSpace,
-    background,
-    padding,
-    margin,
-    children,
-    events,
-    display,
-    gap,
-    backgroundImage,
-    customStyle
-  } = options;
-
+  const { style, events, customStyle, children } = options;
+  const { display, fillSpace, background, backgroundImage, gap, gridCols, gridRows } = style;
   useEffect(() => {
     if (events?.onLoad) {
       eval(events.onLoad);
@@ -90,14 +54,14 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     };
   }, [background, backgroundImage]);
   const styled = useMemo(() => {
-    const style = { ...customStyle };
+    const styled = { ...customStyle, ...style };
     if (display === "grid") {
-      style["gridTemplateColumns"] = `repeat(${gridCols ?? 0}, 1fr)`;
-      style["gridTemplateRows"] = `repeat(${gridRows ?? 0}, 1fr)`;
+      styled["gridTemplateColumns"] = `repeat(${gridCols ?? 0}, 1fr)`;
+      styled["gridTemplateRows"] = `repeat(${gridRows ?? 0}, 1fr)`;
     }
-    return style;
+    return styled;
   }, [gridCols, gridRows, display, customStyle]);
-  console.log(styled, "styled");
+  console.log(styled, "options");
   return (
     <Resizer
       id={id}
@@ -105,14 +69,9 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       data-id={id}
       style={{
         position: "relative",
-        justifyContent,
-        flexDirection,
-        alignItems,
-        display,
         gap: gap ?? 0,
-        padding: `${padding}px`,
-        margin: `${margin}px`,
-        flex: fillSpace === "yes" ? 1 : "unset",
+        flex: fillSpace ? 1 : "unset",
+        border: "1px solid rgba(0, 0, 0, 0.3)",
         ...styleBg,
         ...styled
       }}
@@ -121,7 +80,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     </Resizer>
   );
 };
-
 Container.craft = {
   props: defaultProps,
   rules: {

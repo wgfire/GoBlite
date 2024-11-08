@@ -1,4 +1,4 @@
-import { Container } from "@/selectors/Container";
+import { Container } from "@/selectors/Container/Container.edit";
 import { FreshNode, useEditor } from "@craftjs/core";
 import { useCallback } from "react";
 
@@ -20,9 +20,11 @@ export const useClickAddNode = () => {
         isCanvas: true,
         parent: id,
         props: {
-          width: "100px",
-          height: "100px",
-          background: "rgba(243, 244, 246, 0.8)"
+          style: {
+            width: "100px",
+            height: "100px",
+            background: "rgba(243, 244, 246, 0.8)"
+          }
         },
         nodes: []
       }

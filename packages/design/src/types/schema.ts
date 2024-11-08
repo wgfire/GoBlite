@@ -34,10 +34,14 @@ interface BaseStyle {
   // 阴影
   boxShadow?: string;
 
-  // 动画
-  transition?: string;
-  transform?: string;
-  animation?: string;
+  // 颜色
+  color?: string;
+}
+export interface Animation {
+  name?: string;
+  duration?: number;
+  timingFunction?: string;
+  delay?: number;
 }
 
 /**
@@ -64,10 +68,11 @@ interface CommonComponentProps {
   id?: string;
   className?: string;
   style?: BaseStyle;
+  animation?: Animation[];
   customStyle?: CSSProperties; // 自定义样式
   events?: {
     onClick?: () => void | EventConfig;
-    onLoad?: () => void;
+    onLoad?: string;
   };
 }
 

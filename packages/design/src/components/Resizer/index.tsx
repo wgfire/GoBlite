@@ -35,8 +35,8 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
   } = useNode(node => ({
     parent: node.data.parent,
     active: node.events.selected,
-    nodeWidth: node.data.props[propKey.width],
-    nodeHeight: node.data.props[propKey.height],
+    nodeWidth: node.data.props.style[propKey.width],
+    nodeHeight: node.data.props.style[propKey.height],
     fillSpace: node.data.props.fillSpace
   }));
 

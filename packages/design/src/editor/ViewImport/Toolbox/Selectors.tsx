@@ -3,10 +3,10 @@ import { Element, useEditor } from "@craftjs/core";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@go-blite/shadcn";
 import { Button } from "@go-blite/shadcn";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn";
-import { Container } from "@/selectors/Container";
-import { Text } from "@/selectors/Text";
-import { Image } from "@/selectors/Image";
-import { Button as ButtonSelector } from "@/selectors/Button";
+import { Container } from "@/selectors/Container/Container.edit";
+import { Text } from "@/selectors/Text/Text.edit";
+import { Image } from "@/selectors/Image/Image.edit";
+import { Button as ButtonSelector } from "@/selectors/Button/Button.edit";
 import { Type, Image as ImageIcon, BoneIcon, Box } from "lucide-react";
 
 export const Selectors: React.FC = () => {
@@ -27,7 +27,11 @@ export const Selectors: React.FC = () => {
                     ref={ref =>
                       create(
                         ref!,
-                        <Element canvas is={Container} height="300px" background="rgba(243, 244, 246, 0.8)"></Element>
+                        <Element
+                          canvas
+                          is={Container}
+                          style={{ height: "300px", background: "rgba(243, 244, 246, 0.8)" }}
+                        ></Element>
                       )
                     }
                   >

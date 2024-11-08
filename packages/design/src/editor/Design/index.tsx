@@ -3,10 +3,10 @@ import { Editor, Frame, useEditor, SerializedNodes } from "@craftjs/core";
 import { RenderNode } from "../RenderNode";
 import { ViewImport } from "../ViewImport";
 import { useDesignContext } from "@/context/useDesignContext";
-import { Container } from "@/selectors/Container";
-import { Text } from "@/selectors/Text";
-import { Button } from "@/selectors/Button";
-import { Image } from "@/selectors/Image";
+import { Container } from "@/selectors/Container/Container.edit";
+import { Text } from "@/selectors/Text/Text.edit";
+import { Button } from "@/selectors/Button/Button.edit";
+import { Image } from "@/selectors/Image/Image.edit";
 import { Devices } from "@/context/Provider";
 import Loading from "@/components/Loading";
 
@@ -17,11 +17,13 @@ const defaultNode: SerializedNodes = {
     },
     isCanvas: true,
     props: {
-      width: "100%",
-      background: "rgba(255,255,255,1)",
-      padding: 10,
-      height: "100%",
-      flexDirection: "column"
+      style: {
+        width: "100%",
+        background: "rgba(255,255,255,1)",
+        padding: 10,
+        height: "100%",
+        flexDirection: "column"
+      }
     },
     nodes: [],
     linkedNodes: {},
