@@ -15,8 +15,7 @@ const defaultProps: ContainerProps = {
     background: "rgba(255, 255, 255, 0.1)",
     width: "100%",
     height: "auto",
-    backgroundImage: "none",
-    border: "1px solid rgba(255, 255, 255, 0.6)"
+    backgroundImage: "none"
   },
   events: {},
   customStyle: {},
@@ -71,7 +70,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
         position: "relative",
         gap: gap ?? 0,
         flex: fillSpace ? 1 : "unset",
-        border: "1px solid rgba(0, 0, 0, 0.3)",
         ...styleBg,
         ...styled
       }}

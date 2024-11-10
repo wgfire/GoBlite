@@ -23,7 +23,7 @@ export const useClickAddNode = () => {
           style: {
             width: "100px",
             height: "100px",
-            background: "rgba(243, 244, 246, 0.8)"
+            background: "rgba(255, 255, 255, 0.8)"
           }
         },
         nodes: []

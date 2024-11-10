@@ -6,6 +6,7 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 
 import { isPercentage, pxToPercent, percentToPx, getElementDimensions } from "../../utils/numToMeasurement";
 import { ResizerIndicators } from "./ResizerIndicators";
+import { ContainerProps } from "@/selectors/Container/type";
 
 interface ResizerProps extends Omit<ResizableProps, "size"> {
   id?: string;
@@ -152,9 +153,9 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
         height = (editingDimensions.current?.height as number) + d.height + "px";
       }
 
-      setProp((prop: Record<string, string>) => {
-        prop[propKey.width] = width;
-        prop[propKey.height] = height;
+      setProp((prop: ContainerProps) => {
+        prop.style[propKey.width] = width;
+        prop.style[propKey.height] = height;
       }, 500);
     },
     [nodeWidth, nodeHeight, propKey, setProp, getUpdatedDimensions]
@@ -182,7 +183,8 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
       clsx("flex", {
         "m-auto": isRootNode,
         "overflow-hidden": isRootNode,
-        "max-w-full": true
+        "max-w-full": true,
+        "user-select-none": true
       }),
     [isRootNode]
   );

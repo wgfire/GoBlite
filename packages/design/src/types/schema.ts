@@ -36,6 +36,8 @@ interface BaseStyle {
 
   // 颜色
   color?: string;
+
+  [key: string]: string | number | object | boolean | Array<unknown> | undefined;
 }
 export interface Animation {
   name?: string;
