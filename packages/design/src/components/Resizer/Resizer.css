@@ -1,21 +1,31 @@
 .indicator-1 {
-  left: -0.375rem;
-  top: -0.375rem;
+  left: -0.35rem;
+  top: -0.35rem;
 }
 
 .indicator-2 {
-  right: -0.375rem;
-  top: -0.375rem;
+  right: -0.35rem;
+  top: -0.35rem;
 }
 
 .indicator-3 {
-  left: -0.375rem;
-  bottom: -0.375rem;
+  left: -0.35rem;
+  bottom: -0.35rem;
 }
 
 .indicator-4 {
-  right: -0.375rem;
-  bottom: -0.375rem;
+  right: -0.35rem;
+  bottom: -0.35rem;
+}
+.left-indicator {
+  left: 0.05rem;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.right-indicator {
+  right: 0.05rem;
+  top: 50%;
+  transform: translate(50%, -50%);
 }
 
 .bound-row .indicator-1 {
@@ -56,4 +66,109 @@
 
 .bound-column .indicator-4 {
   display: none;
+}
+/* 添加动画关键帧 */
+@keyframes indicator-1-animation {
+  0% {
+    transform: translate(-20px, -20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes indicator-2-animation {
+  0% {
+    transform: translate(20px, -20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes indicator-3-animation {
+  0% {
+    transform: translate(-20px, 20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes indicator-4-animation {
+  0% {
+    transform: translate(20px, 20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes left-indicator-animation {
+  0% {
+    transform: translate(-20px, -50%);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+
+@keyframes right-indicator-animation {
+  0% {
+    transform: translate(20px, -50%);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(50%, -50%);
+    opacity: 1;
+  }
+}
+
+/* 应用动画 */
+.animate-indicator-1 {
+  animation: indicator-1-animation 0.3s ease-out forwards;
+}
+
+.animate-indicator-2 {
+  animation: indicator-2-animation 0.3s ease-out forwards;
+}
+
+.animate-indicator-3 {
+  animation: indicator-3-animation 0.3s ease-out forwards;
+}
+
+.animate-indicator-4 {
+  animation: indicator-4-animation 0.3s ease-out forwards;
+}
+
+.animate-left-indicator {
+  animation: left-indicator-animation 0.3s ease-out forwards;
+}
+
+.animate-right-indicator {
+  animation: right-indicator-animation 0.3s ease-out forwards;
+}
+.resizer-wrapper > span {
+  position: absolute !important;
+  pointer-events: none;
+  width: 100% !important;
+  height: 100% !important;
+  inset: 0;
+  z-index: 0;
+}
+/* 但是指示器需要接收事件 */
+.resizer-wrapper > span .indicator {
+  pointer-events: auto !important;
+  position: absolute;
+  z-index: 2;
 }

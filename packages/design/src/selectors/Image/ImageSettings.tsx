@@ -1,5 +1,5 @@
 import React from "react";
-import { ImageProps } from "./index";
+import { ImageProps } from "./type";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
 import { useDesignContext } from "@/context";
@@ -34,11 +34,11 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
           </Settings.Section>
           <Settings.Section defaultOpen title={"图片设置"}>
             <div className="grid grid-cols-2 gap-2">
-              <Settings.ItemInput propKey="width" type="text" />
-              <Settings.ItemInput propKey="height" type="text" />
+              <Settings.ItemInput propKey="style.width" type="text" />
+              <Settings.ItemInput propKey="style.height" type="text" />
             </div>
             <Settings.ItemSelect
-              propKey="objectFit"
+              propKey="style.objectFit"
               label="填充方式"
               options={[
                 { value: "contain", label: "包含" },

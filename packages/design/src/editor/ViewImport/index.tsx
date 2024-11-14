@@ -6,6 +6,7 @@ import { Header } from "./Header";
 import { Toolbox } from "./Toolbox";
 import { useDesignContext } from "@/context/useDesignContext";
 import { Canvas } from "./Canvas";
+import { Sidebar } from "./Sidebar";
 
 interface ViewImportProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
   } = useEditor(state => ({
     enabled: state.options.enabled
   }));
-  const { currentInfo } = useDesignContext();
+  const { currentInfo, showSidebar } = useDesignContext();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -57,7 +58,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
             <Canvas className="h-full w-full">{children}</Canvas>
           </div>
         </div>
-        {/* <Sidebar /> */}
+        {showSidebar && <Sidebar />}
       </div>
     </div>
   );

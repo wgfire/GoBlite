@@ -1,5 +1,5 @@
 import React from "react";
-import { TextProps } from "./index";
+import { TextProps } from "./type";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
 
@@ -20,9 +20,9 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
           <Settings.ItemInput propKey="text" label="文本内容" placeholder="输入文本内容" />
 
           <Settings.Section defaultOpen title={"字体设置"}>
-            <Settings.ItemInput propKey="fontSize" type="number" />
+            <Settings.ItemInput propKey="style.fontSize" type="number" />
             <Settings.ItemSelect
-              propKey="fontWeight"
+              propKey="style.fontWeight"
               label="字体粗细"
               options={[
                 { value: "normal", label: "正常" },
@@ -41,29 +41,28 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
           </Settings.Section>
           <Settings.Section defaultOpen title={"文本对齐"}>
             <Settings.ItemSelect
-              propKey="textAlign"
+              propKey="style.textAlign"
               options={[
                 { value: "left", label: "左对齐" },
                 { value: "center", label: "居中" },
-                { value: "right", label: "右对齐" },
-                { value: "justify", label: "两端对齐" }
+                { value: "right", label: "右对齐" }
               ]}
             />
           </Settings.Section>
           <Settings.Section defaultOpen title={"边距"}>
             <div className="grid grid-cols-2 gap-4">
-              <Settings.ItemSlide propKey="margin" min={0} max={100} step={1} label="外边距" />
-              <Settings.ItemSlide propKey="padding" min={0} max={100} step={1} label="内边距" />
+              <Settings.ItemSlide propKey="style.margin" min={0} max={100} step={1} label="外边距" />
+              <Settings.ItemSlide propKey="style.padding" min={0} max={100} step={1} label="内边距" />
             </div>
           </Settings.Section>
         </Settings.Content>
 
         <Settings.Content>
           <Settings.Section defaultOpen title={"颜色设置"}>
-            <Settings.ItemColor propKey="color" label="文本颜色" />
+            <Settings.ItemColor propKey="style.color" label="文本颜色" />
           </Settings.Section>
           <Settings.Section defaultOpen title={"阴影设置"}>
-            <Settings.ItemSlide propKey="shadow" min={0} max={1} step={0.1} label="文本阴影" />
+            <Settings.ItemSlide propKey="style.shadow" min={0} max={1} step={0.1} label="文本阴影" />
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>

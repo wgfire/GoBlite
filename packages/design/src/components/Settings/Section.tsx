@@ -12,7 +12,7 @@ interface SectionProps {
 export const Section = ({ title, children, defaultOpen }: SectionProps) => {
   const [open, setOpen] = useState(defaultOpen || false);
   return (
-    <Collapsible open={open} onOpenChange={setOpen}>
+    <Collapsible open={open} onOpenChange={setOpen} className="space-y-2">
       <CollapsibleTrigger asChild>
         <div className="w-full flex gap-2 justify-between items-center font-medium text-sm cursor-pointer">
           {title}

@@ -18,8 +18,7 @@ export const ContextMenuManager: React.FC = () => {
 
     const handleHideContextMenu = (e: MouseEvent) => {
       // 如果点击的元素是菜单内部的元素，不关闭菜单
-      console.log(e.target);
-      if (menuRef.current?.contains(e.target as Node)) {
+      if (menuRef.current?.contains(e.target as Node) || (e.target as HTMLElement)?.nodeName === "HTML") {
         return;
       }
       setMenuState(null);
@@ -39,7 +38,7 @@ export const ContextMenuManager: React.FC = () => {
 
   const Settings = () => {
     // 根据 node 的 related.settings 返回不同的菜单内容
-    return React.createElement(menuState.node.related.settings);
+    return React.createElement(menuState.node.related.fastSettings);
   };
 
   return createPortal(

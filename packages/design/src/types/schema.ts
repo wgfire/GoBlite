@@ -8,6 +8,13 @@ interface BaseStyle {
   flexDirection?: "row" | "column" | "row-reverse" | "column-reverse";
   justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "space-around";
   alignItems?: "flex-start" | "flex-end" | "center" | "stretch";
+  alignContent?: "flex-start" | "flex-end" | "center" | "stretch";
+  flexWrap?: "nowrap" | "wrap" | "wrap-reverse";
+  alignSelf?: "auto" | "flex-start" | "flex-end" | "center" | "stretch";
+  justifySelf?: "auto" | "flex-start" | "flex-end" | "center" | "stretch";
+  gridTemplateRows?: string;
+  gridTemplateColumns?: string;
+  gridArea?: string;
 
   // 尺寸
   width?: string | number;
@@ -24,7 +31,7 @@ interface BaseStyle {
 
   // 边框
   border?: string;
-  borderRadius?: string | number;
+  borderRadius?: number;
 
   // 背景
   background?: string;

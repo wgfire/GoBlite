@@ -14,7 +14,7 @@ import {
 } from "@go-blite/shadcn";
 import { useEditor } from "@craftjs/core";
 import { assetsType } from "@/context/Provider";
-import { Image } from "@/selectors/Image";
+import { Image } from "@/selectors/Image/Image.edit";
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty, CommandGroup } from "@go-blite/shadcn";
 import { BookImage } from "lucide-react";
 

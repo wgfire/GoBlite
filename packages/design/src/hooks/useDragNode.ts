@@ -7,7 +7,7 @@ export const useDragNode = () => {
     actions: { setProp }
   } = useEditor();
   const currentTransform = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const handleMouseDrag = ({
+  const dragNode = ({
     x,
     y,
     initx,
@@ -39,6 +39,6 @@ export const useDragNode = () => {
   };
 
   return {
-    handleMouseDrag
+    dragNode
   };
 };

@@ -32,6 +32,7 @@ export interface DesignContextProps {
   schema?: string | SerializedNodes;
   assets?: { name: string; url: string; type: assetsType }[];
   onRender?: React.ComponentType<{ render: React.ReactElement }>;
+  showSidebar?: boolean;
 }
 
 const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
@@ -63,7 +64,8 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
         device: "desktop",
         pageTemplate: "static-download",
         language: "zh"
-      }
+      },
+      showSidebar: initialProps.showSidebar || false
     }),
     [initialProps]
   );

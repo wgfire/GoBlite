@@ -6,10 +6,11 @@ import { useRef, useEffect, useState, useCallback, useMemo } from "react";
 
 import { isPercentage, pxToPercent, percentToPx, getElementDimensions } from "../../utils/numToMeasurement";
 import { ResizerIndicators } from "./ResizerIndicators";
-import { ContainerProps } from "@/selectors/Container/type";
 
 interface ResizerProps extends Omit<ResizableProps, "size"> {
   id?: string;
+  trim?: boolean;
+  mode?: "container" | "text";
   propKey: {
     width: string;
     height: string;
@@ -22,7 +23,7 @@ interface Dimensions {
   height: string | number;
 }
 
-export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props }) => {
+export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true, ...props }) => {
   const {
     id,
     actions: { setProp },
@@ -51,7 +52,6 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
   const editingDimensions = useRef<Dimensions | null>(null);
   const nodeDimensions = useRef<Dimensions | null>(null);
   nodeDimensions.current = { width: nodeWidth, height: nodeHeight };
-  //   const maxWidth = useRef<number>(0);
 
   const [internalDimensions, setInternalDimensions] = useState<Dimensions>({
     width: nodeWidth,
@@ -67,7 +67,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
 
     setInternalDimensions({
       width,
-      height
+      height: height
     });
   }, []);
 
@@ -128,6 +128,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
     (_: unknown, __: unknown, ___: unknown, d: { width: number; height: number }) => {
       const dom = resizable.current?.resizable;
       if (!dom) return;
+
       const updatedDimensions = getUpdatedDimensions(d.width, d.height);
       if (!updatedDimensions) return;
 
@@ -153,7 +154,12 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
         height = (editingDimensions.current?.height as number) + d.height + "px";
       }
 
-      setProp((prop: ContainerProps) => {
+      if (!trim) {
+        width = width.replace(/[^0-9.-]+/g, "");
+        height = height.replace(/[^0-9.-]+/g, "");
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setProp((prop: Record<string, any>) => {
         prop.style[propKey.width] = width;
         prop.style[propKey.height] = height;
       }, 500);
@@ -180,9 +186,9 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
 
   const resizableClassName = useMemo(
     () =>
-      clsx("flex", {
+      clsx({
         "m-auto": isRootNode,
-        "overflow-hidden": isRootNode,
+        "overflow-auto": isRootNode,
         "max-w-full": true,
         "user-select-none": true
       }),
@@ -191,13 +197,23 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
   return (
     <Resizable
       enable={resizableEnable}
-      className={resizableClassName}
+      className={clsx(resizableClassName, "resizer-wrapper")}
       id={id}
       ref={ref => {
         if (ref) {
           resizable.current = ref;
           connect(resizable.current.resizable!);
         }
+      }}
+      handleClasses={{
+        top: "indicator",
+        right: "indicator",
+        bottom: "indicator",
+        left: "indicator",
+        topRight: "indicator",
+        bottomRight: "indicator",
+        bottomLeft: "indicator",
+        topLeft: "indicator"
       }}
       size={internalDimensions}
       onResizeStart={handleResizeStart}
@@ -206,7 +222,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
       {...props}
     >
       {children}
-      {active && <ResizerIndicators bound={fillSpace === "yes" ? parentDirection : false} />}
+      {active && !isRootNode && <ResizerIndicators bound={fillSpace === "yes" ? parentDirection : false} />}
     </Resizable>
   );
 };

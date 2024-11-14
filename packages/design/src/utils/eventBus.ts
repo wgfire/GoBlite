@@ -1,9 +1,9 @@
 import mitt, { Emitter } from "./mitt";
 
-type Events = {
+export type Events = {
   mouseDrag: { x: number; y: number; target: HTMLElement; initx: number; inity: number; matrix: DOMMatrix };
   mouseUp: { x: number; y: number };
-  mouseDown: { id: string };
+  mouseDown: { target: HTMLElement };
   doubleClick: { id: string };
   contextMenu: { e: React.MouseEvent<HTMLDivElement, MouseEvent> };
 };

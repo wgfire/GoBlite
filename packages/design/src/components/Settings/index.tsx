@@ -8,6 +8,8 @@ import { ItemSlide } from "@/components/Settings/ItemSlider";
 import { Layout } from "@/components/Settings/Layout";
 import { Content } from "@/components/Settings/Content";
 import { Section } from "@/components/Settings/Section";
+import { FlexLayout } from "@/components/Settings/FlexLayout";
+import { GridLayout } from "@/components/Settings/GridLayout";
 import { ItemName } from "./ItemName";
 
 export interface SettingsProps<T> {
@@ -24,6 +26,8 @@ export interface SettingsComponent<T> extends React.FC<SettingsProps<T>> {
   Layout: typeof Layout;
   Content: typeof Content;
   Section: typeof Section;
+  FlexLayout: typeof FlexLayout<T>;
+  GridLayout: typeof GridLayout<T>;
 }
 
 function createSettings<T>(): SettingsComponent<T> {
@@ -52,7 +56,8 @@ function createSettings<T>(): SettingsComponent<T> {
   Settings.Layout = Layout;
   Settings.Content = Content;
   Settings.Section = Section;
-
+  Settings.FlexLayout = FlexLayout;
+  Settings.GridLayout = GridLayout;
   return Settings;
 }
 

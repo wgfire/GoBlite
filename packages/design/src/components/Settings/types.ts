@@ -35,10 +35,10 @@ export type SetPropFunction<T> = (cb: (props: T) => void) => void;
 
 export interface defaultProps<T> {
   propKey?: PropPath<T>;
-  label?: string;
+  label?: React.ReactNode | string;
   className?: string;
   placeholder?: string;
   defaultValue?: PropValue<T, PropPath<T>>;
-  value?: PropValue<T, PropPath<T>>;
+  value?: string | number | boolean;
   onChange?: (value: PropValue<T, PropPath<T>>) => void;
 }

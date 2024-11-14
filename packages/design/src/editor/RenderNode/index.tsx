@@ -128,7 +128,15 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
           >
             <h4 className="flex-1 mr-2 text-sm">{name}</h4>
             {moveable && (
-              <Button variant="ghost" size="sm" className="mr-2 cursor-move" ref={drag as React.Ref<HTMLButtonElement>}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mr-2 cursor-move"
+                ref={drag as React.Ref<HTMLButtonElement>}
+                onMouseDown={e => {
+                  e.stopPropagation(); // 阻止事件冒泡，避免触发 Canvas 的拖拽
+                }}
+              >
                 <Move className="h-4 w-4" />
               </Button>
             )}

@@ -41,6 +41,17 @@
   transform: translate(-50%, -100%);
   margin-top: -4px;
 }
+.guideLine[data-type="parent-center-x"] .guideLabel {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.guideLine[data-type="parent-center-y"] .guideLabel {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
 
 /* 添加延伸动画 */
 @keyframes extend {

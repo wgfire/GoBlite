@@ -3,6 +3,7 @@ import { Input } from "@go-blite/shadcn";
 import { Label } from "@go-blite/shadcn";
 import { defaultProps } from "./types";
 import { useSettings } from "./Context";
+import { get, set } from "lodash-es";
 
 export interface ItemSliderProps<T> extends defaultProps<T> {
   min: number;
@@ -13,34 +14,30 @@ export interface ItemSliderProps<T> extends defaultProps<T> {
 export const ItemSlide = <T,>({ label, min, max, step, propKey }: ItemSliderProps<T>) => {
   const { setProp, value } = useSettings<T>();
 
-  const slideValue = value[propKey as keyof T] ? (value[propKey as keyof T] as number) : 0;
+  const slideValue = propKey ? (get(value, propKey) as number) : 0;
+
   return (
     <div className="pt-[10px]">
-      <Label htmlFor={label} className="text-sm text-gray-400">
-        {label}
-      </Label>
+      <Label className="text-sm">{label}</Label>
       <div className="flex items-center gap-2">
         <Slider
-          id={label}
           min={min}
           max={max}
           step={step}
           value={[slideValue]}
           onValueChange={value => {
-            console.log(value, "value", propKey);
             setProp(p => {
-              p[propKey as keyof T] = value[0] as T[keyof T];
+              set(p as object, propKey as string, value[0] as T[keyof T]);
             });
           }}
         />
         <Input
           type="number"
           className="w-[60px]"
-          id={label}
           value={slideValue as number}
           onChange={e => {
             setProp(p => {
-              p[propKey as keyof T] = e.target.value as T[keyof T];
+              set(p as object, propKey as string, e.target.value as T[keyof T]);
             });
           }}
         />

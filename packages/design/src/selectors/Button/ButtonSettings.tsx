@@ -1,5 +1,5 @@
 import React from "react";
-import { ButtonProps } from "./index";
+import { ButtonProps } from "./type";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
 import events from "@go-blite/events";
@@ -17,7 +17,8 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
 
   const sizeOptions = [
     { value: "default", label: "默认" },
-    { value: "sm", label: "中" },
+    { value: "sm", label: "小" },
+    { value: "lg", label: "大" },
     { value: "icon", label: "无边距" }
   ];
 
@@ -52,8 +53,12 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
 
         <Settings.Content>
           <Settings.Section defaultOpen title={"颜色设置"}>
-            <Settings.ItemColor propKey="background" label="背景颜色" />
-            <Settings.ItemColor propKey="color" label="文字颜色" />
+            <Settings.ItemColor
+              propKey="style.backgroundColor"
+              label={<span className="text-sm text-gray-400">背景颜色</span>}
+            />
+            <Settings.ItemColor propKey="style.color" label={<span className="text-sm text-gray-400">文字颜色</span>} />
+            <Settings.ItemSlide propKey="style.borderRadius" label="圆角" min={0} max={100} step={1} />
           </Settings.Section>
         </Settings.Content>
 

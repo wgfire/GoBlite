@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, memo } from "react";
 import { Editor, Frame, useEditor, SerializedNodes } from "@craftjs/core";
 import { RenderNode } from "../RenderNode";
 import { ViewImport } from "../ViewImport";
@@ -18,11 +18,15 @@ const defaultNode: SerializedNodes = {
     isCanvas: true,
     props: {
       style: {
-        width: "100%",
-        background: "rgba(255,255,255,1)",
+        display: "grid",
+        gridAutoFlow: "row",
+        gridTemplateColumns: "1fr",
+        gridAutoRows: "min-content",
+        gap: "10px",
         padding: 10,
         height: "100%",
-        flexDirection: "column"
+        background: "rgba(255,255,255,1)",
+        alignContent: "start"
       }
     },
     nodes: [],
@@ -46,10 +50,9 @@ export const defaultDevice: Devices = [
   }
 ];
 
-const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> = ({ schema }) => {
+const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> = memo(({ schema }) => {
   const { actions } = useEditor();
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     console.log(schema, "schema");
     if (schema && Object.keys(schema).length > 0) {
@@ -73,7 +76,7 @@ const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> 
       <Loading loading={loading} />
     </>
   );
-};
+});
 
 export const Design: React.FC = React.memo(() => {
   const defaultResolver = useMemo(
@@ -104,7 +107,15 @@ export const Design: React.FC = React.memo(() => {
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
   return (
-    <Editor resolver={mergedResolver} enabled={true} onRender={renderCallback}>
+    <Editor
+      resolver={mergedResolver}
+      enabled={true}
+      onRender={renderCallback}
+      indicator={{
+        success: "opacity: 0",
+        error: "opacity: 1"
+      }}
+    >
       <EditorContent schema={schema} />
     </Editor>
   );

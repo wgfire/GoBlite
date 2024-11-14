@@ -1,12 +1,14 @@
 import { useNode, useEditor, UserComponent } from "@craftjs/core";
 import ContentEditable from "react-contenteditable";
 import { TextSettings } from "./TextSettings";
-import { Resizer } from "@/components/Resizer";
+// import { Resizer } from "@/components/Resizer";
 import { TextProps } from "./type";
+import { TextSettingsFast } from "./TextSettingFast";
+import ElementBox from "@/components/ElementBox";
 
 export const Text: UserComponent<Partial<TextProps>> = props => {
   const { style, text, customStyle } = props;
-  const { fontSize, textAlign, fontWeight, color, shadow, margin, padding } = style || {};
+  const { shadow, fontSize } = style || {};
   const {
     id,
     connectors: { connect },
@@ -15,13 +17,13 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
+  console.log(fontSize, "fontSize", style);
   return (
-    <Resizer
-      propKey={{ width: "width", height: "height" }}
-      data-id={id}
+    <ElementBox
+      id={id}
       style={{
-        margin: `${margin}px`,
-        ...customStyle
+        transform: customStyle?.transform || "translate(0,0)",
+        width: "max-content"
       }}
     >
       <ContentEditable
@@ -31,17 +33,14 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
         onChange={e => {
           setProp(prop => (prop.text = e.target.value), 500);
         }}
-        tagName="h2"
+        tagName="p"
         style={{
-          padding: `${padding}px`,
-          color: `${color}`,
-          fontSize: `${fontSize}px`,
+          ...style,
           textShadow: `0px 0px 2px rgba(0,0,0,${shadow || 0})`,
-          fontWeight,
-          textAlign
+          width: "max-content"
         }}
       />
-    </Resizer>
+    </ElementBox>
   );
 };
 
@@ -51,7 +50,7 @@ Text.craft = {
   },
   props: {
     style: {
-      fontSize: "16",
+      fontSize: 16,
       textAlign: "left",
       fontWeight: "500",
       color: "rgba(0,0,0,1)",
@@ -63,6 +62,7 @@ Text.craft = {
     customStyle: {}
   },
   related: {
-    settings: TextSettings
+    settings: TextSettings,
+    fastSettings: TextSettingsFast
   }
 };

@@ -1,21 +1,24 @@
 import React, { useEffect, useMemo } from "react";
-import { useNode, UserComponent } from "@craftjs/core";
+import { useNode, UserComponent, ROOT_NODE } from "@craftjs/core";
 import { ContainerSettings } from "./ContainerSettings";
 import { Resizer } from "@/components/Resizer";
 import { ContainerProps } from "./type";
+import { ContainerSettingsFast } from "./ContainerSettingsFast";
+import { omit } from "lodash-es";
 
-const defaultProps: ContainerProps = {
+export const defaultProps: ContainerProps = {
   style: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
+    display: "grid",
     padding: 0,
     margin: 0,
     background: "rgba(255, 255, 255, 0.1)",
     width: "100%",
     height: "auto",
-    backgroundImage: "none"
+    backgroundImage: "none",
+    gridArea: "1 / 1 / 2 / 2",
+    gridTemplateRows: "minmax(0px, 100%)",
+    gridTemplateColumns: "minmax(0px, 1fr)",
+    flexDirection: "row"
   },
   events: {},
   customStyle: {},
@@ -31,7 +34,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   };
 
   const { style, events, customStyle, children } = options;
-  const { display, fillSpace, background, backgroundImage, gap, gridCols, gridRows } = style;
+  const { display, fillSpace, background, backgroundImage, gap } = style;
   useEffect(() => {
     if (events?.onLoad) {
       eval(events.onLoad);
@@ -39,28 +42,27 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   }, [events]);
 
   const styleBg = useMemo(() => {
-    // background 和 backgroundImage 应该不 同时存在
+    // 如果backgroundImage存在，则删除background属性
+
     return {
-      background: background || "rgba(255, 255, 255, 1)",
       ...(backgroundImage && backgroundImage !== "none"
         ? {
+            background: undefined,
             backgroundImage: `url(${backgroundImage})`,
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center",
             backgroundSize: "100% 100%"
           }
-        : {})
+        : { background: background || "rgba(255, 255, 255, 1)" })
     };
   }, [background, backgroundImage]);
+
   const styled = useMemo(() => {
-    const styled = { ...customStyle, ...style };
-    if (display === "grid") {
-      styled["gridTemplateColumns"] = `repeat(${gridCols ?? 0}, 1fr)`;
-      styled["gridTemplateRows"] = `repeat(${gridRows ?? 0}, 1fr)`;
-    }
+    // 移除background属性，以避免与backgroundImage同时存在
+    const styled = { ...customStyle, ...omit(style, "background", "backgroundImage") };
+
     return styled;
-  }, [gridCols, gridRows, display, customStyle]);
-  console.log(styled, "options");
+  }, [display, customStyle, style]);
   return (
     <Resizer
       id={id}
@@ -71,7 +73,8 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
         gap: gap ?? 0,
         flex: fillSpace ? 1 : "unset",
         ...styleBg,
-        ...styled
+        ...styled,
+        ...(id === ROOT_NODE ? { overflowX: "hidden" } : {})
       }}
     >
       {children}
@@ -84,7 +87,8 @@ Container.craft = {
     canDrag: () => true
   },
   related: {
-    settings: ContainerSettings
+    settings: ContainerSettings,
+    fastSettings: ContainerSettingsFast
   },
   name: "Container",
   displayName: "Container",

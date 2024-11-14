@@ -16,6 +16,42 @@ export const useNearestSibling = () => {
     const alignmentGuides: Guide[] = [];
     const threshold = 5;
 
+    // 计算父容器的中心点
+    const parentCenterX = parentRect.width / 2;
+    const parentCenterY = parentRect.height / 2;
+
+    // 计算拖拽元素的中心点
+    const draggedCenterX = draggedRect.left - parentRect.left + draggedRect.width / 2;
+    const draggedCenterY = draggedRect.top - parentRect.top + draggedRect.height / 2;
+
+    // 检查水平居中
+    if (Math.abs(draggedCenterX - parentCenterX) < threshold) {
+      alignmentGuides.push({
+        type: "parent-center-x",
+        style: {
+          left: parentCenterX,
+          top: 0,
+          height: parentRect.height,
+          borderLeft: "1px dashed #ff4d4f"
+        },
+        label: "水平居中"
+      });
+    }
+
+    // 检查垂直居中
+    if (Math.abs(draggedCenterY - parentCenterY) < threshold) {
+      alignmentGuides.push({
+        type: "parent-center-y",
+        style: {
+          left: 0,
+          top: parentCenterY,
+          width: parentRect.width,
+          borderTop: "1px dashed #ff4d4f"
+        },
+        label: "垂直居中"
+      });
+    }
+
     siblings.forEach(sibling => {
       const siblingRect = siblingsRectCache.current.get(sibling)!;
 

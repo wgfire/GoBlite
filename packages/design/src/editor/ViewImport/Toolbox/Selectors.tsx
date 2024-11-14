@@ -3,11 +3,11 @@ import { Element, useEditor } from "@craftjs/core";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@go-blite/shadcn";
 import { Button } from "@go-blite/shadcn";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn";
-import { Container } from "@/selectors/Container/Container.edit";
+import { Container, defaultProps } from "@/selectors/Container/Container.edit";
 import { Text } from "@/selectors/Text/Text.edit";
 import { Image } from "@/selectors/Image/Image.edit";
 import { Button as ButtonSelector } from "@/selectors/Button/Button.edit";
-import { Type, Image as ImageIcon, BoneIcon, Box } from "lucide-react";
+import { Type, Image as ImageIcon, SquareMinus, Box } from "lucide-react";
 
 export const Selectors: React.FC = () => {
   const {
@@ -30,7 +30,7 @@ export const Selectors: React.FC = () => {
                         <Element
                           canvas
                           is={Container}
-                          style={{ height: "300px", background: "rgba(243, 244, 246, 0.8)" }}
+                          style={{ ...defaultProps.style, height: "300px", background: "rgba(243, 244, 246, 0.8)" }}
                         ></Element>
                       )
                     }
@@ -81,7 +81,7 @@ export const Selectors: React.FC = () => {
                 <TooltipTrigger asChild>
                   <div ref={ref => create(ref!, <ButtonSelector text="按钮" />)}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
-                      <BoneIcon className="w-4 h-4" />
+                      <SquareMinus className="w-4 h-4" />
                     </Button>
                   </div>
                 </TooltipTrigger>

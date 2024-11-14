@@ -4,13 +4,14 @@ import { ColorResult, TwitterPicker } from "react-color";
 
 import { defaultProps } from "./types";
 import { useSettings } from "./Context";
+import { get, set } from "lodash-es";
 
 export const ItemColor = <T,>({ label, propKey }: defaultProps<T>) => {
   const { value, setProp } = useSettings<T>();
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [inputColor, setInputColor] = useState("");
   const colorPickerRef = useRef<HTMLDivElement>(null);
-  const background = propKey ? (value[propKey as keyof T] as string) : undefined;
+  const background = propKey ? (get(value, propKey) as string) : undefined;
 
   useEffect(() => {
     if (background) {
@@ -35,7 +36,7 @@ export const ItemColor = <T,>({ label, propKey }: defaultProps<T>) => {
     const newColor = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
     setInputColor(newColor);
     setProp(p => {
-      (p[propKey as keyof T] as string) = newColor;
+      set(p as object, propKey as string, newColor);
     });
   };
 
@@ -43,13 +44,13 @@ export const ItemColor = <T,>({ label, propKey }: defaultProps<T>) => {
     const newValue = e.target.value;
     setInputColor(newValue);
     setProp(p => {
-      (p[propKey as keyof T] as string) = newValue;
+      set(p as object, propKey as string, newValue);
     });
   };
 
   return (
-    <div>
-      <Label className="text-gray-400">{label}</Label>
+    <div className="space-y-2">
+      <Label className="flex-shrink-0 text-sm flex items-center">{label}</Label>
       <div className="flex items-center">
         <Input
           type="text"
