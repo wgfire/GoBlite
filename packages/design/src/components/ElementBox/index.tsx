@@ -19,7 +19,7 @@ const gridStyle = {
 const ElementBox: React.FC<React.PropsWithChildren<ElementBoxProps>> = props => {
   const { id, children, style = {} } = props;
   return (
-    <div data-id={id} style={{ ...gridStyle, ...style }}>
+    <div data-id={id} id={id} style={{ ...gridStyle, ...style }}>
       {children}
     </div>
   );

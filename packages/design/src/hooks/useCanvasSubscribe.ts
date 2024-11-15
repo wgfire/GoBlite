@@ -11,11 +11,11 @@ export const useCanvasSubscribe = () => {
   const { createContextMenu } = useContextMenu();
   const { dragNode } = useDragNode();
 
-  const { handleDrag, handleDragEnd } = useAutoToContainer();
+  const { handleDragEnd } = useAutoToContainer();
 
   const handleMouseDrag = useCallback((arg: Events["mouseDrag"]) => {
     dragNode(arg);
-    handleDrag(arg);
+    // handleDrag(arg);
   }, []);
 
   useMount(() => {

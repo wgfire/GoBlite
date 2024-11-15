@@ -11,7 +11,7 @@ export const defaultProps: ContainerProps = {
     display: "grid",
     padding: 0,
     margin: 0,
-    background: "rgba(255, 255, 255, 0.1)",
+    background: "rgba(237, 237, 237, 0.8)",
     width: "100%",
     height: "auto",
     backgroundImage: "none",
@@ -27,7 +27,7 @@ export const defaultProps: ContainerProps = {
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
   const { id } = useNode();
-
+  console.log(props, "props");
   const options = {
     ...defaultProps,
     ...props

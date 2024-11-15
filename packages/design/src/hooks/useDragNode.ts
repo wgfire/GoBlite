@@ -1,44 +1,66 @@
+import { Events } from "@/utils/eventBus";
 import { useEditor } from "@craftjs/core";
 import { useRef } from "react";
+
+interface Position {
+  x: number;
+  y: number;
+}
 
 export const useDragNode = () => {
   const {
     query,
     actions: { setProp }
   } = useEditor();
-  const currentTransform = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const dragNode = ({
-    x,
-    y,
-    initx,
-    inity,
-    target,
-    matrix
-  }: {
-    x: number;
-    y: number;
-    target: HTMLElement;
-    initx: number;
-    inity: number;
-    matrix: DOMMatrix;
-  }) => {
-    currentTransform.current = { x: matrix.e, y: matrix.f };
 
-    const node = query.getNodes()[target.dataset!.id!];
-    const offsetX = x - initx;
-    const offsetY = y - inity;
-    console.log(offsetX, offsetY, "offset");
+  // 存储拖拽开始时的初始位置
+  const initialPosition = useRef<Position | null>(null);
 
-    // todo 限制拖动范围
-    const translateX = offsetX + currentTransform.current.x;
-    const translateY = offsetY + currentTransform.current.y;
+  const dragNode = (data: Events["mouseDrag"]) => {
+    const { x, y, mouseX, mouseY, target, parentRect, rect, matrix } = data;
+    if (!parentRect || !rect || !target || !matrix) return;
+    console.log(parentRect, "parentRect");
 
+    // TODO: 这里适合用left right 设置偏移
+    // initialPosition.current = {
+    //   x: rect.left - parentRect.left,
+    //   y: rect.top - parentRect.top
+    // };
+
+    initialPosition.current = {
+      x: matrix.e,
+      y: matrix.f
+    };
+
+    // 计算位移
+    const deltaX = x - mouseX;
+    const deltaY = y - mouseY;
+
+    // 计算新位置（相对于父容器）
+    const newX = initialPosition.current.x + deltaX;
+    const newY = initialPosition.current.y + deltaY;
+
+    // 转换为百分比 得使用left right 设置偏移
+    // const xPercent = (newX / parentRect.width) * 100;
+    // const yPercent = (newY / parentRect.height) * 100;
+
+    const node = query.getNodes()[target!.dataset!.id!];
     setProp(node.id, p => {
-      p.customStyle!.transform = `translate(${translateX}px, ${translateY}px)`;
+      p.customStyle = {
+        ...p.customStyle,
+        transform: `translate(${newX}px, ${newY}px)`,
+        transition: "transform 0.05s cubic-bezier(0.17, 0.67, 0.83, 0.67)" // 添加平滑过渡
+      };
     });
   };
 
+  // 重置初始位置
+  const resetPosition = () => {
+    initialPosition.current = null;
+  };
+
   return {
-    dragNode
+    dragNode,
+    resetPosition
   };
 };

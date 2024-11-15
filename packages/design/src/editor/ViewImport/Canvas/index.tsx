@@ -1,6 +1,6 @@
 import React from "react";
 import { useDoubleClick } from "@/hooks/useDoubleClick";
-import { eventBus } from "@/utils/eventBus";
+import { eventBus, Events } from "@/utils/eventBus";
 import { useCanvasSubscribe } from "@/hooks/useCanvasSubscribe";
 import { ContextMenuManager } from "@/components/ContextMenu/ContextMenuManager";
 import { useThrottleFn } from "ahooks";
@@ -13,11 +13,7 @@ export interface CanvasProps extends React.PropsWithChildren {
 export const Canvas = React.memo<CanvasProps>(props => {
   const ref = React.useRef<HTMLDivElement>(null);
   const dragRef = React.useRef<{ element: HTMLElement } | null>(null);
-  const mouseDownRef = React.useRef<{ x: number; y: number; matrix: DOMMatrix | null } | null>({
-    x: 0,
-    y: 0,
-    matrix: null
-  });
+  const mouseDownRef = React.useRef<Events["mouseDown"] | null>(null);
   useCanvasSubscribe();
 
   useDoubleClick(ref, {
@@ -33,13 +29,12 @@ export const Canvas = React.memo<CanvasProps>(props => {
     (e: MouseEvent) => {
       e.stopPropagation(); // 阻止事件冒泡
       if (dragRef.current && dragRef.current.element && dragRef.current.element.dataset.id !== "ROOT") {
-        eventBus.emit("mouseDrag", {
-          x: e.clientX,
-          y: e.clientY,
-          initx: mouseDownRef.current!.x,
-          inity: mouseDownRef.current!.y,
-          matrix: mouseDownRef.current!.matrix!,
-          target: dragRef.current.element
+        requestAnimationFrame(() => {
+          eventBus.emit("mouseDrag", {
+            x: e.clientX,
+            y: e.clientY,
+            ...mouseDownRef.current!
+          });
         });
       }
     },
@@ -61,17 +56,25 @@ export const Canvas = React.memo<CanvasProps>(props => {
     if (target.classList.contains("indicator")) return;
     // 向上查找最近的带有 data-id 的元素
     const draggableElement = target.closest("[data-id]") as HTMLElement;
-    if (draggableElement && draggableElement.dataset.id) {
-      dragRef.current = { element: draggableElement };
-      const style = window.getComputedStyle(draggableElement);
-      const matrix = new DOMMatrix(style.transform);
-      mouseDownRef.current = { x: e.clientX, y: e.clientY, matrix };
-      eventBus.emit("mouseDown", { target: draggableElement });
+    const rect = draggableElement.getBoundingClientRect();
+    const parentRect = draggableElement.parentElement?.getBoundingClientRect();
+
+    if (draggableElement && draggableElement.dataset.id && parentRect) {
+      dragRef.current = { element: draggableElement }; // 这里为拖拽的包裹容器
+      const matrix = new DOMMatrix(window.getComputedStyle(draggableElement).transform);
+      mouseDownRef.current = {
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        target: draggableElement,
+        rect,
+        parentRect,
+        matrix
+      };
+      eventBus.emit("mouseDown", mouseDownRef.current);
     }
   }, []);
 
   const handleContextMenu = React.useCallback((e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    console.log(e, "contextMenu");
     e.preventDefault();
     const target = (e.target as HTMLElement).closest("[data-id]") as HTMLElement;
     e.target = target;
@@ -87,9 +90,12 @@ export const Canvas = React.memo<CanvasProps>(props => {
       currentRef.addEventListener("mousemove", handleMouseMove);
       currentRef.addEventListener("mouseup", handleMouseUp);
       currentRef.addEventListener("mousedown", handleClick);
-      //   currentRef.addEventListener("dragover", e => {
-      //     console.log(e, "dragover");
-      //   });
+      currentRef.addEventListener("dragover", e => {
+        console.log(e, "dragover");
+      });
+      currentRef.addEventListener("drop", e => {
+        console.log(e, "drop");
+      });
     }
 
     // 清理事件监听

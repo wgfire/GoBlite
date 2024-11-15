@@ -8,6 +8,7 @@ import { Text } from "@/selectors/Text/Text.edit";
 import { Image } from "@/selectors/Image/Image.edit";
 import { Button as ButtonSelector } from "@/selectors/Button/Button.edit";
 import { Type, Image as ImageIcon, SquareMinus, Box } from "lucide-react";
+import { DragBox } from "@/components/DragBox";
 
 export const Selectors: React.FC = () => {
   const {
@@ -22,15 +23,30 @@ export const Selectors: React.FC = () => {
           <div className="flex flex-col space-y-6">
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
+                <TooltipTrigger>
+                  <DragBox
+                    element={
+                      <Element
+                        canvas
+                        is={Container}
+                        style={{ ...defaultProps.style, width: "300px", height: "300px" }}
+                      />
+                    }
+                    icon={<Box className="w-4 h-4" />}
+                  />
+                  {/* <div
                     ref={ref =>
                       create(
                         ref!,
                         <Element
                           canvas
                           is={Container}
-                          style={{ ...defaultProps.style, height: "300px", background: "rgba(243, 244, 246, 0.8)" }}
+                          style={{
+                            ...defaultProps.style,
+                            width: "300px",
+                            height: "300px",
+                            background: "rgba(243, 244, 246, 0.8)"
+                          }}
                         ></Element>
                       )
                     }
@@ -38,7 +54,7 @@ export const Selectors: React.FC = () => {
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
                       <Box className="w-4 h-4 mr-0" />
                     </Button>
-                  </div>
+                  </div> */}
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>用于放置子元素使用</p>

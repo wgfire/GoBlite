@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Guide } from "./type";
 import { useVHLine } from "./hooks/useVHLine";
 import { useNearestSibling } from "./hooks/useNearestSlibling";
-import { eventBus } from "@/utils/eventBus";
+import { eventBus, Events } from "@/utils/eventBus";
 import { createPortal } from "react-dom";
 import styles from "./index.module.css";
 export const AlignmentGuides: React.FC = () => {
@@ -13,16 +13,17 @@ export const AlignmentGuides: React.FC = () => {
   const { updateSiblingsCache, findNearestSibling, clearCache } = useNearestSibling();
 
   useEffect(() => {
-    const handleMouseDrag = (data: { target: HTMLElement }) => {
+    const handleMouseDrag = (data: Events["mouseDrag"]) => {
       const { target } = data;
       const draggedElement = target;
-      const parent = draggedElement.parentElement;
-      if (!draggedElement || !parent) return;
+      const parent = draggedElement?.parentElement;
+      if (!target || !parent) return;
+
+      const parentRect = parent.getBoundingClientRect();
 
       setParentElement(parent);
 
       const draggedRect = draggedElement.getBoundingClientRect();
-      const parentRect = parent.getBoundingClientRect();
 
       const computedStyle = window.getComputedStyle(parent);
       const parentPadding = {

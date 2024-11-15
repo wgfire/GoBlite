@@ -8,7 +8,7 @@ import ElementBox from "@/components/ElementBox";
 
 export const Text: UserComponent<Partial<TextProps>> = props => {
   const { style, text, customStyle } = props;
-  const { shadow, fontSize } = style || {};
+  const { shadow } = style || {};
   const {
     id,
     connectors: { connect },
@@ -17,7 +17,7 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
-  console.log(fontSize, "fontSize", style);
+
   return (
     <ElementBox
       id={id}

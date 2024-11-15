@@ -40,10 +40,16 @@ export const ContextMenuManager: React.FC = () => {
     // 根据 node 的 related.settings 返回不同的菜单内容
     return React.createElement(menuState.node.related.fastSettings);
   };
+  const name = menuState.node.data.custom?.displayName;
 
   return createPortal(
     <div ref={menuRef}>
-      <ContextMenuHoc Settings={<Settings />} position={menuState.position} onClose={() => setMenuState(null)} />
+      <ContextMenuHoc
+        Settings={<Settings />}
+        position={menuState.position}
+        name={name ?? ""}
+        onClose={() => setMenuState(null)}
+      />
     </div>,
     document.body
   );

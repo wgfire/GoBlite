@@ -21,7 +21,7 @@ const defaultNode: SerializedNodes = {
         display: "grid",
         gridAutoFlow: "row",
         gridTemplateColumns: "1fr",
-        gridAutoRows: "min-content",
+        gridAutoRows: "minmax(0px,100%)",
         gap: "10px",
         padding: 10,
         height: "100%",

@@ -6,10 +6,10 @@ export const useContextMenu = () => {
 
   const createContextMenu = useCallback(({ e }: { e: React.MouseEvent<HTMLDivElement, MouseEvent> }) => {
     const target = e.target as HTMLElement;
-    const canvas = document.getElementById("blite-canvas")!;
-    const targetX = canvas.getBoundingClientRect().x;
+    //const canvas = document.getElementById("blite-canvas")!;
+    // const targetX = canvas.getBoundingClientRect().x;
     // const targetY = canvas.getBoundingClientRect().top;
-    const position = { x: e.clientX - targetX, y: e.clientY + 20 };
+    const position = { x: e.clientX, y: e.clientY + 20 };
     if (target.dataset && target.dataset.id) {
       const currentlySelectedNodeId = query.getEvent("selected").first();
       const node = query.getNodes()[currentlySelectedNodeId];
