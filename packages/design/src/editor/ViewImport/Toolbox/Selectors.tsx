@@ -1,5 +1,5 @@
 import React from "react";
-import { Element, useEditor } from "@craftjs/core";
+import { Element } from "@craftjs/core";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@go-blite/shadcn";
 import { Button } from "@go-blite/shadcn";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@go-blite/shadcn";
@@ -11,10 +11,6 @@ import { Type, Image as ImageIcon, SquareMinus, Box } from "lucide-react";
 import { DragBox } from "@/components/DragBox";
 
 export const Selectors: React.FC = () => {
-  const {
-    connectors: { create }
-  } = useEditor();
-
   return (
     <Accordion type="single" collapsible defaultValue="basic-components" className="w-full">
       <AccordionItem value="basic-components">
@@ -33,28 +29,11 @@ export const Selectors: React.FC = () => {
                       />
                     }
                     icon={<Box className="w-4 h-4" />}
-                  />
-                  {/* <div
-                    ref={ref =>
-                      create(
-                        ref!,
-                        <Element
-                          canvas
-                          is={Container}
-                          style={{
-                            ...defaultProps.style,
-                            width: "300px",
-                            height: "300px",
-                            background: "rgba(243, 244, 246, 0.8)"
-                          }}
-                        ></Element>
-                      )
-                    }
                   >
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
-                      <Box className="w-4 h-4 mr-0" />
+                      <Box className="w-4 h-4" />
                     </Button>
-                  </div> */}
+                  </DragBox>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>用于放置子元素使用</p>
@@ -65,11 +44,11 @@ export const Selectors: React.FC = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div ref={ref => create(ref!, <Text text="文本" />)}>
+                  <DragBox element={<Text text="文本" />} icon={<Type className="w-4 h-4" />}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
                       <Type className="w-4 h-4" />
                     </Button>
-                  </div>
+                  </DragBox>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>文本组件</p>
@@ -80,11 +59,11 @@ export const Selectors: React.FC = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div ref={ref => create(ref!, <Image src="" alt="图片" />)}>
+                  <DragBox element={<Image src="" alt="图片" />}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
                       <ImageIcon className="w-4 h-4" />
                     </Button>
-                  </div>
+                  </DragBox>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>图片组件</p>
@@ -95,11 +74,11 @@ export const Selectors: React.FC = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div ref={ref => create(ref!, <ButtonSelector text="按钮" />)}>
+                  <DragBox element={<ButtonSelector text="按钮" />}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
                       <SquareMinus className="w-4 h-4" />
                     </Button>
-                  </div>
+                  </DragBox>
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <p>按钮组件</p>
