@@ -28,7 +28,6 @@ export const Selectors: React.FC = () => {
                         style={{ ...defaultProps.style, width: "300px", height: "300px" }}
                       />
                     }
-                    icon={<Box className="w-4 h-4" />}
                   >
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
                       <Box className="w-4 h-4" />
@@ -44,7 +43,7 @@ export const Selectors: React.FC = () => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <DragBox element={<Text text="文本" />} icon={<Type className="w-4 h-4" />}>
+                  <DragBox element={<Text text="文本" />}>
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">
                       <Type className="w-4 h-4" />
                     </Button>

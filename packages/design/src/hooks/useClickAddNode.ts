@@ -1,11 +1,11 @@
 import { Container, defaultProps } from "@/selectors/Container/Container.edit";
 import { FreshNode, useEditor } from "@craftjs/core";
 import { useCallback } from "react";
-
+import { HookConfig } from "./type";
 /**
  * 根据传入的id，在当前id的父级节点下添加一个节点
  */
-export const useClickAddNode = () => {
+export const useClickAddNode = (): HookConfig => {
   const {
     query,
     actions: { add, selectNode }
@@ -40,6 +40,9 @@ export const useClickAddNode = () => {
   }, []);
 
   return {
-    clickAddNode
+    id: "doubleClick",
+    handlers: {
+      doubleClick: clickAddNode
+    }
   };
 };

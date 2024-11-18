@@ -1,34 +1,34 @@
-import { eventBus, Events } from "@/utils/eventBus";
-import { useMount, useUnmount } from "ahooks";
 import { useClickAddNode } from "./useClickAddNode";
 import { useContextMenu } from "./useContextMenu";
 import { useDragNode } from "./useDragNode";
 import { useAutoToContainer } from "./useAutoToContainer";
-import { useCallback } from "react";
+import { useEventManager } from "./useEvents";
+import { useGuides } from "@/components/AlignmentGuides/hooks/useGuides";
 
 export const useCanvasSubscribe = () => {
-  const { clickAddNode } = useClickAddNode();
-  const { createContextMenu } = useContextMenu();
-  const { dragNode } = useDragNode();
+  const doubleClick = useClickAddNode();
+  const contextMenu = useContextMenu();
+  const autoToContainer = useAutoToContainer();
+  const dragNode = useDragNode();
+  const guides = useGuides();
+  useEventManager([doubleClick, contextMenu, dragNode, guides, autoToContainer]);
 
-  const { handleDragEnd } = useAutoToContainer();
-
-  const handleMouseDrag = useCallback((arg: Events["mouseDrag"]) => {
-    dragNode(arg);
-    // handleDrag(arg);
-  }, []);
-
-  useMount(() => {
-    eventBus.on("mouseDrag", arg => handleMouseDrag(arg));
-    eventBus.on("doubleClick", clickAddNode);
-    eventBus.on("contextMenu", createContextMenu);
-    eventBus.on("mouseUp", handleDragEnd);
-  });
-
-  useUnmount(() => {
-    eventBus.off("doubleClick", clickAddNode);
-    eventBus.off("contextMenu", createContextMenu);
-    eventBus.off("mouseDrag", handleMouseDrag);
-    eventBus.off("mouseUp", handleDragEnd);
-  });
+  //   registerHook({
+  //     id: "customFeature",
+  //     handlers: {
+  //       mouseDown: data => {
+  //         console.log(data, "自定义");
+  //       }
+  //     }
+  //   });
+  //   registerHooks([
+  //     {
+  //       id: "customFeature2",
+  //       handlers: {
+  //         mouseDown: data => {
+  //           console.log(data, "自定义2");
+  //         }
+  //       }
+  //     }
+  //   ]);
 };

@@ -1,13 +1,14 @@
 import { Events } from "@/utils/eventBus";
 import { useEditor } from "@craftjs/core";
 import { useRef } from "react";
+import { HookConfig } from "./type";
 
 interface Position {
   x: number;
   y: number;
 }
 
-export const useDragNode = () => {
+export const useDragNode = (): HookConfig => {
   const {
     query,
     actions: { setProp }
@@ -57,10 +58,14 @@ export const useDragNode = () => {
   // 重置初始位置
   const resetPosition = () => {
     initialPosition.current = null;
+    console.log("鼠标松开");
   };
 
   return {
-    dragNode,
-    resetPosition
+    id: "dragNode",
+    handlers: {
+      mouseDrag: dragNode,
+      mouseUp: resetPosition
+    }
   };
 };

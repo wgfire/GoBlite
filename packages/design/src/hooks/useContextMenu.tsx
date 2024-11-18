@@ -1,7 +1,8 @@
 import { useEditor } from "@craftjs/core";
 import { useCallback } from "react";
+import { HookConfig } from "./type";
 
-export const useContextMenu = () => {
+export const useContextMenu = (): HookConfig => {
   const { query } = useEditor();
 
   const createContextMenu = useCallback(({ e }: { e: React.MouseEvent<HTMLDivElement, MouseEvent> }) => {
@@ -13,7 +14,6 @@ export const useContextMenu = () => {
     if (target.dataset && target.dataset.id) {
       const currentlySelectedNodeId = query.getEvent("selected").first();
       const node = query.getNodes()[currentlySelectedNodeId];
-      console.log(node);
       try {
         window.dispatchEvent(
           new CustomEvent("showContextMenu", {
@@ -29,5 +29,10 @@ export const useContextMenu = () => {
     }
   }, []);
 
-  return { createContextMenu };
+  return {
+    id: "contextMenu",
+    handlers: {
+      contextMenu: createContextMenu
+    }
+  };
 };

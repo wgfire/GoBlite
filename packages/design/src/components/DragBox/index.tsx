@@ -21,15 +21,14 @@ export const DragBox: React.FC<React.PropsWithChildren<DragBoxProps>> = ({ eleme
 
   const dragStateRef = useRef<DragState>({
     isDragging: false,
-    element: null,
+    element: element,
     mouseOffset: { x: 0, y: 0 }
   });
   //  / const [previewElement, setPreviewElement] = useState<JSX.Element | null>(element);
-  const elementRef = useRef<HTMLElement | null>(null);
+  const elementRef = useRef<HTMLElement | undefined>(undefined);
 
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     dragStateRef.current.isDragging = true;
-    dragStateRef.current.element = element;
 
     // 记录鼠标相对于元素的偏移
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -58,6 +57,7 @@ export const DragBox: React.FC<React.PropsWithChildren<DragBoxProps>> = ({ eleme
   }, []);
 
   const createCallback = (nodeTree: NodeTree) => {
+    console.log(nodeTree, "nodeTree");
     actions.setProp(nodeTree.rootNodeId, props => {
       props.customStyle = {
         ...props.customStyle,

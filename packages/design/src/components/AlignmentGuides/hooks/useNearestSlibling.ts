@@ -5,7 +5,6 @@ export const useNearestSibling = () => {
   const siblingsRectCache = useRef<Map<HTMLElement, DOMRect>>(new Map());
 
   const updateSiblingsCache = (siblings: HTMLElement[]) => {
-    console.log(siblings, "siblings");
     siblings.forEach(sibling => {
       if (!siblingsRectCache.current.has(sibling)) {
         siblingsRectCache.current.set(sibling, sibling.getBoundingClientRect());

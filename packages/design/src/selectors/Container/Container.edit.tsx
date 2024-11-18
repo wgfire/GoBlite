@@ -27,7 +27,7 @@ export const defaultProps: ContainerProps = {
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
   const { id } = useNode();
-  console.log(props, "props");
+
   const options = {
     ...defaultProps,
     ...props

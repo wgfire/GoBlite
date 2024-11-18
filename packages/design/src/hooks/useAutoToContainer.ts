@@ -1,13 +1,14 @@
 import { Events } from "@/utils/eventBus";
 import { useEditor } from "@craftjs/core";
 import { useCallback, useRef } from "react";
+import { HookConfig } from "./type";
 
 interface DragContainerRef {
   element: HTMLElement;
   targetContainer?: HTMLElement | null;
 }
 
-export const useAutoToContainer = () => {
+export const useAutoToContainer = (): HookConfig => {
   const {
     query,
     actions: { move }
@@ -44,6 +45,7 @@ export const useAutoToContainer = () => {
         if (!id) return false;
 
         const node = query.node(id).get();
+        // 检查是否允许放入
         if (!node.data.isCanvas) return false;
         if (id === dragElement.dataset.id) return false;
 
@@ -61,7 +63,6 @@ export const useAutoToContainer = () => {
     },
     [query]
   );
-
   const handleDrag = useCallback(
     (e: Events["mouseDrag"]) => {
       if (!e.target) return;
@@ -84,6 +85,7 @@ export const useAutoToContainer = () => {
         previousContainerRef.current = targetContainer;
         const parentId = targetContainer.dataset.id;
         const nodeId = dragRef.current.element.dataset.id;
+        console.log(targetContainer, "targetContainer", parentId, nodeId);
         if (parentId && nodeId) {
           move(nodeId, parentId, targetContainer.childNodes.length + 1);
         }
@@ -104,7 +106,10 @@ export const useAutoToContainer = () => {
   }, []);
 
   return {
-    handleDrag,
-    handleDragEnd
+    id: "autoToContainer",
+    handlers: {
+      mouseDrag: handleDrag,
+      mouseUp: handleDragEnd
+    }
   };
 };

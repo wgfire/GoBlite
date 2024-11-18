@@ -25,6 +25,8 @@ const defaultNode: SerializedNodes = {
         gap: "10px",
         padding: 10,
         height: "100%",
+        width: "100%",
+        flexDirection: "column",
         background: "rgba(255,255,255,1)",
         alignContent: "start"
       }

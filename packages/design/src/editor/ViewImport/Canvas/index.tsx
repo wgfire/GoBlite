@@ -1,10 +1,10 @@
 import React from "react";
-import { useDoubleClick } from "@/hooks/useDoubleClick";
-import { eventBus, Events } from "@/utils/eventBus";
+// import { eventBus, Events } from "@/utils/eventBus";
 import { useCanvasSubscribe } from "@/hooks/useCanvasSubscribe";
 import { ContextMenuManager } from "@/components/ContextMenu/ContextMenuManager";
-import { useThrottleFn } from "ahooks";
 import { AlignmentGuides } from "@/components/AlignmentGuides";
+import { eventBus } from "@/hooks/useEvents";
+import { Events } from "@/hooks/type";
 
 export interface CanvasProps extends React.PropsWithChildren {
   className?: string;
@@ -14,34 +14,28 @@ export const Canvas = React.memo<CanvasProps>(props => {
   const ref = React.useRef<HTMLDivElement>(null);
   const dragRef = React.useRef<{ element: HTMLElement } | null>(null);
   const mouseDownRef = React.useRef<Events["mouseDown"] | null>(null);
+
   useCanvasSubscribe();
 
-  useDoubleClick(ref, {
-    onDoubleClick: (event: MouseEvent) => {
-      const id = (event.target as HTMLElement).dataset.id;
-      if (!id) return;
-      eventBus.emit("doubleClick", { id });
-    }
-  });
+  const handleDoubleClick = React.useCallback((e: MouseEvent) => {
+    const id = (e.target as HTMLElement).dataset.id;
+    if (!id) return;
+    eventBus.emit("doubleClick", { id });
+  }, []);
 
   // 鼠标移动事件处理函数
-  const { run: handleMouseMove } = useThrottleFn(
-    (e: MouseEvent) => {
-      e.stopPropagation(); // 阻止事件冒泡
-      if (dragRef.current && dragRef.current.element && dragRef.current.element.dataset.id !== "ROOT") {
-        requestAnimationFrame(() => {
-          eventBus.emit("mouseDrag", {
-            x: e.clientX,
-            y: e.clientY,
-            ...mouseDownRef.current!
-          });
+  const handleMouseMove = React.useCallback((e: MouseEvent) => {
+    //   e.stopPropagation(); // 阻止事件冒泡后chrome浏览器会卡顿
+    if (dragRef.current && dragRef.current.element && dragRef.current.element.dataset.id !== "ROOT") {
+      requestAnimationFrame(() => {
+        eventBus.emit("mouseDrag", {
+          x: e.clientX,
+          y: e.clientY,
+          ...mouseDownRef.current!
         });
-      }
-    },
-    {
-      wait: 12
+      });
     }
-  );
+  }, []);
 
   // 鼠标松开事件处理函数
   const handleMouseUp = React.useCallback((e: MouseEvent) => {
@@ -51,7 +45,7 @@ export const Canvas = React.memo<CanvasProps>(props => {
   }, []);
 
   // 子元素点击事件代理
-  const handleClick = React.useCallback((e: MouseEvent) => {
+  const handleMouseDown = React.useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
     if (target.classList.contains("indicator")) return;
     // 向上查找最近的带有 data-id 的元素
@@ -89,7 +83,8 @@ export const Canvas = React.memo<CanvasProps>(props => {
       // 添加事件监听
       currentRef.addEventListener("mousemove", handleMouseMove);
       currentRef.addEventListener("mouseup", handleMouseUp);
-      currentRef.addEventListener("mousedown", handleClick);
+      currentRef.addEventListener("mousedown", handleMouseDown);
+      currentRef.addEventListener("dblclick", handleDoubleClick);
       currentRef.addEventListener("dragover", e => {
         console.log(e, "dragover");
       });
@@ -104,10 +99,11 @@ export const Canvas = React.memo<CanvasProps>(props => {
         console.log("清理");
         currentRef.removeEventListener("mousemove", handleMouseMove);
         currentRef.removeEventListener("mouseup", handleMouseUp);
-        currentRef.removeEventListener("mousedown", handleClick);
+        currentRef.removeEventListener("mousedown", handleMouseDown);
+        currentRef.removeEventListener("dblclick", handleDoubleClick);
       }
     };
-  }, [handleMouseMove, handleMouseUp, handleClick]);
+  }, []);
   return (
     <div ref={ref} className={props.className} onContextMenu={handleContextMenu} id="blite-canvas">
       {props.children}
