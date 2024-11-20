@@ -22,16 +22,26 @@ export const useDragNode = (): HookConfig => {
   });
 
   const mouseDown = (e: Events["mouseDown"]) => {
+    const style = window.getComputedStyle(e.target!);
+    const leftValue = parseFloat(style.left) || 0;
+    const topValue = parseFloat(style.top) || 0;
     dragState.current = {
       mode: "fixed",
       target: e.target,
-      initialRect: e.rect
+      initialRect: e.rect,
+      initialTransform: {
+        x: leftValue,
+        y: topValue
+      }
     };
   };
 
   const switchToFixed = (e: Events["mouseDrag"]) => {
     const { target, rect, x, y, mouseX, mouseY } = e;
     if (!target || !rect) return;
+
+    const initx = rect.left; // dragState.current.initialTransform?.x!
+    const inity = rect.top; //dragState.current.initialTransform?.y!
 
     const deltaX = x - mouseX;
     const deltaY = y - mouseY;
@@ -40,8 +50,8 @@ export const useDragNode = (): HookConfig => {
       p.customStyle = {
         ...p.customStyle,
         position: "fixed",
-        left: `${rect.left + deltaX}px`,
-        top: `${rect.top + deltaY}px`,
+        left: `${initx + deltaX}px`,
+        top: `${inity + deltaY}px`,
         willChange: "left, top",
         zIndex: 1000
       };
