@@ -13,8 +13,8 @@ export const AlignmentGuides: React.FC = () => {
   }, [guides]);
 
   const parentELementMemo = useMemo(() => {
-    return mouseDrag?.target!.parentElement;
-  }, [mouseDrag?.target!.parentElement]);
+    return mouseDrag?.target?.parentElement || null;
+  }, [mouseDrag?.target?.parentElement]);
 
   if (!parentELementMemo || !guidesMemo) return null;
 

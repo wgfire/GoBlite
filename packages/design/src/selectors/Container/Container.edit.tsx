@@ -59,7 +59,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
 
   const styled = useMemo(() => {
     // 移除background属性，以避免与backgroundImage同时存在
-    const styled = { ...customStyle, ...omit(style, "background", "backgroundImage") };
+    const styled = { ...omit(style, "background", "backgroundImage"), ...customStyle };
 
     return styled;
   }, [display, customStyle, style]);
@@ -69,7 +69,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       propKey={{ width: "width", height: "height" }}
       data-id={id}
       style={{
-        position: "relative",
         gap: gap ?? 0,
         flex: fillSpace ? 1 : "unset",
         ...styleBg,

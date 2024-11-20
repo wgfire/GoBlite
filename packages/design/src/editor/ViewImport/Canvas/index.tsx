@@ -1,5 +1,4 @@
 import React from "react";
-// import { eventBus, Events } from "@/utils/eventBus";
 import { useCanvasSubscribe } from "@/hooks/useCanvasSubscribe";
 import { ContextMenuManager } from "@/components/ContextMenu/ContextMenuManager";
 import { AlignmentGuides } from "@/components/AlignmentGuides";
@@ -28,6 +27,7 @@ export const Canvas = React.memo<CanvasProps>(props => {
     //   e.stopPropagation(); // 阻止事件冒泡后chrome浏览器会卡顿
     if (dragRef.current && dragRef.current.element && dragRef.current.element.dataset.id !== "ROOT") {
       requestAnimationFrame(() => {
+        mouseDownRef.current?.target?.setAttribute("data-dragging", "true");
         eventBus.emit("mouseDrag", {
           x: e.clientX,
           y: e.clientY,
@@ -39,6 +39,7 @@ export const Canvas = React.memo<CanvasProps>(props => {
 
   // 鼠标松开事件处理函数
   const handleMouseUp = React.useCallback((e: MouseEvent) => {
+    mouseDownRef.current?.target?.setAttribute("data-dragging", "false");
     dragRef.current = null;
     mouseDownRef.current = null;
     eventBus.emit("mouseUp", { x: e.clientX, y: e.clientY });
@@ -60,6 +61,7 @@ export const Canvas = React.memo<CanvasProps>(props => {
         mouseX: e.clientX,
         mouseY: e.clientY,
         target: draggableElement,
+        parent: draggableElement.parentElement,
         rect,
         parentRect,
         matrix
@@ -85,12 +87,6 @@ export const Canvas = React.memo<CanvasProps>(props => {
       currentRef.addEventListener("mouseup", handleMouseUp);
       currentRef.addEventListener("mousedown", handleMouseDown);
       currentRef.addEventListener("dblclick", handleDoubleClick);
-      currentRef.addEventListener("dragover", e => {
-        console.log(e, "dragover");
-      });
-      currentRef.addEventListener("drop", e => {
-        console.log(e, "drop");
-      });
     }
 
     // 清理事件监听

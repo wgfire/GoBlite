@@ -60,7 +60,8 @@ const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> 
     if (schema && Object.keys(schema).length > 0) {
       actions.deserialize(schema);
     } else {
-      actions.deserialize(defaultNode);
+      console.log(defaultNode, "defaultNode");
+      actions.deserialize(JSON.stringify(defaultNode));
     }
   }, [schema, actions]);
 

@@ -10,7 +10,8 @@ export const useGuides = (): HookConfig => {
     const { target } = data;
     const draggedElement = target;
     const parent = draggedElement?.parentElement;
-    if (!target || !parent) return updateEventVariable("guides", { guides: [] });
+
+    if (!draggedElement || !parent) return updateEventVariable("guides", { guides: [] });
 
     const parentRect = parent.getBoundingClientRect();
 

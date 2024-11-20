@@ -15,8 +15,9 @@ export const Image: UserComponent<Partial<ImageProps>> = props => {
       id={id}
       data-id={id}
       style={{
-        transform: customStyle?.transform || "translate(0,0)",
-        width: "max-content"
+        position: "relative",
+        width: "max-content",
+        ...customStyle
       }}
     >
       <Resizer propKey={{ width: "width", height: "height" }} style={{ maxWidth: "100%" }}>
@@ -41,9 +42,10 @@ Image.craft = {
     watermark: false,
     style: {
       height: "auto",
-      width: "500px",
+      width: "200px",
+      minWidth: "100px",
       objectFit: "cover",
-      maxWidth: "100%"
+      maxWidth: "100vw"
     },
     customStyle: {}
   },

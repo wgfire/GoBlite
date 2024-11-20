@@ -1,71 +1,121 @@
-import { Events } from "@/utils/eventBus";
 import { useEditor } from "@craftjs/core";
 import { useRef } from "react";
-import { HookConfig } from "./type";
-
-interface Position {
-  x: number;
-  y: number;
+import { HookConfig, Events } from "./type";
+interface DragState {
+  mode: "translate" | "fixed";
+  initialRect?: DOMRect;
+  initialTransform?: { x: number; y: number };
+  currentParentId?: string;
+  target: HTMLElement | null;
 }
 
 export const useDragNode = (): HookConfig => {
   const {
-    query,
     actions: { setProp }
   } = useEditor();
+  const dragState = useRef<DragState>({
+    mode: "translate",
+    initialRect: undefined,
+    initialTransform: undefined,
+    currentParentId: undefined,
+    target: null
+  });
 
-  // 存储拖拽开始时的初始位置
-  const initialPosition = useRef<Position | null>(null);
-
-  const dragNode = (data: Events["mouseDrag"]) => {
-    const { x, y, mouseX, mouseY, target, parentRect, rect, matrix } = data;
-    if (!parentRect || !rect || !target || !matrix) return;
-    console.log(parentRect, "parentRect");
-
-    // TODO: 这里适合用left right 设置偏移
-    // initialPosition.current = {
-    //   x: rect.left - parentRect.left,
-    //   y: rect.top - parentRect.top
-    // };
-
-    initialPosition.current = {
-      x: matrix.e,
-      y: matrix.f
+  const mouseDown = (e: Events["mouseDown"]) => {
+    dragState.current = {
+      mode: "fixed",
+      target: e.target,
+      initialRect: e.rect
     };
+  };
 
-    // 计算位移
+  const switchToFixed = (e: Events["mouseDrag"]) => {
+    const { target, rect, x, y, mouseX, mouseY } = e;
+    if (!target || !rect) return;
+
     const deltaX = x - mouseX;
     const deltaY = y - mouseY;
 
-    // 计算新位置（相对于父容器）
-    const newX = initialPosition.current.x + deltaX;
-    const newY = initialPosition.current.y + deltaY;
-
-    // 转换为百分比 得使用left right 设置偏移
-    // const xPercent = (newX / parentRect.width) * 100;
-    // const yPercent = (newY / parentRect.height) * 100;
-
-    const node = query.getNodes()[target!.dataset!.id!];
-    setProp(node.id, p => {
+    setProp(target.dataset.id!, p => {
       p.customStyle = {
         ...p.customStyle,
-        transform: `translate(${newX}px, ${newY}px)`,
-        transition: "transform 0.05s cubic-bezier(0.17, 0.67, 0.83, 0.67)" // 添加平滑过渡
+        position: "fixed",
+        left: `${rect.left + deltaX}px`,
+        top: `${rect.top + deltaY}px`,
+        willChange: "left, top",
+        zIndex: 1000
       };
     });
   };
 
-  // 重置初始位置
-  const resetPosition = () => {
-    initialPosition.current = null;
-    console.log("鼠标松开");
+  const mouseDrag = (data: Events["mouseDrag"]) => {
+    const { target, parentRect, rect, matrix } = data;
+    if (!parentRect || !rect || !target || !matrix) return;
+
+    //dragNode(data);
+    switchToFixed(data);
+  };
+
+  const resetToTranslate = () => {
+    const { target } = dragState.current;
+    const targetId = target?.dataset.id;
+    const element = target;
+    if (!element || dragState.current.mode !== "fixed") return;
+
+    const currentRect = element.getBoundingClientRect();
+    const newParent = element.parentElement;
+    console.log(newParent, "newParent");
+    if (!newParent) return;
+
+    const parentRect = newParent.getBoundingClientRect();
+    const parentStyles = window.getComputedStyle(newParent);
+
+    // 3. 计算相对位置（相对于父元素内容区域）
+    const parentPaddingLeft = parseFloat(parentStyles.paddingLeft) || 0;
+    const parentPaddingTop = parseFloat(parentStyles.paddingTop) || 0;
+
+    // 计算元素相对于父元素的位置（考虑父元素padding）
+    const relativeLeft = currentRect.left - parentRect.left - parentPaddingLeft;
+    const relativeTop = currentRect.top - parentRect.top - parentPaddingTop;
+
+    // 计算内容区域尺寸
+    const contentWidth = parentRect.width - parentPaddingLeft - parseFloat(parentStyles.paddingRight);
+    const contentHeight = parentRect.height - parentPaddingTop - parseFloat(parentStyles.paddingTop);
+
+    // 计算百分比
+    const leftPercent = `${Number(((relativeLeft / contentWidth) * 100).toFixed(2))}%`;
+    const topPercent = `${Number(((relativeTop / contentHeight) * 100).toFixed(2))}%`;
+    // 使用px
+    // const leftPx = `${relativeLeft}px`;
+    // const topPx = `${relativeTop}px`;
+
+    setProp(targetId!, p => {
+      p.customStyle = {
+        ...p.customStyle,
+        position: "relative",
+        left: leftPercent,
+        top: topPercent,
+        willChange: "none",
+        //  transform: `translate(${relativeLeft}px, ${relativeTop}px)`,
+        zIndex: "auto"
+      };
+    });
+
+    dragState.current = {
+      mode: "translate",
+      initialRect: undefined,
+      initialTransform: undefined,
+      currentParentId: undefined,
+      target: null
+    };
   };
 
   return {
     id: "dragNode",
     handlers: {
-      mouseDrag: dragNode,
-      mouseUp: resetPosition
+      mouseDown: mouseDown,
+      mouseDrag: mouseDrag,
+      mouseUp: resetToTranslate
     }
   };
 };

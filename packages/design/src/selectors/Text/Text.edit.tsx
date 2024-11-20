@@ -23,7 +23,8 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
       id={id}
       style={{
         transform: customStyle?.transform || "translate(0,0)",
-        width: "max-content"
+        width: "max-content",
+        ...customStyle
       }}
     >
       <ContentEditable

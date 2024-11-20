@@ -190,7 +190,8 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true
         "m-auto": isRootNode,
         "overflow-auto": isRootNode,
         "max-w-full": true,
-        "user-select-none": true
+        "user-select-none": true,
+        relative: true
       }),
     [isRootNode]
   );

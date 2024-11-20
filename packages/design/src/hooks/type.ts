@@ -8,7 +8,8 @@ export interface Position {
 }
 export interface ElementInfo {
   target: HTMLElement | null;
-  rect: DOMRect;
+  parent: HTMLElement | null; // 元素移动过程中，需要更新父元素
+  rect?: DOMRect;
   parentRect?: DOMRect;
   matrix?: DOMMatrix | null;
 }

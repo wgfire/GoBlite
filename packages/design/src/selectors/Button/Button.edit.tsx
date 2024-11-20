@@ -59,8 +59,8 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
       data-id={id}
       style={{
         position: "relative",
-        transform: customStyle?.transform || "translate(0,0)",
-        width: "max-content"
+        width: "max-content",
+        ...customStyle
       }}
     >
       <Resizer propKey={{ width: "width", height: "height" }}>
