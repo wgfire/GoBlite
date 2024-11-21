@@ -29,7 +29,7 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
               <Settings.ItemInput propKey="style.height" type="text" />
             </div>
           </Settings.Section>
-          <Settings.Section defaultOpen title={"布局"}>
+          {/* <Settings.Section defaultOpen title={"布局"}>
             <Settings.ItemSelect
               className="w-full"
               propKey="style.display"
@@ -44,10 +44,10 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
               <div className="grid grid-cols-1 gap-2">
                 <Settings.ItemSelect
                   propKey="style.gridArea"
-                  label="网格位置"
+                  label="排列方式"
                   options={[
-                    { value: "1 / 1 / 2 / 2", label: "默认位置" },
-                    { value: "auto", label: "自动布局" }
+                    { value: "1 / 1 / 2 / 2", label: "自由排列" },
+                    { value: "auto", label: "默认排列" }
                   ]}
                 />
               </div>
@@ -58,7 +58,7 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
             <div className="grid grid-cols-1 gap-4">
               <Settings.ItemSlide propKey="style.gap" min={0} max={100} step={1} label="内部间距" />
             </div>
-          </Settings.Section>
+          </Settings.Section> */}
 
           <Settings.Section defaultOpen title={"边距"}>
             <div className="grid grid-cols-2 gap-4">

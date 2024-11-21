@@ -25,13 +25,13 @@ export const GridLayout = <T,>({ label = "快速排列", justifyKey, alignKey }:
   const setJustifyContent = (value: string) => {
     setProp(draft => {
       set(draft as object, justifyKey, value);
-      set(draft as object, "customStyle.transform", "none");
+      set(draft as object, "customStyle.left", "");
     });
   };
   const setAlignItems = (value: string) => {
     setProp(draft => {
       set(draft as object, alignKey, value);
-      set(draft as object, "customStyle.transform", "none");
+      set(draft as object, "customStyle.top", "");
     });
   };
   return (

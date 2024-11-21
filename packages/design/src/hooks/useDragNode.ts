@@ -50,6 +50,8 @@ export const useDragNode = (): HookConfig => {
       p.customStyle = {
         ...p.customStyle,
         position: "fixed",
+        justifySelf: "start",
+        alignSelf: "start",
         left: `${initx + deltaX}px`,
         top: `${inity + deltaY}px`,
         willChange: "left, top",
