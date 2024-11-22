@@ -13,7 +13,7 @@ import {
   SelectItem
 } from "@go-blite/shadcn";
 import { useSaveSchema } from "@/hooks/useSaveSchema";
-import { languages } from "@/constant";
+import { Devices, languages } from "@/constant";
 
 export const Header: React.FC = () => {
   const { enabled, actions } = useEditor(state => ({
@@ -42,6 +42,33 @@ export const Header: React.FC = () => {
       draft.currentInfo.language = newLanguage;
     });
   };
+  /**
+   * 将当前设备端的数据同步到其他设备端
+   */
+  const syncResponse = () => {
+    const syncSchema = query.getSerializedNodes();
+    const syncDevice = Devices.filter(d => d !== currentInfo.device) as DeviceType[];
+    const syncLanguage = currentInfo.language;
+
+    if (!syncSchema) return;
+
+    syncDevice.forEach(device => {
+      updateContext(draft => {
+        const deviceData = draft.device.find(d => d.type === device);
+        if (deviceData) {
+          deviceData.languagePageMap[syncLanguage].schema = syncSchema;
+        } else {
+          draft.device.push({
+            type: device,
+            pageTemplate: draft.currentInfo.pageTemplate,
+            languagePageMap: {
+              [syncLanguage]: { schema: syncSchema }
+            }
+          });
+        }
+      });
+    });
+  };
 
   const DeviceButton = ({ device, icon: Icon }: { device: DeviceType; icon: React.ElementType }) => {
     const hasSchema = findSchema({ device });
@@ -60,7 +87,11 @@ export const Header: React.FC = () => {
   return (
     <div className="w-full h-12 z-50 relative px-4 flex items-center justify-between bg-card shadow-sm">
       {/* 左侧设备切换 */}
-      <div className="space-x-2 items-center rounded-md p-[2px] shadow-md flex clear-child-borders">
+      <div className="space-x-2 items-center rounded-md p-[2px] px-4 shadow-md flex clear-child-borders">
+        {/**多端数据同步 */}
+        <Button variant="secondary" size="sm" onClick={() => syncResponse()}>
+          同步
+        </Button>
         <DeviceButton device="mobile" icon={Smartphone} />
         <DeviceButton device="tablet" icon={Tablet} />
         <DeviceButton device="desktop" icon={Monitor} />

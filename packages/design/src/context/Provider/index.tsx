@@ -13,7 +13,7 @@ export interface Device {
   pageTemplate: PageTemplate;
   languagePageMap: {
     [key: string]: {
-      schema: SerializedNodes;
+      schema: SerializedNodes | string;
     };
   };
 }
@@ -33,6 +33,8 @@ export interface DesignContextProps {
   assets?: { name: string; url: string; type: assetsType }[];
   onRender?: React.ComponentType<{ render: React.ReactElement }>;
   showSidebar?: boolean;
+  /** 多端数据同步 */
+  syncResponse?: boolean;
 }
 
 const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
@@ -65,7 +67,8 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
         pageTemplate: "static-download",
         language: "zh"
       },
-      showSidebar: initialProps.showSidebar || false
+      showSidebar: initialProps.showSidebar || false,
+      syncResponse: initialProps.syncResponse || false
     }),
     [initialProps]
   );

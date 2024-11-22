@@ -18,7 +18,9 @@ export const defaultProps: ContainerProps = {
     gridArea: "1 / 1 / 2 / 2",
     gridTemplateRows: "minmax(0px, 100%)",
     gridTemplateColumns: "minmax(0px, 1fr)",
-    flexDirection: "row"
+    flexDirection: "row",
+    maxHeight: 100000,
+    maxWidth: 100000
   },
   events: {},
   customStyle: {},
@@ -63,6 +65,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
 
     return styled;
   }, [display, customStyle, style]);
+
   return (
     <Resizer
       id={id}

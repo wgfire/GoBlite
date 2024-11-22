@@ -219,6 +219,10 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true
       size={internalDimensions}
       onResizeStart={handleResizeStart}
       onResize={handleResize}
+      maxWidth={props.style?.maxWidth}
+      maxHeight={props.style?.maxHeight}
+      minWidth={props.style?.minWidth}
+      minHeight={props.style?.minHeight}
       onResizeStop={handleResizeStop}
       {...props}
     >

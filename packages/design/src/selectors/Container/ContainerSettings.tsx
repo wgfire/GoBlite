@@ -10,7 +10,7 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
     displayName: node.data.custom.displayName
   }));
   const { assets } = useDesignContext();
-  console.log(props);
+
   const assetsOptions = [{ url: "none", name: "无" }, ...(assets ?? [])].map(asset => ({
     label: asset.name,
     value: asset.url

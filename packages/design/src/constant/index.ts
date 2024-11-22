@@ -5,3 +5,5 @@ export const languages = [
   { value: "kr", label: "KR" },
   { value: "id", label: "ID" }
 ];
+
+export const Devices = ["mobile", "tablet", "desktop"];

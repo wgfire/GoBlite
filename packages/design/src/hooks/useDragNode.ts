@@ -37,9 +37,11 @@ export const useDragNode = (): HookConfig => {
   };
 
   const switchToFixed = (e: Events["mouseDrag"]) => {
-    const { target, rect, x, y, mouseX, mouseY } = e;
-    if (!target || !rect) return;
-
+    const { target, rect, x, y, mouseX, mouseY, parent } = e;
+    if (!target || !rect || !parent) return;
+    const parentStyles = window.getComputedStyle(parent!);
+    const parentPaddingLeft = parseFloat(parentStyles.paddingLeft) || 0;
+    const parentPaddingTop = parseFloat(parentStyles.paddingTop) || 0;
     const initx = rect.left; // dragState.current.initialTransform?.x!
     const inity = rect.top; //dragState.current.initialTransform?.y!
 
@@ -55,7 +57,9 @@ export const useDragNode = (): HookConfig => {
         left: `${initx + deltaX}px`,
         top: `${inity + deltaY}px`,
         willChange: "left, top",
-        zIndex: 1000
+        zIndex: 1000,
+        maxWidth: parent.clientWidth - parentPaddingLeft,
+        maxHeight: parent.clientHeight - parentPaddingTop
       };
     });
   };
@@ -76,7 +80,6 @@ export const useDragNode = (): HookConfig => {
 
     const currentRect = element.getBoundingClientRect();
     const newParent = element.parentElement;
-    console.log(newParent, "newParent");
     if (!newParent) return;
 
     const parentRect = newParent.getBoundingClientRect();
@@ -91,12 +94,12 @@ export const useDragNode = (): HookConfig => {
     const relativeTop = currentRect.top - parentRect.top - parentPaddingTop;
 
     // 计算内容区域尺寸
-    const contentWidth = parentRect.width - parentPaddingLeft - parseFloat(parentStyles.paddingRight);
-    const contentHeight = parentRect.height - parentPaddingTop - parseFloat(parentStyles.paddingTop);
+    const contentWidth = parentRect.width - parentPaddingLeft * 2;
+    const contentHeight = parentRect.height - parentPaddingTop * 2;
 
     // 计算百分比
-    const leftPercent = `${Number(((relativeLeft / contentWidth) * 100).toFixed(2))}%`;
-    const topPercent = `${Number(((relativeTop / contentHeight) * 100).toFixed(2))}%`;
+    const leftPercent = `${Number((relativeLeft / contentWidth) * 100)}%`;
+    const topPercent = `${Number((relativeTop / contentHeight) * 100)}%`;
     // 使用px
     // const leftPx = `${relativeLeft}px`;
     // const topPx = `${relativeTop}px`;

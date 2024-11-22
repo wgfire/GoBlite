@@ -20,8 +20,9 @@ export const Image: UserComponent<Partial<ImageProps>> = props => {
         ...customStyle
       }}
     >
-      <Resizer propKey={{ width: "width", height: "height" }} style={{ maxWidth: "100%" }}>
+      <Resizer propKey={{ width: "width", height: "height" }}>
         <img
+          draggable={false}
           src={renderSrc}
           alt={alt}
           loading="lazy"

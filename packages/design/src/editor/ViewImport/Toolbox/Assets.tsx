@@ -12,11 +12,11 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from "@go-blite/shadcn";
-import { useEditor } from "@craftjs/core";
 import { assetsType } from "@/context/Provider";
 import { Image } from "@/selectors/Image/Image.edit";
 import { Command, CommandInput, CommandList, CommandItem, CommandEmpty, CommandGroup } from "@go-blite/shadcn";
 import { BookImage } from "lucide-react";
+import { DragBox } from "@/components/DragBox";
 
 interface AssetItem {
   name: string;
@@ -26,23 +26,20 @@ interface AssetItem {
 
 export const Assets: React.FC = () => {
   const { assets } = useDesignContext();
-  const { connectors } = useEditor();
 
   const renderAssetItem = (item: AssetItem) => {
     switch (item.type) {
       case "Image":
         return (
-          <Card
-            key={item.name}
-            className="cursor-move"
-            ref={ref => ref && connectors.create(ref, <Image src={item.url} alt={item.name} />)}
-          >
-            <CardContent className="p-2 flex flex-col items-center justify-center">
-              <div className="h-10 overflow-hidden">
-                <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
-              </div>
-              <span className="text-xs mt-1 text-center truncate w-full text-ellipsis">{item.name}</span>
-            </CardContent>
+          <Card key={item.name} className="cursor-move">
+            <DragBox element={<Image src={item.url} alt={item.name} />}>
+              <CardContent className="p-2 flex flex-col items-center justify-center">
+                <div className="h-10 overflow-hidden">
+                  <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+                <span className="text-xs mt-1 text-center truncate w-full text-ellipsis">{item.name}</span>
+              </CardContent>
+            </DragBox>
           </Card>
         );
       default:
