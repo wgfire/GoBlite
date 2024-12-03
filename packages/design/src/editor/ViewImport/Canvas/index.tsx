@@ -4,7 +4,6 @@ import { ContextMenuManager } from "@/components/ContextMenu/ContextMenuManager"
 import { AlignmentGuides } from "@/components/AlignmentGuides";
 import { eventBus } from "@/hooks/useEvents";
 import { Events } from "@/hooks/type";
-
 export interface CanvasProps extends React.PropsWithChildren {
   className?: string;
 }

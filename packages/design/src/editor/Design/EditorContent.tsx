@@ -7,30 +7,15 @@ import { useDesignContext } from "@/context";
 export const defaultNode: SerializedNodes = {
   ROOT: {
     type: {
-      resolvedName: "Container"
+      resolvedName: "App"
     },
     isCanvas: true,
-    props: {
-      style: {
-        display: "grid",
-        gridAutoFlow: "row",
-        gridTemplateColumns: "1fr",
-        gridAutoRows: "minmax(0px,100%)",
-        gap: "10px",
-        padding: 10,
-        height: "auto",
-        minHeight: "100%",
-        width: "100%",
-        flexDirection: "column",
-        background: "rgba(255,255,255,1)",
-        alignContent: "start"
-      }
-    },
+    props: {},
     nodes: [],
     linkedNodes: {},
     parent: null,
     hidden: false,
-    displayName: "Container",
+    displayName: "App",
     custom: { displayName: "App" }
   }
 };

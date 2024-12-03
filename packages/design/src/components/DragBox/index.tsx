@@ -50,22 +50,24 @@ export const DragBox: React.FC<React.PropsWithChildren<DragBoxProps>> = ({ eleme
     if (container && elementRef.current) {
       const containerRect = container.getBoundingClientRect();
       dragStateRef.current.mouseOffset = {
-        x: (e.clientX - containerRect.left) / containerRect.width,
-        y: (e.clientY - containerRect.top) / containerRect.height
+        x: e.clientX - containerRect.left, /// containerRect.width,
+        y: e.clientY - containerRect.top /// containerRect.height
       };
     }
   }, []);
 
   const createCallback = (nodeTree: NodeTree) => {
     console.log(nodeTree, "nodeTree");
-    const leftPercent = `${Number((dragStateRef.current.mouseOffset.x * 100).toFixed(2))}%`;
-    const topPercent = `${Number((dragStateRef.current.mouseOffset.y * 100).toFixed(2))}%`;
+    // const leftPercent = `${Number((dragStateRef.current.mouseOffset.x * 100).toFixed(2))}%`;
+    //const topPercent = `${Number((dragStateRef.current.mouseOffset.y * 100).toFixed(2))}%`;
+    const leftPx = `${dragStateRef.current.mouseOffset.x}px`;
+    const topPx = `${dragStateRef.current.mouseOffset.y}px`;
     actions.setProp(nodeTree.rootNodeId, props => {
       props.customStyle = {
         ...props.customStyle,
         position: "relative",
-        left: leftPercent,
-        top: topPercent
+        left: leftPx,
+        top: topPx
         //transform: `translate(${dragStateRef.current.mouseOffset.x}px, ${dragStateRef.current.mouseOffset.y}px)`
       };
     });

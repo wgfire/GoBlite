@@ -7,6 +7,7 @@ import { Container } from "@/selectors/Container/Container.edit";
 import { Text } from "@/selectors/Text/Text.edit";
 import { Button } from "@/selectors/Button/Button.edit";
 import { Image } from "@/selectors/Image/Image.edit";
+import { App } from "@/selectors/App/App.edit";
 
 import { EditorContent } from "./EditorContent";
 export { defaultDevice, defaultNode } from "./EditorContent";
@@ -17,7 +18,8 @@ export const Design: React.FC = React.memo(() => {
       Container,
       Text,
       Button,
-      Image
+      Image,
+      App
     }),
     []
   );

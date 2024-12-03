@@ -22,11 +22,7 @@ export const Selectors: React.FC = () => {
                 <TooltipTrigger>
                   <DragBox
                     element={
-                      <Element
-                        canvas
-                        is={Container}
-                        style={{ ...defaultProps.style, width: "300px", height: "300px" }}
-                      />
+                      <Element canvas is={Container} style={{ ...defaultProps.style, width: "10%", height: "10%" }} />
                     }
                   >
                     <Button variant="outline" className="w-full h-8 text-xs flex items-center justify-center">

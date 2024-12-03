@@ -1,6 +1,7 @@
 import { useEditor } from "@craftjs/core";
 import { useCallback, useRef } from "react";
 import { Events, HookConfig } from "./type";
+import { useMoveNodeOnly } from "./useMoveOnly";
 
 interface DragContainerRef {
   element: HTMLElement;
@@ -8,13 +9,12 @@ interface DragContainerRef {
 }
 
 export const useAutoToContainer = (): HookConfig => {
-  const {
-    query,
-    actions: { move }
-  } = useEditor();
+  const { query } = useEditor();
 
   const dragRef = useRef<DragContainerRef | null>(null);
   const previousContainerRef = useRef<HTMLElement | null>(null);
+  const { moveNodeOnly } = useMoveNodeOnly();
+  const isUpdate = useRef(false);
 
   // 添加容器hover效果
   const addContainerEffect = (container: HTMLElement) => {
@@ -98,7 +98,7 @@ export const useAutoToContainer = (): HookConfig => {
           // 更新目标容器和效果
           if (targetContainer) {
             addContainerEffect(targetContainer);
-
+            console.log("移动");
             previousContainerRef.current = targetContainer;
             const parentId = targetContainer.dataset.id;
             const nodeId = dragRef.current.element.dataset.id;
@@ -106,6 +106,8 @@ export const useAutoToContainer = (): HookConfig => {
             if (parentId && nodeId) {
               // 使用原生的移动方式 避免刷新 为了保持其他hooks里的引用时target元素有效的
               targetContainer.appendChild(dragRef.current.element);
+              isUpdate.current = true;
+
               //move(nodeId, parentId, targetContainer.childNodes.length + 1);
               dragRef.current.targetContainer = targetContainer;
 
@@ -122,17 +124,18 @@ export const useAutoToContainer = (): HookConfig => {
     if (dragRef.current) {
       removeContainerEffect(dragRef.current.targetContainer);
       setTimeout(() => {
-        if (dragRef.current?.targetContainer && dragRef.current?.element) {
-          move(
+        if (dragRef.current?.targetContainer && dragRef.current?.element && isUpdate.current) {
+          moveNodeOnly(
             dragRef.current.element.dataset.id!,
             dragRef.current.targetContainer.dataset.id!,
             dragRef.current.targetContainer.childNodes.length
           );
         }
+        previousContainerRef.current = null;
+        dragRef.current = null;
+        isUpdate.current = false;
       }, 0);
     }
-    previousContainerRef.current = null;
-    dragRef.current = null;
   }, []);
 
   return {

@@ -16,7 +16,7 @@ import { useSaveSchema } from "@/hooks/useSaveSchema";
 import { Devices, languages } from "@/constant";
 
 export const Header: React.FC = () => {
-  const { enabled, actions } = useEditor(state => ({
+  const { enabled, actions, query } = useEditor(state => ({
     enabled: state.options.enabled
   }));
 

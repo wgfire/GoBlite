@@ -94,22 +94,22 @@ export const useDragNode = (): HookConfig => {
     const relativeTop = currentRect.top - parentRect.top - parentPaddingTop;
 
     // 计算内容区域尺寸
-    const contentWidth = parentRect.width - parentPaddingLeft * 2;
-    const contentHeight = parentRect.height - parentPaddingTop * 2;
+    // const contentWidth = parentRect.width - parentPaddingLeft * 2;
+    // const contentHeight = parentRect.height - parentPaddingTop * 2;
 
     // 计算百分比
-    const leftPercent = `${Number((relativeLeft / contentWidth) * 100)}%`;
-    const topPercent = `${Number((relativeTop / contentHeight) * 100)}%`;
+    //const leftPercent = `${Number((relativeLeft / contentWidth) * 100)}%`;
+    //const topPercent = `${Number((relativeTop / contentHeight) * 100)}%`;
     // 使用px
-    // const leftPx = `${relativeLeft}px`;
-    // const topPx = `${relativeTop}px`;
+    const leftPx = `${relativeLeft}px`;
+    const topPx = `${relativeTop}px`;
 
     setProp(targetId!, p => {
       p.customStyle = {
         ...p.customStyle,
         position: "relative",
-        left: leftPercent,
-        top: topPercent,
+        left: leftPx,
+        top: topPx,
         willChange: "none",
         //  transform: `translate(${relativeLeft}px, ${relativeTop}px)`,
         zIndex: "auto"
