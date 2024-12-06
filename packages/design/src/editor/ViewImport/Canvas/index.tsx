@@ -47,7 +47,7 @@ export const Canvas = React.memo<CanvasProps>(props => {
   // 子元素点击事件代理
   const handleMouseDown = React.useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    if (target.classList.contains("indicator")) return;
+    if (target.classList.contains("moveable-control")) return;
     // 向上查找最近的带有 data-id 的元素
     const draggableElement = target.closest("[data-id]") as HTMLElement;
     const rect = draggableElement.getBoundingClientRect();

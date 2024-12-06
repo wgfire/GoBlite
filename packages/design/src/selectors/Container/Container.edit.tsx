@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo } from "react";
 import { useNode, UserComponent, ROOT_NODE } from "@craftjs/core";
 import { ContainerSettings } from "./ContainerSettings";
-import { Resizer } from "@/components/Resizer";
 import { ContainerProps } from "./type";
 import { ContainerSettingsFast } from "./ContainerSettingsFast";
 import { omit } from "lodash-es";
+import ElementBox from "@/components/ElementBox";
 
 export const defaultProps: ContainerProps = {
   style: {
@@ -28,7 +28,10 @@ export const defaultProps: ContainerProps = {
 };
 
 export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
-  const { id } = useNode();
+  const {
+    id,
+    connectors: { connect }
+  } = useNode();
 
   const options = {
     ...defaultProps,
@@ -67,9 +70,10 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   }, [display, customStyle, style]);
 
   return (
-    <Resizer
+    <ElementBox
+      ref={node => node && connect(node)}
       id={id}
-      propKey={{ width: "width", height: "height" }}
+      // propKey={{ width: "width", height: "height" }}
       data-id={id}
       style={{
         gap: gap ?? 0,
@@ -80,7 +84,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       }}
     >
       {children}
-    </Resizer>
+    </ElementBox>
   );
 };
 Container.craft = {

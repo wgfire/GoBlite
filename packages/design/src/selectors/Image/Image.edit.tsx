@@ -1,4 +1,4 @@
-import { Resizer } from "@/components/Resizer";
+// import { Resizer } from "@/components/Resizer";
 import { useNode, UserComponent } from "@craftjs/core";
 import { ImageSettings } from "./ImageSettings";
 import { ImageProps } from "./type";
@@ -6,21 +6,34 @@ import { ImageSettingsFast } from "./ImageSettingsFast";
 import ElementBox from "@/components/ElementBox";
 
 export const Image: UserComponent<Partial<ImageProps>> = props => {
-  const { id } = useNode();
+  const {
+    id,
+    connectors: { connect }
+  } = useNode();
   const { style, src, alt, watermark, noWatermarkSrc, switchNoWatermarkSrc = false, customStyle } = props;
 
   const renderSrc = switchNoWatermarkSrc && watermark ? noWatermarkSrc : src;
   return (
     <ElementBox
       id={id}
+      ref={node => node && connect(node)}
       data-id={id}
       style={{
         position: "relative",
-        width: "max-content",
         ...customStyle
       }}
     >
-      <Resizer propKey={{ width: "width", height: "height" }}>
+      <img
+        draggable={false}
+        src={renderSrc}
+        alt={alt}
+        loading="lazy"
+        className="cursor-pointer"
+        style={{
+          ...style
+        }}
+      />
+      {/* <Resizer propKey={{ width: "width", height: "height" }}>
         <img
           draggable={false}
           src={renderSrc}
@@ -31,7 +44,7 @@ export const Image: UserComponent<Partial<ImageProps>> = props => {
             ...style
           }}
         />
-      </Resizer>
+      </Resizer> */}
     </ElementBox>
   );
 };
@@ -42,13 +55,16 @@ Image.craft = {
     alt: "Image description",
     watermark: false,
     style: {
-      height: "auto",
-      width: "200px",
-      minWidth: "100px",
+      width: "100%",
+      height: "100%",
+      objectPosition: "center",
       objectFit: "cover",
       maxWidth: "100vw"
     },
-    customStyle: {}
+    customStyle: {
+      width: "100px",
+      height: "100px"
+    }
   },
   custom: {
     displayName: "Image"

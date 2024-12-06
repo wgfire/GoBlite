@@ -1,16 +1,12 @@
 import { useNode, useEditor } from "@craftjs/core";
 import clsx from "clsx";
-import debounce from "lodash-es/debounce";
-import { Resizable, ResizableProps, ResizeStartCallback } from "re-resizable";
-import { useRef, useEffect, useState, useCallback, useMemo } from "react";
-
-import { isPercentage, pxToPercent, percentToPx, getElementDimensions } from "../../utils/numToMeasurement";
 import { ResizerIndicators } from "./ResizerIndicators";
+import { Resizable, ResizableProps, ResizeStartCallback } from "re-resizable";
+import { useRef, useCallback, useMemo, useState } from "react";
+import { isPercentage } from "../../utils/numToMeasurement";
 
 interface ResizerProps extends Omit<ResizableProps, "size"> {
   id?: string;
-  trim?: boolean;
-  mode?: "container" | "text";
   propKey: {
     width: string;
     height: string;
@@ -23,155 +19,79 @@ interface Dimensions {
   height: string | number;
 }
 
-export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true, ...props }) => {
+export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props }) => {
   const {
     id,
     actions: { setProp },
     connectors: { connect },
-    fillSpace,
     nodeWidth,
     nodeHeight,
-    parent,
     active,
     inNodeContext
   } = useNode(node => ({
-    parent: node.data.parent,
     active: node.events.selected,
     nodeWidth: node.data.props.style[propKey.width],
-    nodeHeight: node.data.props.style[propKey.height],
-    fillSpace: node.data.props.fillSpace
+    nodeHeight: node.data.props.style[propKey.height]
   }));
 
-  const { isRootNode, parentDirection } = useEditor((state, query) => ({
-    parentDirection: parent && state.nodes[parent] && state.nodes[parent].data.props.flexDirection,
+  const { isRootNode } = useEditor((state, query) => ({
     isRootNode: query.node(id).isRoot()
   }));
 
   const resizable = useRef<Resizable | null>(null);
-  const isResizing = useRef<boolean>(false);
-  const editingDimensions = useRef<Dimensions | null>(null);
-  const nodeDimensions = useRef<Dimensions | null>(null);
-  nodeDimensions.current = { width: nodeWidth, height: nodeHeight };
-
-  const [internalDimensions, setInternalDimensions] = useState<Dimensions>({
+  const startDimensions = useRef<Dimensions | null>(null);
+  const [size, setSize] = useState({
     width: nodeWidth,
     height: nodeHeight
   });
-
-  const updateInternalDimensionsInPx = useCallback(() => {
-    const { width: nodeWidth, height: nodeHeight } = nodeDimensions.current!;
-    const parentElement = resizable.current?.resizable?.parentElement;
-
-    const width = percentToPx(nodeWidth, parentElement?.clientWidth || 0);
-    const height = percentToPx(nodeHeight, parentElement?.clientHeight || 0);
-
-    setInternalDimensions({
-      width,
-      height: height
-    });
+  // 计算新的尺寸
+  const calculateNewSize = useCallback((currentSize: string, delta: number, parentSize: number): string => {
+    if (isPercentage(currentSize)) {
+      // 如果是百分比，计算实际像素变化对应的百分比变化
+      const deltaPercent = (delta / parentSize) * 100;
+      const currentPercent = parseFloat(currentSize);
+      return `${currentPercent + deltaPercent}%`;
+    }
+    // 如果是像素，直接加上变化值
+    const currentPx = parseFloat(currentSize);
+    return `${currentPx + delta}px`;
   }, []);
 
-  const updateInternalDimensionsWithOriginal = useCallback(() => {
-    const { width: nodeWidth, height: nodeHeight } = nodeDimensions.current!;
-    setInternalDimensions({
-      width: nodeWidth,
-      height: nodeHeight
-    });
-  }, []);
-
-  const getUpdatedDimensions = useCallback((width: number, height: number): Dimensions | undefined => {
-    const dom = resizable.current?.resizable;
-    if (!dom || !editingDimensions.current) return;
-
-    const currentWidth = parseInt(editingDimensions.current.width as string),
-      currentHeight = parseInt(editingDimensions.current.height as string);
-    return {
-      width: currentWidth + width,
-      height: currentHeight + height
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!isResizing.current) updateInternalDimensionsWithOriginal();
-  }, [nodeWidth, nodeHeight, updateInternalDimensionsWithOriginal]);
-
-  const debouncedUpdateDimensions = useMemo(
-    () => debounce(updateInternalDimensionsWithOriginal, 200),
-    [updateInternalDimensionsWithOriginal]
-  );
-
-  useEffect(() => {
-    window.addEventListener("resize", debouncedUpdateDimensions);
-    return () => {
-      window.removeEventListener("resize", debouncedUpdateDimensions);
-      debouncedUpdateDimensions.cancel();
-    };
-  }, [debouncedUpdateDimensions]);
-
+  // 处理开始拖拽
   const handleResizeStart = useCallback<ResizeStartCallback>(
     e => {
-      updateInternalDimensionsInPx();
       e.preventDefault();
       e.stopPropagation();
-      const dom = resizable.current?.resizable;
-      if (!dom) return;
-      editingDimensions.current = {
-        width: dom.getBoundingClientRect().width,
-        height: dom.getBoundingClientRect().height
+      startDimensions.current = {
+        width: nodeWidth,
+        height: nodeHeight
       };
-      isResizing.current = true;
     },
-    [updateInternalDimensionsInPx]
+    [nodeWidth, nodeHeight]
   );
 
+  // 处理拖拽中
   const handleResize = useCallback(
-    (_: unknown, __: unknown, ___: unknown, d: { width: number; height: number }) => {
+    (_: unknown, __: unknown, ___: unknown, delta: { width: number; height: number }) => {
       const dom = resizable.current?.resizable;
-      if (!dom) return;
+      if (!dom || !startDimensions.current) return;
 
-      const updatedDimensions = getUpdatedDimensions(d.width, d.height);
-      if (!updatedDimensions) return;
+      const parentElement = dom.parentElement;
+      if (!parentElement) return;
 
-      let { width, height } = updatedDimensions;
-
-      if (isPercentage(nodeWidth)) {
-        width = pxToPercent(width as number, getElementDimensions(dom.parentElement as HTMLElement)?.width) + "%";
-      } else {
-        width = `${width}px`;
-      }
-
-      if (isPercentage(nodeHeight)) {
-        height = pxToPercent(height as number, getElementDimensions(dom.parentElement as HTMLElement).height) + "%";
-      } else {
-        height = `${height}px`;
-      }
-
-      if (isPercentage(width) && dom.parentElement && dom.parentElement.style.width === "auto") {
-        width = (editingDimensions.current?.width as number) + d.width + "px";
-      }
-
-      if (isPercentage(height) && dom.parentElement && dom.parentElement.style.height === "auto") {
-        height = (editingDimensions.current?.height as number) + d.height + "px";
-      }
-
-      if (!trim) {
-        width = width.replace(/[^0-9.-]+/g, "");
-        height = height.replace(/[^0-9.-]+/g, "");
-      }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setProp((prop: Record<string, any>) => {
-        prop.style[propKey.width] = width;
-        prop.style[propKey.height] = height;
-      }, 500);
+      const parentRect = parentElement.getBoundingClientRect();
+      const newWidth = calculateNewSize(startDimensions.current.width as string, delta.width, parentRect.width);
+      const newHeight = calculateNewSize(startDimensions.current.height as string, delta.height, parentRect.height);
+      console.log(newWidth, newHeight, "newWidth, newHeight", nodeHeight);
+      setSize({
+        width: newWidth,
+        height: newHeight
+      });
     },
-    [nodeWidth, nodeHeight, propKey, setProp, getUpdatedDimensions]
+    [calculateNewSize, propKey, setProp]
   );
 
-  const handleResizeStop = useCallback(() => {
-    isResizing.current = false;
-    updateInternalDimensionsWithOriginal();
-  }, [updateInternalDimensionsWithOriginal]);
-
+  // 计算可调整的方向
   const resizableEnable = useMemo(
     () =>
       ["top", "left", "bottom", "right", "topLeft", "topRight", "bottomLeft", "bottomRight"].reduce(
@@ -184,6 +104,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true
     [active, inNodeContext, isRootNode]
   );
 
+  // 计算类名
   const resizableClassName = useMemo(
     () =>
       clsx({
@@ -193,6 +114,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true
       }),
     [isRootNode]
   );
+
   return (
     <Resizable
       enable={resizableEnable}
@@ -214,18 +136,17 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, trim = true
         bottomLeft: "indicator",
         topLeft: "indicator"
       }}
-      size={internalDimensions}
+      size={size}
       onResizeStart={handleResizeStart}
       onResize={handleResize}
       maxWidth={props.style?.maxWidth}
       maxHeight={props.style?.maxHeight}
       minWidth={props.style?.minWidth}
       minHeight={props.style?.minHeight}
-      onResizeStop={handleResizeStop}
       {...props}
     >
       {children}
-      {active && !isRootNode && <ResizerIndicators bound={fillSpace === "yes" ? parentDirection : false} />}
+      {active && !isRootNode && <ResizerIndicators />}
     </Resizable>
   );
 };

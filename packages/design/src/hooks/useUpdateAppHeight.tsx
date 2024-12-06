@@ -56,7 +56,6 @@ export const useUpdateAppHeight = (nodeId: string) => {
 
     // 添加底部边距
     const finalHeight = maxRequiredHeight + 50;
-    console.log("finalHeight", finalHeight);
 
     // 更新容器高度
 

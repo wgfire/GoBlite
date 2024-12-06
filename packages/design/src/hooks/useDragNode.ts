@@ -1,6 +1,7 @@
 import { useEditor } from "@craftjs/core";
 import { useRef } from "react";
 import { HookConfig, Events } from "./type";
+import { calculateRelativePosition } from "@/utils/resize";
 interface DragState {
   mode: "translate" | "fixed";
   initialRect?: DOMRect;
@@ -22,40 +23,38 @@ export const useDragNode = (): HookConfig => {
   });
 
   const mouseDown = (e: Events["mouseDown"]) => {
-    const style = window.getComputedStyle(e.target!);
-    const leftValue = parseFloat(style.left) || 0;
-    const topValue = parseFloat(style.top) || 0;
     dragState.current = {
       mode: "fixed",
       target: e.target,
-      initialRect: e.rect,
-      initialTransform: {
-        x: leftValue,
-        y: topValue
-      }
+      initialRect: e.rect
     };
   };
 
-  const switchToFixed = (e: Events["mouseDrag"]) => {
+  const switchToAbsolute = (e: Events["mouseDrag"]) => {
     const { target, rect, x, y, mouseX, mouseY, parent } = e;
     if (!target || !rect || !parent) return;
+    const currentParent = target.parentElement;
     const parentStyles = window.getComputedStyle(parent!);
     const parentPaddingLeft = parseFloat(parentStyles.paddingLeft) || 0;
     const parentPaddingTop = parseFloat(parentStyles.paddingTop) || 0;
-    const initx = rect.left; // dragState.current.initialTransform?.x!
-    const inity = rect.top; //dragState.current.initialTransform?.y!
+    const parentRect = currentParent?.getBoundingClientRect();
+    if (!currentParent || !parentRect) return;
 
+    // 计算鼠标移动的总偏移量
     const deltaX = x - mouseX;
     const deltaY = y - mouseY;
+
+    const relativeX = rect.left - parentRect.left + deltaX;
+    const relativeY = rect.top - parentRect.top + deltaY;
 
     setProp(target.dataset.id!, p => {
       p.customStyle = {
         ...p.customStyle,
-        position: "fixed",
+        position: "absolute",
         justifySelf: "start",
         alignSelf: "start",
-        left: `${initx + deltaX}px`,
-        top: `${inity + deltaY}px`,
+        left: `${relativeX}px`,
+        top: `${relativeY}px`,
         willChange: "left, top",
         zIndex: 1000,
         maxWidth: parent.clientWidth - parentPaddingLeft,
@@ -63,13 +62,12 @@ export const useDragNode = (): HookConfig => {
       };
     });
   };
-
   const mouseDrag = (data: Events["mouseDrag"]) => {
     const { target, parentRect, rect, matrix } = data;
     if (!parentRect || !rect || !target || !matrix) return;
 
     //dragNode(data);
-    switchToFixed(data);
+    switchToAbsolute(data);
   };
 
   const resetToTranslate = () => {
@@ -78,40 +76,22 @@ export const useDragNode = (): HookConfig => {
     const element = target;
     if (!element || dragState.current.mode !== "fixed") return;
 
-    const currentRect = element.getBoundingClientRect();
     const newParent = element.parentElement;
     if (!newParent) return;
 
-    const parentRect = newParent.getBoundingClientRect();
-    const parentStyles = window.getComputedStyle(newParent);
-
-    // 3. 计算相对位置（相对于父元素内容区域）
-    const parentPaddingLeft = parseFloat(parentStyles.paddingLeft) || 0;
-    const parentPaddingTop = parseFloat(parentStyles.paddingTop) || 0;
-
-    // 计算元素相对于父元素的位置（考虑父元素padding）
-    const relativeLeft = currentRect.left - parentRect.left - parentPaddingLeft;
-    const relativeTop = currentRect.top - parentRect.top - parentPaddingTop;
-
-    // 计算内容区域尺寸
-    // const contentWidth = parentRect.width - parentPaddingLeft * 2;
-    // const contentHeight = parentRect.height - parentPaddingTop * 2;
-
     // 计算百分比
-    //const leftPercent = `${Number((relativeLeft / contentWidth) * 100)}%`;
-    //const topPercent = `${Number((relativeTop / contentHeight) * 100)}%`;
+    const { left: leftPercent, top: topPercent } = calculateRelativePosition(element, newParent, "%");
     // 使用px
-    const leftPx = `${relativeLeft}px`;
-    const topPx = `${relativeTop}px`;
+    // const leftPx = `${relativeLeft}px`;
+    // const topPx = `${relativeTop}px`;
 
     setProp(targetId!, p => {
       p.customStyle = {
         ...p.customStyle,
         position: "relative",
-        left: leftPx,
-        top: topPx,
+        left: leftPercent,
+        top: topPercent,
         willChange: "none",
-        //  transform: `translate(${relativeLeft}px, ${relativeTop}px)`,
         zIndex: "auto"
       };
     });

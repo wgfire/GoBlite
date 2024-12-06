@@ -172,3 +172,219 @@
   position: absolute;
   z-index: 2;
 }
+
+/* 控制点动画关键帧 - 使用 left/top 代替 transform */
+@keyframes control-nw-animation {
+  0% {
+    left: -20px;
+    top: -20px;
+    opacity: 0;
+  }
+  100% {
+    left: 0;
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-n-animation {
+  0% {
+    top: -20px;
+    opacity: 0;
+  }
+  100% {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-ne-animation {
+  0% {
+    right: -20px;
+    top: -20px;
+    opacity: 0;
+  }
+  100% {
+    right: 0;
+    top: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-w-animation {
+  0% {
+    left: -20px;
+    opacity: 0;
+  }
+  100% {
+    left: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-e-animation {
+  0% {
+    right: -20px;
+    opacity: 0;
+  }
+  100% {
+    right: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-sw-animation {
+  0% {
+    left: -20px;
+    bottom: -20px;
+    opacity: 0;
+  }
+  100% {
+    left: 0;
+    bottom: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-s-animation {
+  0% {
+    bottom: -20px;
+    opacity: 0;
+  }
+  100% {
+    bottom: 0;
+    opacity: 1;
+  }
+}
+
+@keyframes control-se-animation {
+  0% {
+    right: -20px;
+    bottom: -20px;
+    opacity: 0;
+  }
+  100% {
+    right: 0;
+    bottom: 0;
+    opacity: 1;
+  }
+}
+
+/* 旋转控制点动画 */
+@keyframes rotation-animation {
+  0% {
+    top: -30px;
+    opacity: 0;
+  }
+  100% {
+    top: 0;
+    opacity: 1;
+  }
+}
+
+/* 应用动画到控制点 */
+.moveable-control.moveable-nw {
+  animation: control-nw-animation 0.3s ease-out forwards;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.moveable-control.moveable-n {
+  animation: control-n-animation 0.3s ease-out forwards;
+}
+
+.moveable-control.moveable-ne {
+  animation: control-ne-animation 0.3s ease-out forwards;
+}
+
+.moveable-control.moveable-w {
+  animation: control-w-animation 0.3s ease-out forwards;
+}
+
+.moveable-control.moveable-e {
+  animation: control-e-animation 0.3s ease-out forwards;
+}
+
+.moveable-control.moveable-sw {
+  animation: control-sw-animation 0.3s ease-out forwards;
+}
+
+.moveable-control.moveable-s {
+  animation: control-s-animation 0.3s ease-out forwards;
+}
+
+.moveable-control.moveable-se {
+  animation: control-se-animation 0.3s ease-out forwards;
+}
+
+/* 旋转控制点 */
+/* .moveable-rotation {
+  animation: rotation-animation 0.3s ease-out forwards;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+} */
+
+/* 基础控制点样式 */
+.moveable-control:not(.moveable-control-box, .moveable-origin) {
+  /* width: 8px !important;
+  height: 8px !important;
+  border: 2px solid var(--moveable-color, #4af) !important;
+  background: #fff !important;
+  border-radius: 50% !important;
+  transition: background-color 0.2s ease; */
+}
+
+/* 控制点悬浮效果 */
+/* .moveable-control:hover {
+  background: var(--moveable-color, #4af) !important;
+} */
+
+/* 控制框样式 */
+.moveable-control-box {
+  --moveable-color: #4af;
+  --moveable-line-color: #4af;
+  opacity: 0;
+  animation: control-box-animation 0.3s ease-out forwards;
+}
+
+@keyframes control-box-animation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* 控制框线条动画 */
+.moveable-line {
+  opacity: 0;
+  animation: line-animation 0.3s ease-out forwards;
+}
+
+@keyframes line-animation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+/* 辅助线动画 */
+.moveable-guide {
+  opacity: 0;
+  animation: guide-animation 0.2s ease-out forwards;
+}
+
+@keyframes guide-animation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}

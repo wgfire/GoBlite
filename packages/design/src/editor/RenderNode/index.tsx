@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useCallback, useState, useLayoutEffect } from "react";
+import React, { useRef, useEffect, useCallback, useState, useLayoutEffect, useMemo } from "react";
 import { useNode, useEditor, ROOT_NODE } from "@craftjs/core";
 import { createPortal } from "react-dom";
 import { ArrowUp, Move, Trash2, Copy } from "lucide-react";
@@ -35,16 +35,18 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   const currentRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: "0px", left: "0px" });
-  const [isDragging, setIsDragging] = useState(false);
-  // const domDragging = dom?.getAttribute("data-dragging");
+
+  const isDragging = useMemo(() => {
+    return dom?.getAttribute("data-dragging") === "true";
+  }, [dom?.getAttribute("data-dragging")]);
 
   const getPos = useCallback((dom: HTMLElement | null) => {
     if (!dom || !currentRef.current) return { top: "0px", left: "0px" };
-    const { top, bottom, right, width } = dom.getBoundingClientRect();
+    const { bottom, right, width } = dom.getBoundingClientRect();
     const offset = right - width * 0.5 - currentRef.current.offsetWidth / 2;
 
     return {
-      top: `${top > 0 ? top - 41 : bottom}px`,
+      top: `${bottom + 10}px`,
       left: `${offset}px`
     };
   }, []);
@@ -52,12 +54,9 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
   useEffect(() => {
     let time = null;
     if (props.customStyle?.position === "fixed") {
-      setIsDragging(true);
       if (time) clearTimeout(time);
     } else {
-      time = setTimeout(() => {
-        setIsDragging(false);
-      }, 1000);
+      time = setTimeout(() => {}, 1000);
     }
     return () => {
       if (time) {

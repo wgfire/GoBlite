@@ -11,7 +11,7 @@ export const useCanvasSubscribe = () => {
   const autoToContainer = useAutoToContainer();
   const dragNode = useDragNode();
   const guides = useGuides();
-  useEventManager([doubleClick, contextMenu, dragNode, guides, autoToContainer]);
+  useEventManager([doubleClick, contextMenu, guides, dragNode, autoToContainer]);
 
   //   registerHook({
   //     id: "customFeature",

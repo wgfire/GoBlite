@@ -44,6 +44,9 @@ interface BaseStyle {
   // 颜色
   color?: string;
 
+  // 盒子模型
+  boxSizing?: "border-box" | "content-box";
+
   [key: string]: string | number | object | boolean | Array<unknown> | undefined;
 }
 export interface Animation {

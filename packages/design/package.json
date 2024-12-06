@@ -32,14 +32,15 @@
     "lucide-react": "^0.439.0",
     "re-resizable": "6.1.0",
     "react-color": "^2.19.3",
-    "react-contenteditable": "^3.3.7"
+    "react-contenteditable": "^3.3.7",
+    "react-moveable": "^0.56.0"
   },
   "peerDependencies": {
+    "ahooks": "^3.8.1",
+    "lodash-es": "^4.17.21",
     "react": "^18",
     "react-dom": "^18",
-    "lodash-es": "^4.17.21",
-    "use-immer": "^0.10.0",
-    "ahooks": "^3.8.1"
+    "use-immer": "^0.10.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

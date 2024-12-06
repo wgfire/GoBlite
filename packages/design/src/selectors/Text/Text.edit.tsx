@@ -20,15 +20,17 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
 
   return (
     <ElementBox
+      ref={node => node && connect(node)}
       id={id}
+      scalable={true}
+      resizable={false}
+      scalaText={true}
       style={{
-        transform: customStyle?.transform || "translate(0,0)",
         width: "max-content",
         ...customStyle
       }}
     >
       <ContentEditable
-        innerRef={connect}
         html={text || ""}
         disabled={!enabled}
         onChange={e => {
