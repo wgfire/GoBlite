@@ -20,6 +20,15 @@ const gridStyle = {
   justifySelf: "start"
 };
 
+export const ElementBoxView: React.FC<ElementBoxProps> = props => {
+  const { id, children, style = {} } = props;
+  return (
+    <div data-id={id} id={id} style={{ ...gridStyle, ...style }}>
+      {children}
+    </div>
+  );
+};
+
 export const ElementBox = forwardRef<HTMLDivElement, ElementBoxProps>((props, ref) => {
   const { id, children, style = {}, ...moveProps } = props;
   const targetRef = useRef<HTMLDivElement | null>(null);

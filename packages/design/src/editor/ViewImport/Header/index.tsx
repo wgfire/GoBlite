@@ -2,7 +2,7 @@ import { useEditor } from "@craftjs/core";
 import { DeviceType } from "@/context/Provider";
 import { useDesignContext } from "@/context/useDesignContext";
 import { Button } from "@go-blite/shadcn";
-import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Upload } from "lucide-react";
+import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Download } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -83,6 +83,16 @@ export const Header: React.FC = () => {
       </Button>
     );
   };
+  const DownloadHandle = async () => {
+    const result = await fetch("http://localhost:3001/api/build/email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ id: "1228" })
+    });
+    console.log(result, "结果");
+  };
 
   return (
     <div className="w-full h-12 z-50 relative px-4 flex items-center justify-between bg-card shadow-sm">
@@ -144,9 +154,9 @@ export const Header: React.FC = () => {
           <Eye className="mr-1 h-3 w-3" />
           {enabled ? "预览" : "编辑"}
         </Button>
-        <Button size="sm">
-          <Upload className="mr-1 h-3 w-3" />
-          部署
+        <Button size="sm" onClick={DownloadHandle}>
+          <Download className="mr-1 h-3 w-3" />
+          下载
         </Button>
       </div>
     </div>

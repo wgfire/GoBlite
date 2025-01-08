@@ -5,10 +5,12 @@ import { Container } from "@/selectors/Container/Container.view";
 import { Text } from "@/selectors/Text/Text.view";
 import { Button } from "@/selectors/Button/Button.view";
 import { Image } from "@/selectors/Image/Image.view";
+import { App } from "@/selectors/App/App.view";
 
 export const Preview: React.FC = React.memo(() => {
   const defaultResolver = useMemo(
     () => ({
+      App,
       Container,
       Text,
       Button,

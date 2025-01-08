@@ -1,28 +1,31 @@
 {
   "name": "@go-blite/design",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "type": "module",
+  "main": "./dist/lib/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/lib/index.js"
+    },
+    "./styles": {
+      "import": "./dist/esm/styles/index.css",
+      "require": "./dist/lib/styles/index.css"
+    }
+  },
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
-  "exports": {
-    "./style": {
-      "import": "./dist/esm/style/tailwind.css",
-      "require": "./dist/lib/style/tailwind.css"
-    },
-    ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/lib/index.js"
-    }
-  },
-  "types": "./dist/esm/src/index.d.ts",
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "dependencies": {
     "@craftjs/core": "^0.2.0",
     "@craftjs/layers": "0.2.5",
@@ -50,6 +53,7 @@
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2",
-    "vite": "^4.4.5"
+    "vite": "^4.4.5",
+    "vite-plugin-dts": "^4.2.3"
   }
 }

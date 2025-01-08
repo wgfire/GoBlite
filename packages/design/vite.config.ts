@@ -1,9 +1,18 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-
+import dts from "vite-plugin-dts";
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    dts({
+      insertTypesEntry: true,
+      include: ["src/**/*.ts", "src/**/*.tsx"],
+      outDir: ["dist/esm", "dist/lib"],
+      rollupTypes: true,
+      copyDtsFiles: true
+    })
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src")

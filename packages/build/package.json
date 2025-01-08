@@ -1,16 +1,36 @@
 {
-  "name": "@go-blite/web-site",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@go-blite/build",
+  "version": "1.0.0",
+  "description": "Build system for landing pages and emails",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "tsc",
+    "dev": "tsc -w",
+    "start": "node dist/server.js",
+    "clean": "rimraf dist"
   },
   "dependencies": {
-    "@go-blite/design": "workspace:^",
+    "archiver": "^5.3.1",
+    "cheerio": "^1.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fs-extra": "^11.2.0",
+    "jsdom": "^22.1.0",
+    "next": "^13.4.19"
+  },
+  "devDependencies": {
+    "@types/archiver": "^5.3.2",
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
+    "@types/fs-extra": "^11.0.1",
+    "@types/jsdom": "^21.1.1",
+    "@types/node": "^20.5.7",
+    "rimraf": "^5.0.1",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
     "@go-blite/shadcn": "workspace:*",
-    "next": "14.2.13"
+    "@go-blite/design": "workspace:*"
   }
 }

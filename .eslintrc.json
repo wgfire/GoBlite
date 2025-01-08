@@ -19,6 +19,7 @@
     ],
     "quotes": ["error", "double"],
     "semi": ["error", "always"],
-    "max-len": ["off", { "code": 120 }]
+    "max-len": ["off", { "code": 120 }],
+    "no-case-declarations": "off"
   }
 }

@@ -34,7 +34,7 @@ export const Resizer: React.FC<ResizerProps> = ({ propKey, children, ...props })
     nodeHeight: node.data.props.style[propKey.height]
   }));
 
-  const { isRootNode } = useEditor((state, query) => ({
+  const { isRootNode } = useEditor((_, query) => ({
     isRootNode: query.node(id).isRoot()
   }));
 

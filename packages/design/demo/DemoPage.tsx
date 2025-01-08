@@ -1,366 +1,881 @@
 import React, { useMemo } from "react";
 import { Design } from "../src/editor/Design";
 import { DesignProvider, useDesignContext } from "../src/context";
-import { DesignContextProps } from "@/context/Provider";
-const mockSchema = {
-  ROOT: {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "flex-start",
-      fillSpace: "no",
-      padding: 10,
-      margin: 0,
-      background: "rgba(255, 255, 255, 1)",
-      width: "100%",
-      height: "auto",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 0px)"
+import { DesignContextProps, Devices } from "@/context/Provider";
+const devices: Devices = [
+  {
+    type: "desktop",
+    pageTemplate: "static-download",
+    languagePageMap: {
+      zh: {
+        schema: {
+          ROOT: {
+            type: {
+              resolvedName: "App"
+            },
+            isCanvas: true,
+            props: {
+              events: {},
+              customStyle: {
+                position: "relative",
+                left: "0%",
+                top: "0%",
+                willChange: "none",
+                zIndex: "auto"
+              },
+              animation: []
+            },
+            displayName: "App",
+            custom: {
+              displayName: "App"
+            },
+            parent: null,
+            hidden: false,
+            nodes: ["x9MNS_sqdX", "5ukynhPwxL", "BA206XItNz"],
+            linkedNodes: {}
+          },
+          BA206XItNz: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文本",
+              customStyle: {
+                position: "relative",
+                left: "41.96784787061738%",
+                top: "9.119496855345911%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          x9MNS_sqdX: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "16.477274080602132%",
+                top: "16.33076217939269%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          "5ukynhPwxL": {
+            type: {
+              resolvedName: "Image"
+            },
+            isCanvas: false,
+            props: {
+              src: "https://img.picgo.net/2024/10/23/img_pc_tittle2x583c1c2e2317cc27.webp",
+              alt: "图片",
+              watermark: false,
+              style: {
+                width: "100%",
+                height: "100%",
+                objectPosition: "center",
+                objectFit: "cover",
+                maxWidth: "100vw"
+              },
+              customStyle: {
+                width: "266px",
+                height: "100px",
+                position: "relative",
+                left: "16.363637040301068%",
+                top: "38.429101907982016%",
+                willChange: "none",
+                zIndex: "auto",
+                transform: "matrix(1, 0, 0, 1, 0, 0)",
+                justifySelf: "start",
+                alignSelf: "start",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Image",
+            custom: {
+              displayName: "Image"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "mobile",
+    pageTemplate: "static-download",
+    languagePageMap: {
+      zh: {
+        schema: {
+          ROOT: {
+            type: {
+              resolvedName: "App"
+            },
+            isCanvas: true,
+            props: {
+              style: {
+                display: "grid",
+                gridAutoFlow: "row",
+                gridTemplateColumns: "1fr",
+                gridAutoRows: "minmax(0px,100%)",
+                gap: "10px",
+                padding: 10,
+                height: "394.54499999999996px",
+                minHeight: "100%",
+                minWidth: "100%",
+                width: "auto",
+                flexDirection: "column",
+                background: "rgba(255,255,255,1)",
+                alignContent: "flex-start",
+                position: "relative"
+              },
+              events: {},
+              customStyle: {
+                position: "relative",
+                left: "0%",
+                top: "0%",
+                willChange: "none",
+                zIndex: "auto"
+              },
+              animation: []
+            },
+            displayName: "App",
+            custom: {
+              displayName: "App"
+            },
+            parent: null,
+            hidden: false,
+            nodes: ["x9MNS_sqdX", "5ukynhPwxL", "BA206XItNz"],
+            linkedNodes: {}
+          },
+          BA206XItNz: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文本",
+              customStyle: {
+                position: "relative",
+                left: "41.96784787061738%",
+                top: "9.119496855345911%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          x9MNS_sqdX: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "16.477274080602132%",
+                top: "16.33076217939269%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          "5ukynhPwxL": {
+            type: {
+              resolvedName: "Image"
+            },
+            isCanvas: false,
+            props: {
+              src: "https://img.picgo.net/2024/10/23/img_pc_tittle2x583c1c2e2317cc27.webp",
+              alt: "图片",
+              watermark: false,
+              style: {
+                width: "100%",
+                height: "100%",
+                objectPosition: "center",
+                objectFit: "cover",
+                maxWidth: "100vw"
+              },
+              customStyle: {
+                width: "266px",
+                height: "100px",
+                position: "relative",
+                left: "16.363637040301068%",
+                top: "38.429101907982016%",
+                willChange: "none",
+                zIndex: "auto",
+                transform: "matrix(1, 0, 0, 1, 0, 0)",
+                justifySelf: "start",
+                alignSelf: "start",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Image",
+            custom: {
+              displayName: "Image"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          }
+        }
       },
-      color: {
-        r: 0,
-        g: 0,
-        b: 0,
-        a: 1
+      en: {
+        schema: {
+          ROOT: {
+            type: {
+              resolvedName: "App"
+            },
+            isCanvas: true,
+            props: {
+              style: {
+                display: "grid",
+                gridAutoFlow: "row",
+                gridTemplateColumns: "1fr",
+                gridAutoRows: "minmax(0px,100%)",
+                gap: "10px",
+                padding: 10,
+                height: "412.352px",
+                minHeight: "100%",
+                minWidth: "100%",
+                width: "auto",
+                flexDirection: "column",
+                background: "rgba(255,255,255,1)",
+                alignContent: "flex-start",
+                position: "relative"
+              },
+              events: {},
+              customStyle: {
+                position: "relative",
+                left: "0%",
+                top: "0%",
+                willChange: "none",
+                zIndex: "auto"
+              },
+              animation: []
+            },
+            displayName: "App",
+            custom: {
+              displayName: "App"
+            },
+            parent: null,
+            hidden: false,
+            nodes: ["x9MNS_sqdX", "wqCUS7_-VY", "BA206XItNz"],
+            linkedNodes: {}
+          },
+          BA206XItNz: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文本",
+              customStyle: {
+                position: "relative",
+                left: "41.96784787061738%",
+                top: "9.119496855345911%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          x9MNS_sqdX: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "16.477274080602132%",
+                top: "16.33076217939269%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          "wqCUS7_-VY": {
+            type: {
+              resolvedName: "Image"
+            },
+            isCanvas: false,
+            props: {
+              src: "https://img.picgo.net/2024/10/23/img_pc_banenr2x5ad243cc2e2ce7df.webp",
+              alt: "图片",
+              watermark: false,
+              style: {
+                width: "100%",
+                height: "100%",
+                objectPosition: "center",
+                objectFit: "fill",
+                maxWidth: "100vw"
+              },
+              customStyle: {
+                width: "340px",
+                height: "100px",
+                position: "relative",
+                left: "8.306542373285062%",
+                top: "41.22829774026886%",
+                willChange: "none",
+                zIndex: "auto",
+                justifySelf: "start",
+                alignSelf: "start",
+                maxWidth: 420,
+                maxHeight: 633,
+                transform: "matrix(1, 0, 0, 1, 0, 0)"
+              }
+            },
+            displayName: "Image",
+            custom: {
+              displayName: "Image"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          }
+        }
       },
-      shadow: 0,
-      radius: 0,
-      gap: 24
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "App"
-    },
-    hidden: false,
-    nodes: ["gzsEdhIaot", "_p4zH0Iiru", "YwGGHTeYv6", "1G8NiWdS4Q"],
-    linkedNodes: {},
-    parent: null
-  },
-  "6BTUHH35yt": {
-    type: {
-      resolvedName: "Image"
-    },
-    isCanvas: false,
-    props: {
-      src: "https://img.picgo.net/2024/10/23/img_pc_tittle2x583c1c2e2317cc27.webp",
-      alt: "pc_title",
-      width: "360px",
-      height: "120px",
-      objectFit: "cover",
-      maxWidth: "100%"
-    },
-    displayName: "Image",
-    custom: {
-      displayName: "Image"
-    },
-    parent: "ScZWfRnaSF",
-    hidden: false,
-    nodes: [],
-    linkedNodes: {}
-  },
-  boZnVaqIIJ: {
-    type: {
-      resolvedName: "Image"
-    },
-    isCanvas: false,
-    props: {
-      src: "https://img.picgo.net/2024/10/23/img_pc_banenr2x5ad243cc2e2ce7df.webp",
-      alt: "pc_banner",
-      width: "480",
-      height: "416",
-      objectFit: "contain",
-      maxWidth: "100%"
-    },
-    displayName: "Image",
-    custom: {
-      displayName: "Image"
-    },
-    parent: "ScZWfRnaSF",
-    hidden: false,
-    nodes: [],
-    linkedNodes: {}
-  },
-  gzsEdhIaot: {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "row",
-      alignItems: "flex-start",
-      justifyContent: "flex-start",
-      fillSpace: "no",
-      padding: 0,
-      margin: 0,
-      background: "linear-gradient(171deg, #1146CF -2.51%,#247AFF 42.82%,#23BDFF 95.06%)",
-      width: "100%",
-      height: "670px",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 0px)"
-      },
-      gap: 0
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "Container"
-    },
-    parent: "ROOT",
-    hidden: false,
-    nodes: ["ScZWfRnaSF", "InWF2kg58A"],
-    linkedNodes: {}
-  },
-  ScZWfRnaSF: {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "flex-end",
-      fillSpace: "no",
-      padding: 0,
-      margin: 0,
-      background: "rgba(255, 255, 255, 0)",
-      width: "100%",
-      height: "100%",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 0px)"
+      vn: {
+        schema: {
+          ROOT: {
+            type: {
+              resolvedName: "App"
+            },
+            isCanvas: true,
+            props: {
+              style: {
+                display: "grid",
+                gridAutoFlow: "row",
+                gridTemplateColumns: "1fr",
+                gridAutoRows: "minmax(0px,100%)",
+                gap: "10px",
+                padding: 0,
+                height: "633.773px",
+                minHeight: "100%",
+                minWidth: "100%",
+                width: "auto",
+                flexDirection: "column",
+                background: "rgba(255,255,255,1)",
+                alignContent: "flex-start",
+                position: "relative"
+              },
+              events: {},
+              customStyle: {
+                position: "relative",
+                left: "0%",
+                top: "0%",
+                willChange: "none",
+                zIndex: "auto"
+              },
+              animation: []
+            },
+            displayName: "App",
+            custom: {
+              displayName: "App"
+            },
+            parent: null,
+            hidden: false,
+            nodes: ["x9MNS_sqdX", "wqCUS7_-VY", "BA206XItNz", "e2B78uBP4q", "7r5xR_-sgf"],
+            linkedNodes: {}
+          },
+          BA206XItNz: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文本",
+              customStyle: {
+                position: "relative",
+                left: "41.966176587481826%",
+                top: "9.123823119372856%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          x9MNS_sqdX: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "16.482565236646078%",
+                top: "16.35601462387457%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          "wqCUS7_-VY": {
+            type: {
+              resolvedName: "Image"
+            },
+            isCanvas: false,
+            props: {
+              src: "https://img.picgo.net/2024/10/23/img_pc_banenr2x5ad243cc2e2ce7df.webp",
+              alt: "图片",
+              watermark: false,
+              style: {
+                width: "100%",
+                height: "100%",
+                objectPosition: "center",
+                objectFit: "fill",
+                maxWidth: "100vw"
+              },
+              customStyle: {
+                width: "364px",
+                height: "100px",
+                position: "relative",
+                left: "6.797045330668605%",
+                top: "36.931819450564504%",
+                willChange: "none",
+                zIndex: "auto",
+                justifySelf: "start",
+                alignSelf: "start",
+                maxWidth: 406,
+                maxHeight: 661,
+                transform: "matrix(1, 0, 0, 1, 0, 0)"
+              }
+            },
+            displayName: "Image",
+            custom: {
+              displayName: "Image"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          e2B78uBP4q: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: "20",
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "7.341443438862645%",
+                top: "59.03894377917778%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 406,
+                maxHeight: 661,
+                transform: "none"
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          "7r5xR_-sgf": {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "6.8763271597928775%",
+                top: "74.31575496022295%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          }
+        }
       }
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "Container"
-    },
-    parent: "gzsEdhIaot",
-    hidden: false,
-    nodes: ["6BTUHH35yt", "boZnVaqIIJ"],
-    linkedNodes: {}
+    }
   },
-  InWF2kg58A: {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      fillSpace: "no",
-      padding: 0,
-      margin: 0,
-      background: "rgba(142, 209, 252, 0)",
-      width: "100%",
-      height: "100%",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 0px)"
+  {
+    type: "tablet",
+    pageTemplate: "static-download",
+    languagePageMap: {
+      zh: {
+        schema: {
+          ROOT: {
+            type: {
+              resolvedName: "App"
+            },
+            isCanvas: true,
+            props: {
+              style: {
+                display: "grid",
+                gridAutoFlow: "row",
+                gridTemplateColumns: "1fr",
+                gridAutoRows: "minmax(0px,100%)",
+                gap: "10px",
+                padding: 10,
+                height: "394.54499999999996px",
+                minHeight: "100%",
+                minWidth: "100%",
+                width: "auto",
+                flexDirection: "column",
+                background: "rgba(255,255,255,1)",
+                alignContent: "flex-start",
+                position: "relative"
+              },
+              events: {},
+              customStyle: {
+                position: "relative",
+                left: "0%",
+                top: "0%",
+                willChange: "none",
+                zIndex: "auto"
+              },
+              animation: []
+            },
+            displayName: "App",
+            custom: {
+              displayName: "App"
+            },
+            parent: null,
+            hidden: false,
+            nodes: ["x9MNS_sqdX", "5ukynhPwxL", "BA206XItNz"],
+            linkedNodes: {}
+          },
+          BA206XItNz: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文本",
+              customStyle: {
+                position: "relative",
+                left: "41.96784787061738%",
+                top: "9.119496855345911%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          x9MNS_sqdX: {
+            type: {
+              resolvedName: "Text"
+            },
+            isCanvas: false,
+            props: {
+              style: {
+                fontSize: 16,
+                textAlign: "left",
+                fontWeight: "500",
+                color: "rgba(0,0,0,1)",
+                margin: 0,
+                padding: 0,
+                shadow: 0
+              },
+              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              customStyle: {
+                position: "relative",
+                left: "16.477274080602132%",
+                top: "16.33076217939269%",
+                justifySelf: "start",
+                alignSelf: "start",
+                willChange: "none",
+                zIndex: "auto",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Text",
+            custom: {
+              displayName: "Text"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          },
+          "5ukynhPwxL": {
+            type: {
+              resolvedName: "Image"
+            },
+            isCanvas: false,
+            props: {
+              src: "https://img.picgo.net/2024/10/23/img_pc_tittle2x583c1c2e2317cc27.webp",
+              alt: "图片",
+              watermark: false,
+              style: {
+                width: "100%",
+                height: "100%",
+                objectPosition: "center",
+                objectFit: "cover",
+                maxWidth: "100vw"
+              },
+              customStyle: {
+                width: "266px",
+                height: "100px",
+                position: "relative",
+                left: "16.363637040301068%",
+                top: "38.429101907982016%",
+                willChange: "none",
+                zIndex: "auto",
+                transform: "matrix(1, 0, 0, 1, 0, 0)",
+                justifySelf: "start",
+                alignSelf: "start",
+                maxWidth: 420,
+                maxHeight: 646
+              }
+            },
+            displayName: "Image",
+            custom: {
+              displayName: "Image"
+            },
+            parent: "ROOT",
+            hidden: false,
+            nodes: [],
+            linkedNodes: {}
+          }
+        }
       }
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "Container"
-    },
-    parent: "gzsEdhIaot",
-    hidden: false,
-    nodes: ["ZAcKgWgIor"],
-    linkedNodes: {}
-  },
-  ZAcKgWgIor: {
-    type: {
-      resolvedName: "Button"
-    },
-    isCanvas: false,
-    props: {
-      color: "rgba(255, 255, 255, 1)",
-      buttonStyle: "full",
-      text: "我是登录的业务组件",
-      margin: 0
-    },
-    displayName: "Button",
-    custom: {
-      displayName: "Button"
-    },
-    parent: "InWF2kg58A",
-    hidden: false,
-    nodes: [],
-    linkedNodes: {}
-  },
-  RIj6ZI_aJ2: {
-    type: {
-      resolvedName: "Image"
-    },
-    isCanvas: false,
-    props: {
-      src: "  https://img.picgo.net/2024/10/23/img_pc_022x2d931e6b91c97a45.webp",
-      alt: "pc_content1",
-      width: "1200px",
-      height: "auto",
-      objectFit: "cover",
-      maxWidth: "100%"
-    },
-    displayName: "Image",
-    custom: {
-      displayName: "Image"
-    },
-    parent: "_p4zH0Iiru",
-    hidden: false,
-    nodes: [],
-    linkedNodes: {}
-  },
-  _p4zH0Iiru: {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      fillSpace: "no",
-      padding: 48,
-      margin: 0,
-      background: "rgba(255, 255, 255, 0.1)",
-      width: "100%",
-      height: "auto",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 32px)"
-      }
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "Container"
-    },
-    parent: "ROOT",
-    hidden: false,
-    nodes: ["RIj6ZI_aJ2"],
-    linkedNodes: {}
-  },
-  YwGGHTeYv6: {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      fillSpace: "no",
-      padding: 48,
-      margin: 0,
-      background: "#F2F5F7",
-      width: "100%",
-      height: "auto",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 0px)"
-      }
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "Container"
-    },
-    parent: "ROOT",
-    hidden: false,
-    nodes: ["Nl8sjq6U1I"],
-    linkedNodes: {}
-  },
-  "1G8NiWdS4Q": {
-    type: {
-      resolvedName: "Container"
-    },
-    isCanvas: true,
-    props: {
-      display: "flex",
-      events: {},
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      fillSpace: "no",
-      padding: 48,
-      margin: 0,
-      background: "rgba(255, 255, 255, 0.1)",
-      width: "100%",
-      height: "auto",
-      backgroundImage: "none",
-      customStyle: {
-        transform: "translate(0px, 0px)"
-      }
-    },
-    displayName: "Container",
-    custom: {
-      displayName: "Container"
-    },
-    parent: "ROOT",
-    hidden: false,
-    nodes: ["YTERRMBA7x"],
-    linkedNodes: {}
-  },
-  Nl8sjq6U1I: {
-    type: {
-      resolvedName: "Image"
-    },
-    isCanvas: false,
-    props: {
-      src: "  https://img.picgo.net/2024/10/23/img_pc_032xd2ee4342931d8a8b.webp",
-      alt: "pc_content2",
-      width: "1200px",
-      height: "auto",
-      objectFit: "cover",
-      maxWidth: "100%"
-    },
-    displayName: "Image",
-    custom: {
-      displayName: "Image"
-    },
-    parent: "YwGGHTeYv6",
-    hidden: false,
-    nodes: [],
-    linkedNodes: {}
-  },
-  YTERRMBA7x: {
-    type: {
-      resolvedName: "Image"
-    },
-    isCanvas: false,
-    props: {
-      src: "  https://img.picgo.net/2024/10/23/img_pc_tip2xd211e95a6fd89c44.webp",
-      alt: "pc_tip",
-      width: "1200px",
-      height: "auto",
-      objectFit: "cover",
-      maxWidth: "100%"
-    },
-    displayName: "Image",
-    custom: {
-      displayName: "Image"
-    },
-    parent: "1G8NiWdS4Q",
-    hidden: false,
-    nodes: [],
-    linkedNodes: {}
+    }
   }
-};
+];
 const DemoContent: React.FC = () => {
   const contextData = useDesignContext();
 
@@ -374,18 +889,8 @@ export const DemoPage: React.FC = () => {
 
   const initialProps = useMemo<Partial<DesignContextProps>>(
     () => ({
-      device: [
-        {
-          type: "desktop",
-          pageTemplate: "static-download",
-          languagePageMap: {
-            zh: {
-              schema: mockSchema
-            }
-          }
-        }
-      ],
-      schema: undefined,
+      device: devices,
+      schema: devices[0].languagePageMap["zh"].schema,
       resolver: {
         Login: Login
       },

@@ -1,26 +1,29 @@
 import React, { useEffect } from "react";
 import { useNode, UserComponent } from "@craftjs/core";
-import { ContainerProps } from "./type";
+import { AppProps } from "./type";
 
-const defaultProps: ContainerProps = {
+const defaultProps: AppProps = {
   style: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
-    padding: 0,
-    margin: 0,
-    background: "rgba(255, 255, 255, 0.1)",
-    width: "100%",
-    height: "auto",
-    backgroundImage: "none"
+    display: "grid",
+    gridAutoFlow: "row",
+    gridTemplateColumns: "1fr",
+    gridAutoRows: "minmax(0px,100%)",
+    padding: 10,
+    minHeight: "100%",
+    minWidth: "100%",
+    flexDirection: "column",
+    background: "rgba(255,255,255,1)",
+    alignContent: "flex-start",
+    position: "relative",
+    width: "100vw",
+    height: "100vh"
   },
   events: {},
   customStyle: {},
   animation: []
 };
 
-export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerProps>>> = props => {
+export const App: UserComponent<Partial<React.PropsWithChildren<AppProps>>> = props => {
   const { id } = useNode();
 
   const options = {
@@ -29,7 +32,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   };
 
   const { style, events, customStyle, children } = options;
-
+  console.log(options, "style");
   useEffect(() => {
     if (events?.onLoad) {
       eval(events.onLoad);
@@ -41,8 +44,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       id={id}
       data-id={id}
       style={{
-        position: "relative",
-        flex: style.fillSpace ? 1 : "unset",
         ...style,
         ...customStyle
       }}

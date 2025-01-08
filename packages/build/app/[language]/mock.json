@@ -11,22 +11,6 @@
                         },
                         "isCanvas": true,
                         "props": {
-                            "style": {
-                                "display": "grid",
-                                "gridAutoFlow": "row",
-                                "gridTemplateColumns": "1fr",
-                                "gridAutoRows": "minmax(0px,100%)",
-                                "gap": "10px",
-                                "padding": 10,
-                                "height": "394.54499999999996px",
-                                "minHeight": "100%",
-                                "minWidth": "100%",
-                                "width": "auto",
-                                "flexDirection": "column",
-                                "background": "rgba(255,255,255,1)",
-                                "alignContent": "flex-start",
-                                "position": "relative"
-                            },
                             "events": {},
                             "customStyle": {
                                 "position": "relative",

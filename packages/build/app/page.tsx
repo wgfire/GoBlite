@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Button } from "@go-blite/shadcn/button";
+import { Button } from "@go-blite/shadcn";
 
 export default function Home() {
   return (

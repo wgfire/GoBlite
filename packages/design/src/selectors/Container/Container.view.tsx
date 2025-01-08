@@ -1,19 +1,23 @@
 import React, { useEffect } from "react";
 import { useNode, UserComponent } from "@craftjs/core";
 import { ContainerProps } from "./type";
+import { ElementBoxView } from "@/components/ElementBox";
 
 const defaultProps: ContainerProps = {
   style: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "flex-start",
+    display: "grid",
     padding: 0,
     margin: 0,
-    background: "rgba(255, 255, 255, 0.1)",
+    background: "rgba(237, 237, 237, 0.8)",
     width: "100%",
     height: "auto",
-    backgroundImage: "none"
+    backgroundImage: "none",
+    gridArea: "1 / 1 / 2 / 2",
+    gridTemplateRows: "minmax(0px, 100%)",
+    gridTemplateColumns: "minmax(0px, 1fr)",
+    flexDirection: "row",
+    maxHeight: 100000,
+    maxWidth: 100000
   },
   events: {},
   customStyle: {},
@@ -37,17 +41,16 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   }, [events]);
 
   return (
-    <div
+    <ElementBoxView
       id={id}
       data-id={id}
       style={{
         position: "relative",
-        flex: style.fillSpace ? 1 : "unset",
         ...style,
         ...customStyle
       }}
     >
       {children}
-    </div>
+    </ElementBoxView>
   );
 };
