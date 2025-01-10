@@ -68,8 +68,9 @@ export class EmailPostBuildStrategy extends BasePostBuildStrategy {
   }
 
   async validate(context: BuildContext): Promise<boolean> {
-    // 验证输出目录是否存在
-    if (!context.outputDir || !(await fs.pathExists(context.outputDir))) {
+    // 检查构建配置
+    if (!context.config || !context.buildId) {
+      console.error("Missing required build configuration");
       return false;
     }
 

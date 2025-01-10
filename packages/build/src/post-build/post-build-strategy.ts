@@ -8,7 +8,7 @@ export interface PostBuildStrategy {
 export abstract class BasePostBuildStrategy implements PostBuildStrategy {
   abstract process(context: BuildContext, buildResult: BuildResult): Promise<BuildResult>;
 
-  async validate(): Promise<boolean> {
+  async validate(_context: BuildContext): Promise<boolean> {
     return true;
   }
 

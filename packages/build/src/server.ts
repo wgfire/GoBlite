@@ -8,6 +8,7 @@ import { BuildManager } from "./build-manager";
 import { BuildConfig } from "./types";
 import { BuildMonitor } from "./monitoring/build-monitor";
 import { Logger } from "./monitoring/logger";
+import net from "net";
 
 const app = express();
 const buildManager = new BuildManager();
@@ -169,7 +170,7 @@ app.post("/api/build/:id/cancel", async (req, res) => {
 app.delete("/api/build/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    await buildManager.cleanupBuild(id);
+    await buildManager.cancelBuild(id);
     await buildMonitor.cleanup(id);
     await logger.cleanup(id);
     res.json({ success: true });
@@ -184,27 +185,68 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-const PORT = process.env.PORT || 3001;
+// 检查端口是否可用
+const checkPort = (port: number): Promise<boolean> => {
+  return new Promise(resolve => {
+    const server = net.createServer();
+    server.once("error", () => {
+      resolve(false);
+    });
+    server.once("listening", () => {
+      server.close();
+      resolve(true);
+    });
+    server.listen(port);
+  });
+};
 
-app.listen(PORT, () => {
-  logger.log("system", `Build server running on port ${PORT}`);
+// 获取可用端口
+const getAvailablePort = async (startPort: number): Promise<number> => {
+  let port = startPort;
+  while (!(await checkPort(port))) {
+    port++;
+    if (port > startPort + 100) {
+      throw new Error("No available ports found");
+    }
+  }
+  return port;
+};
 
-  // 定期清理
-  setInterval(
-    () => {
-      try {
-        // 清理缓存
-        const cacheManager = buildManager["cacheManager"];
-        if (cacheManager) {
-          cacheManager.cleanup();
-        }
+const startServer = async () => {
+  try {
+    const defaultPort = parseInt(process.env.PORT || "3001", 10);
+    const port = await getAvailablePort(defaultPort);
 
-        // 清理旧日志
-        logger.cleanupOldLogs();
-      } catch (error) {
-        logger.log("system", "Error in cleanup interval: " + error, "error");
+    app.listen(port, () => {
+      logger.log("system", `Build server running on port ${port}`);
+      if (port !== defaultPort) {
+        logger.log("system", `Note: Default port ${defaultPort} was in use, using port ${port} instead`);
+        logger.log("system", `http://localhost:${port}`);
       }
-    },
-    6 * 60 * 60 * 1000 // 每6小时
-  );
-});
+
+      // 定期清理
+      setInterval(
+        () => {
+          try {
+            // 清理缓存
+            const cacheManager = buildManager["cacheManager"];
+            if (cacheManager) {
+              cacheManager.cleanup();
+            }
+
+            // 清理旧日志
+            logger.cleanupOldLogs();
+          } catch (error) {
+            logger.log("system", "Error in cleanup interval: " + error, "error");
+          }
+        },
+        6 * 60 * 60 * 1000 // 每6小时
+      );
+    });
+  } catch (error) {
+    logger.log("system", `Failed to start server: ${error}`, "error");
+    process.exit(1);
+  }
+};
+
+startServer();

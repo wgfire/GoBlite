@@ -5,10 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w",
-    "start": "node dist/server.js",
-    "clean": "rimraf dist"
+    "build": "rimraf dist && tsc -p tsconfig.build.json",
+    "dev": "nodemon",
+    "clean": "rimraf dist",
+    "prepare": "pnpm build",
+    "next-build": "next build"
   },
   "dependencies": {
     "archiver": "^5.3.1",
@@ -26,11 +27,13 @@
     "@types/fs-extra": "^11.0.1",
     "@types/jsdom": "^21.1.1",
     "@types/node": "^20.5.7",
+    "nodemon": "^3.1.9",
     "rimraf": "^5.0.1",
+    "tsx": "^4.19.2",
     "typescript": "^5.2.2"
   },
   "peerDependencies": {
-    "@go-blite/shadcn": "workspace:*",
-    "@go-blite/design": "workspace:*"
+    "@go-blite/design": "workspace:*",
+    "@go-blite/shadcn": "workspace:*"
   }
 }

@@ -43,3 +43,7 @@ yarn-error.log*
 .windsurfrules
 
 response.md
+
+#log 
+/packages/**/logs/*.log
+/packages/**/.build-cache

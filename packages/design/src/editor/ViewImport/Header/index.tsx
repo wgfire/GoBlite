@@ -84,12 +84,12 @@ export const Header: React.FC = () => {
     );
   };
   const DownloadHandle = async () => {
-    const result = await fetch("http://localhost:3001/api/build/email", {
+    const result = await fetch("http://localhost:3001/api/build", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ id: "1228" })
+      body: JSON.stringify({ id: "1228", type: "email" })
     });
     console.log(result, "结果");
   };

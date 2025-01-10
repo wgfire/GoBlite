@@ -1,8 +1,10 @@
 import { NextConfig } from "next";
 
+export type PostBuildType = "email" | "activity" | "landing";
+
 export interface BuildConfig {
   id: string;
-  type: string;
+  type: PostBuildType;
   nextConfig?: NextConfig;
   outputPath?: string;
   assets?: {
@@ -20,9 +22,6 @@ export interface BuildConfig {
 export interface BuildContext {
   buildId: string;
   config: BuildConfig;
-  workingDir: string;
-  outputDir: string;
-  tempDir: string;
   startTime: number;
   metadata: Record<string, unknown>;
 }
@@ -96,7 +95,7 @@ export interface QueueItem {
   retryCount: number;
 }
 
-export type BuildEventData = {
+export interface BuildEventData {
   start: {
     startTime: number;
   };
@@ -106,7 +105,7 @@ export type BuildEventData = {
     error: string;
     stack?: string;
   };
-};
+}
 
 export interface BuildEvent {
   buildId: string;

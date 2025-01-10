@@ -1,46 +1,26 @@
-import path from "path";
 import { BuildConfig, BuildContext, BuildResult, BuildProgress } from "./types";
-import { BuildStrategy } from "./strategies/build-strategy";
 import { NextBuildStrategy } from "./strategies/next-build-strategy";
 import { CacheManager } from "./cache-manager";
 import { QueueManager } from "./queue-manager";
+import { PostBuildManager } from "./post-build/post-build-manager";
 
 export class BuildManager {
-  private strategies: Map<string, BuildStrategy>;
+  private nextStrategy: NextBuildStrategy;
+  private postBuildManager: PostBuildManager;
   private cacheManager: CacheManager;
   private queueManager: QueueManager;
 
   constructor() {
-    this.strategies = new Map();
+    this.nextStrategy = new NextBuildStrategy();
+    this.postBuildManager = new PostBuildManager();
     this.cacheManager = new CacheManager();
     this.queueManager = new QueueManager();
-
-    // 注册默认的构建策略
-    this.registerStrategy("next", new NextBuildStrategy());
   }
 
-  public registerStrategy(type: string, strategy: BuildStrategy): void {
-    this.strategies.set(type, strategy);
-  }
-
-  private getStrategy(type: string): BuildStrategy {
-    const strategy = this.strategies.get(type);
-    if (!strategy) {
-      throw new Error(`No build strategy found for type: ${type}`);
-    }
-    return strategy;
-  }
-
-  private createBuildContext(config: BuildConfig): BuildContext {
-    const buildId = config.id;
-    const baseDir = path.join(process.cwd(), ".build-cache", buildId);
-
+  private async createBuildContext(buildId: string, config: BuildConfig): Promise<BuildContext> {
     return {
       buildId,
       config,
-      workingDir: path.join(baseDir, "working"),
-      outputDir: path.join(baseDir, "output"),
-      tempDir: path.join(baseDir, "temp"),
       startTime: Date.now(),
       metadata: {}
     };
@@ -48,21 +28,9 @@ export class BuildManager {
 
   public async build(config: BuildConfig): Promise<BuildResult> {
     try {
-      // 1. 获取构建策略
-      const strategy = this.getStrategy(config.type);
-      const context = this.createBuildContext(config);
+      const context = await this.createBuildContext(config.id, config);
 
-      // 2. 检查缓存
-      const cacheHash = await strategy.getHash(context);
-      const cachedResult = await this.cacheManager.get(cacheHash);
-      if (cachedResult) {
-        return {
-          ...cachedResult.result,
-          cached: true
-        };
-      }
-
-      // 3. 检查构建队列
+      // 1. 检查构建队列
       const queuedItem = this.queueManager.getItem(config.id);
       if (queuedItem) {
         return {
@@ -74,62 +42,88 @@ export class BuildManager {
         };
       }
 
-      // 4. 添加到构建队列
+      // 2. 添加到构建队列并设置初始进度
       const onProgress = (progress: BuildProgress) => {
         this.queueManager.updateProgress(config.id, progress);
       };
 
-      // 5. 执行构建流程
-      await strategy.validate(context);
-      await strategy.prepare(context);
+      // 4. 验证构建环境
+      await this.nextStrategy.validate(context);
 
-      const result = await strategy.execute(context, onProgress);
+      // 5. 检查缓存
+      const cacheHash = await this.nextStrategy.getHash(context);
+      const cachedResult = await this.cacheManager.get(cacheHash);
+      if (cachedResult) {
+        return {
+          ...cachedResult.result,
+          cached: true
+        };
+      }
 
-      // 6. 缓存构建结果
+      // 6. Next.js 构建阶段
+      await this.nextStrategy.prepare(context);
+      const nextResult = await this.nextStrategy.execute(context, onProgress);
+
+      if (!nextResult.success) {
+        return nextResult;
+      }
+
+      // 7. 后处理阶段
+      const postBuildResult = await this.postBuildManager.process(config.type, context, nextResult);
+
+      // 8. 缓存构建结果
+      const finalResult = {
+        ...nextResult,
+        ...postBuildResult,
+        buildId: config.id,
+        duration: Date.now() - context.startTime
+      };
+
       await this.cacheManager.set(cacheHash, {
         buildId: config.id,
-        result,
+        result: finalResult,
         timestamp: Date.now(),
         hash: cacheHash
       });
 
-      // 7. 清理
-      await strategy.cleanup(context);
+      // 9. 清理
+      await this.nextStrategy.cleanup(context);
 
-      return result;
+      return finalResult;
     } catch (error) {
-      // 错误处理
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`Build failed for ${config.id}:`, errorMessage);
+      // 确保在出错时也能清理
+      console.error("Error during build:", error);
+      try {
+        const context = await this.createBuildContext(config.id, config);
+        await this.nextStrategy.cleanup(context);
+      } catch (cleanupError) {
+        console.error("Error during cleanup:", cleanupError);
+      }
 
       return {
         success: false,
         buildId: config.id,
-        error: error instanceof Error ? error : new Error(errorMessage),
-        duration: 0,
+        error: error instanceof Error ? error : new Error(String(error)),
+        duration: Date.now() - (await this.createBuildContext(config.id, config)).startTime,
         cached: false
       };
     }
   }
 
-  public async cleanupBuild(buildId: string): Promise<void> {
-    // 从队列中移除
-    this.queueManager.removeItem(buildId);
-
-    // 清理构建目录
-    const baseDir = path.join(process.cwd(), ".build-cache", buildId);
-    await this.cacheManager.cleanup(baseDir);
+  public async cancelBuild(buildId: string): Promise<void> {
+    try {
+      // 创建一个临时的构建上下文用于清理
+      const context = await this.createBuildContext(buildId, { id: buildId, type: "email" });
+      await this.nextStrategy.cleanup(context);
+    } catch (error) {
+      console.error("Error during build cancellation:", error);
+    } finally {
+      this.queueManager.removeItem(buildId);
+    }
   }
 
   public getBuildProgress(buildId: string): BuildProgress | null {
-    const queueItem = this.queueManager.getItem(buildId);
-    return queueItem?.progress || null;
-  }
-
-  public async cancelBuild(buildId: string): Promise<void> {
-    const queueItem = this.queueManager.getItem(buildId);
-    if (queueItem) {
-      await this.cleanupBuild(buildId);
-    }
+    const item = this.queueManager.getItem(buildId);
+    return item?.progress || null;
   }
 }
