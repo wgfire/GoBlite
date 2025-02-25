@@ -9,6 +9,9 @@ import { DeviceType, Language, PageType } from "./components/module/exportForm/t
 import { debounce } from "lodash-es";
 import { ExportPreview } from "./components/module/exportPreview";
 import { ExportPreviewType } from "./components/module/Preview";
+import { writeTextToClipboard } from "./lib/clipboard";
+import ParseHandler from "./components/ParseHandler";
+
 export interface initDataProps {
   fileKey: string;
   id: string;
@@ -73,6 +76,16 @@ export default function App() {
         const current = formValues.devices.find(el => el.type === previewTab.device)!;
         const key = previewTab.language ?? (Object.keys(current!.languagePageMap)[0] as Language);
         current.languagePageMap[key]!.nodes = data;
+        const strData = JSON.stringify(data);
+        writeTextToClipboard(strData);
+      }
+      if (type === "exportedImages") {
+        if (data.success) {
+          console.log("导出的图像:", data.data);
+          // 这里可以添加处理导出图像的逻辑
+        } else {
+          console.error("导出图像失败:", data.message);
+        }
       }
     };
   }, []);
@@ -94,8 +107,33 @@ export default function App() {
     }
   }, 500);
 
+  // 解析Figma节点为HTML
+  const parseToHtml = () => {
+    if (_pageData.id) {
+      parent.postMessage({ pluginMessage: { type: "parseToHtml", data: [_pageData.id] } }, "*");
+    }
+  };
+
+  // 解析Figma节点为JSON
+  const parseToJson = () => {
+    if (_pageData.id) {
+      parent.postMessage({ pluginMessage: { type: "parseToJson", data: [_pageData.id] } }, "*");
+    }
+  };
+
+  // 导出节点中的所有图像
+  const exportImages = () => {
+    if (_pageData.id) {
+      parent.postMessage({ pluginMessage: { type: "exportImages", data: [_pageData.id] } }, "*");
+    }
+  };
+
   return (
     <div className="flex bg-background">
+      {/* 添加ParseHandler组件处理复制到剪贴板等操作 */}
+      <ParseHandler />
+
+      <textarea id="clipboard-helper" style={{ position: "absolute", left: "-9999px" }}></textarea>
       {/* Sidebar */}
       <div className="w-64 border-r">
         <div className="p-4">
@@ -114,7 +152,18 @@ export default function App() {
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">{activeTab === "config" ? "配置信息" : "配置服务"}</h1>
-            {<Button onClick={exportHandel}>导出</Button>}
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={parseToHtml}>
+                解析为HTML
+              </Button>
+              <Button variant="outline" onClick={parseToJson}>
+                解析为JSON
+              </Button>
+              <Button variant="outline" onClick={exportImages}>
+                导出图像
+              </Button>
+              <Button onClick={exportHandel}>导出</Button>
+            </div>
           </div>
 
           {/**config */}

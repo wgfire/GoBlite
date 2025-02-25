@@ -3,7 +3,6 @@ interface Events<T> {
   [key: string]: EventHandler<T>[];
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export class EventManager<T> {
   private events: Events<T> = {};
 

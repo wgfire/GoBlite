@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 /**
  * 只在deps第一次变化时执行一次
  * @param {Function} fn
- * @param {ReadonlyArray<any>} deps
+ * @param {ReadonlyArray<unknown>} deps
  * @returns {void}
  */
 export const useOnce = <T extends ReadonlyArray<unknown>>(fn: () => void, deps: T) => {
