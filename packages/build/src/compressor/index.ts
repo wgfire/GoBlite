@@ -44,6 +44,13 @@ export class Compressor {
       const output = fs.createWriteStream(zipPath);
       const archive = archiver("zip", { zlib: { level } });
 
+      // 创建一个 Promise 来处理压缩完成
+      const compressionPromise = new Promise<void>((resolve, reject) => {
+        output.on("close", () => resolve());
+        output.on("error", reject);
+        archive.on("error", reject);
+      });
+
       // 监听压缩事件
       archive.on("error", err => {
         this.logger.log(buildId, `Compression error: ${err.message}`, "error");
@@ -61,12 +68,14 @@ export class Compressor {
       });
 
       // 将输出目录添加到压缩文件
-      // 如果 baseDir 为空字符串，则不创建基础目录
       archive.directory(sourceDir, baseDir || false);
 
       // 完成压缩
       archive.pipe(output);
       await archive.finalize();
+
+      // 等待压缩完成
+      await compressionPromise;
 
       this.logger.log(buildId, `Successfully compressed to ${zipPath}`, "info");
       return zipPath;

@@ -1,19 +1,18 @@
 import express from "express";
 import cors from "cors";
-
-import path from "path";
 import fs from "fs-extra";
-import archiver from "archiver";
 import { BuildManager } from "./build-manager";
 import { BuildConfig } from "./types";
 import { BuildMonitor } from "./monitoring/build-monitor";
 import { Logger } from "./monitoring/logger";
+import { Compressor } from "./compressor";
 import net from "net";
 
 const app = express();
 const buildManager = new BuildManager();
-const buildMonitor = new BuildMonitor();
 const logger = new Logger();
+const buildMonitor = new BuildMonitor();
+const compressor = new Compressor(logger);
 
 // 监听构建事件
 buildMonitor.on("buildStart", event => {
@@ -104,40 +103,55 @@ app.post("/api/build", async (req, res) => {
     const result = await buildManager.build(buildConfig);
 
     if (result.success && result.outputPath) {
-      // 创建构建产物目录
-      const buildsDir = path.join(process.cwd(), "builds");
-      await fs.ensureDir(buildsDir);
+      try {
+        // 使用 Compressor 压缩构建产物
+        const zipPath = await compressor.compressDirectory(result.outputPath, buildConfig.id);
 
-      // 创建zip文件
-      const zipPath = path.join(buildsDir, `${buildConfig.id}.zip`);
-      const output = fs.createWriteStream(zipPath);
-      const archive = archiver("zip", { zlib: { level: 9 } });
+        // 记录完成状态
+        buildMonitor.completeBuild(buildConfig.id, result.metrics!);
 
-      output.on("close", () => {
-        res.download(zipPath, `build-${buildConfig.id}.zip`, err => {
-          if (err) {
-            logger.log(buildConfig.id, "Error sending zip file: " + err, "error");
+        try {
+          // 检查文件是否存在
+          if (!(await fs.pathExists(zipPath))) {
+            throw new Error(`Zip file not found: ${zipPath}`);
           }
-          // 清理zip文件
-          fs.unlink(zipPath, unlinkErr => {
-            if (unlinkErr) {
-              logger.log(buildConfig.id, "Error cleaning up zip file: " + unlinkErr, "error");
-            }
+
+          // 设置响应头
+          res.setHeader("Content-Type", "application/zip");
+          res.setHeader("Content-Disposition", `attachment; filename="build-${buildConfig.id}.zip"`);
+          res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
+
+          // 直接发送文件
+          await new Promise<void>((resolve, reject) => {
+            res.sendFile(zipPath, err => {
+              if (err) {
+                logger.log(buildConfig.id, `Error sending file: ${err.message}`, "error");
+                reject(err);
+              } else {
+                logger.log(buildConfig.id, "File sent successfully", "info");
+                resolve();
+              }
+            });
           });
+        } finally {
+          // 无论发送是否成功，都清理文件
+          await compressor.cleanup(zipPath);
+          logger.log(buildConfig.id, "Zip file cleaned up", "info");
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        logger.log(buildConfig.id, `Compression failed: ${errorMessage}`, "error");
+        res.status(500).json({
+          success: false,
+          buildId: buildConfig.id,
+          cached: false,
+          duration: buildMonitor.getBuildDuration(buildConfig.id),
+          error: {
+            message: "Failed to compress build output",
+            details: errorMessage
+          }
         });
-      });
-
-      archive.on("error", err => {
-        logger.log(buildConfig.id, "Error creating archive: " + err, "error");
-        throw err;
-      });
-
-      archive.pipe(output);
-      archive.directory(result.outputPath, false);
-      await archive.finalize();
-
-      // 记录完成状态
-      buildMonitor.completeBuild(buildConfig.id, result.metrics!);
+      }
     } else {
       res.json(result);
     }
@@ -147,8 +161,14 @@ app.post("/api/build", async (req, res) => {
     buildMonitor.errorBuild(buildConfig.id, error instanceof Error ? error : new Error(errorMessage));
 
     res.status(500).json({
-      error: "Build failed",
-      details: errorMessage
+      success: false,
+      buildId: buildConfig.id,
+      cached: false,
+      duration: buildMonitor.getBuildDuration(buildConfig.id),
+      error: {
+        message: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
+      }
     });
   }
 });

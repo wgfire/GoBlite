@@ -6,7 +6,7 @@ export interface BuildConfig {
   id: string;
   type: PostBuildType;
   nextConfig?: NextConfig;
-  outputPath?: string;
+  schema?: string;
   assets?: {
     styles?: string[];
     scripts?: string[];
@@ -14,8 +14,6 @@ export interface BuildConfig {
   optimization?: {
     minify?: boolean;
     compress?: boolean;
-    splitChunks?: boolean;
-    keepWorkingDir?: boolean;
   };
 }
 

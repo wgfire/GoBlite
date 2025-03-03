@@ -2,7 +2,7 @@
 const nextConfig = {
   output: "export",
   assetPrefix: "/",
-  distDir: process.env.BUILD_ID ? `.build-cache/${process.env.BUILD_ID}/.out` : ".next",
+  distDir: process.env.BUILD_ID ? `.build-cache/${process.env.BUILD_ID}/.next` : ".next",
   images: {
     unoptimized: true
   },

@@ -86,12 +86,10 @@ export class BuildManager {
         hash: cacheHash
       });
 
-      // 9. 清理
-      await this.nextStrategy.cleanup(context);
-
+      // 注意：不在这里清理构建产物，等待压缩完成后再清理
       return finalResult;
     } catch (error) {
-      // 确保在出错时也能清理
+      // 确保在出错时进行清理
       console.error("Error during build:", error);
       try {
         const context = await this.createBuildContext(config.id, config);

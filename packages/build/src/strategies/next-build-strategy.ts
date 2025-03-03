@@ -17,21 +17,37 @@ export class NextBuildStrategy extends BaseBuildStrategy {
     this.postBuildManager = new PostBuildManager();
   }
 
-  private getNextOutputDir(context: BuildContext): string {
-    return path.join(process.cwd(), ".build-cache", context.buildId, "out");
-  }
-
-  private getDefaultOutputDir(): string {
-    return path.join(process.cwd(), "out");
+  private getOutputDir(context: BuildContext): string {
+    // 获取项目根目录
+    const projectRoot = path.resolve(__dirname, "../..");
+    // 使用相对路径，与 next.config.mjs 保持一致
+    const relativePath = `.build-cache/${context.buildId}/.next`;
+    return path.join(projectRoot, relativePath);
   }
 
   async prepare(context: BuildContext): Promise<void> {
     // 清理之前的构建文件
-
-    await fs.remove(this.getNextOutputDir(context));
-
+    const outputDir = this.getOutputDir(context);
     // 确保缓存目录存在
-    await fs.ensureDir(path.dirname(this.getNextOutputDir(context)));
+    await fs.ensureDir(path.dirname(outputDir));
+
+    // 如果有 schema，写入到 app 目录
+    if (context.config.schema) {
+      const appDir = path.join(process.cwd(), "app");
+      const schemaPath = path.join(appDir, "schema.json");
+
+      try {
+        // 确保 app 目录存在
+        await fs.ensureDir(appDir);
+
+        // 写入 schema 文件
+        await fs.writeFile(schemaPath, context.config.schema, "utf-8");
+        console.log(`Schema written to ${schemaPath}`);
+      } catch (error) {
+        console.error("Error writing schema:", error);
+        throw new Error("Failed to write schema file");
+      }
+    }
   }
 
   async execute(context: BuildContext, onProgress?: (progress: BuildProgress) => void): Promise<BuildResult> {
@@ -47,14 +63,15 @@ export class NextBuildStrategy extends BaseBuildStrategy {
       // 构建阶段
       onProgress?.(await this.createProgressUpdate(context, "building", 40, "Running Next.js build"));
 
-      // 获取项目根目录
+      // 获取项目根目录和输出目录
       const projectRoot = path.resolve(__dirname, "../..");
+      const outputDir = this.getOutputDir(context);
 
       // 执行构建命令
       const buildCommand = "pnpm run next-build";
       console.log(`Executing build command: ${buildCommand} in directory: ${projectRoot}`);
 
-      const { stderr } = await execAsync(buildCommand, {
+      const { stdout, stderr } = await execAsync(buildCommand, {
         cwd: projectRoot,
         env: {
           ...process.env,
@@ -63,9 +80,17 @@ export class NextBuildStrategy extends BaseBuildStrategy {
         }
       });
 
+      // 打印构建输出以便调试
+      console.log("Build output:", stdout);
       if (stderr) {
         console.error("Build error:", stderr);
-        throw new Error(stderr);
+      }
+
+      // 检查构建产物是否存在
+      if (!(await fs.pathExists(outputDir))) {
+        console.error("Output directory not found:", outputDir);
+        console.error("Current directory contents:", await fs.readdir(projectRoot));
+        throw new Error(`Build output directory not found: ${outputDir}`);
       }
 
       // 优化阶段
@@ -77,7 +102,7 @@ export class NextBuildStrategy extends BaseBuildStrategy {
       const buildResult: BuildResult = {
         success: true,
         buildId: context.buildId,
-        outputPath: this.getNextOutputDir(context),
+        outputPath: outputDir,
         duration: Date.now() - startTime,
         cached: false,
         metrics: {
@@ -125,8 +150,7 @@ export class NextBuildStrategy extends BaseBuildStrategy {
   async cleanup(context: BuildContext): Promise<void> {
     // 如果不需要保留构建目录，则清理
 
-    await fs.remove(this.getDefaultOutputDir());
-    await fs.remove(this.getNextOutputDir(context));
+    await fs.remove(this.getOutputDir(context));
   }
 
   async validate(context: BuildContext): Promise<boolean> {
