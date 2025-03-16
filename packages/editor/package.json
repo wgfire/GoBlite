@@ -1,0 +1,28 @@
+{
+  "name": "@vite-goblite/editor",
+  "version": "0.1.0",
+  "description": "在线代码编辑器组件",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "lint": "eslint --ext .ts,.tsx src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.6.0",
+    "@vite-goblite/core": "workspace:*",
+    "monaco-editor": "^0.44.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "react": "^18.2.0",
+    "@types/react": "^18.2.21"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  }
+}

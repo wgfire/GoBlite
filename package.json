@@ -1,0 +1,23 @@
+{
+  "name": "vite-goblite",
+  "version": "0.1.0",
+  "private": true,
+  "description": "基于浏览器的低代码平台，提供模板选择、在线编码和在线构建功能",
+  "scripts": {
+    "dev": "pnpm --filter main-app dev",
+    "build": "pnpm run -r build",
+    "lint": "eslint --ext .js,.ts,.jsx,.tsx .",
+    "format": "prettier --write \"**/*.{js,ts,jsx,tsx,vue,css,scss,md}\""
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.5",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}
