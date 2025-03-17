@@ -10,15 +10,16 @@ vite-Goblite 是一个基于浏览器的低代码平台，提供模板选择、�
 
 ```
 ├── apps/               # 主应用和子应用容器
-│   ├── main-app/       # 主应用（负责子应用管理）
-│   ├── web-container/  # WebContainer 实现（浏览器端构建引擎）
-│   └── editor/         # 在线编辑代码实现
+│   └── main-app/       # 主应用（负责子应用管理）
+├── packages/           # 共享工具包
+│   ├── core/           # 跨应用共享工具
+│   ├── editor/         # 在线编辑代码实现
+│   └── web-container/  # WebContainer 实现（浏览器端构建引擎）
 ├── templates/          # 前端应用模板库
 │   ├── vue-template/   # Vue3 + Vite 模板
 │   ├── react-template/ # React + Vite 模板
+│   ├── server/         # 模板服务器，提供模板API
 │   └── ...             # 其他模板
-├── packages/           # 共享工具包
-│   └── core/           # 跨应用共享工具
 └── package.json        # Monorepo 根配置
 ```
 
@@ -28,6 +29,7 @@ vite-Goblite 是一个基于浏览器的低代码平台，提供模板选择、�
 - **WebContainer**：基于浏览器的构建引擎，负责构建和运行应用
 - **Editor**：在线代码编辑器，提供代码编辑功能
 - **核心工具包 (core)**：提供跨应用的共享功能
+- **模板服务器 (templates/server)**：提供模板API，负责读取和提供模板文件
 
 ## 3. 技术栈
 
@@ -119,6 +121,32 @@ WebContainer 基于 [WebContainers API](https://webcontainers.io/)，提供浏�
 - `EventBus`：事件总线实现
 - `Types`：共享类型定义
 
+### 4.5 模板服务器 (templates/server)
+
+模板服务器提供API接口，负责读取和提供模板文件。
+
+**核心功能**：
+- 扫描模板目录，读取模板元数据
+- 提供模板列表API
+- 提供模板文件列表API
+- 提供模板文件内容API
+- 支持按需加载模板文件
+
+**主要模块**：
+- `TemplateService`：模板服务实现
+- `API路由`：RESTful API接口
+
+**API接口**：
+- `GET /api/templates`：获取所有模板元数据
+- `GET /api/templates/:name/files`：获取指定模板的文件列表
+- `GET /api/templates/:name/files/:file`：获取指定模板的文件内容
+
+**优势**：
+- 减少网络传输量，按需加载文件
+- 直接从文件系统读取，无需硬编码模板内容
+- 便于部署和扩展
+- 自动发现新增模板
+
 ## 5. 模板规范
 
 每个模板必须遵循以下规范：
@@ -192,9 +220,41 @@ WebContainer 基于 [WebContainers API](https://webcontainers.io/)，提供浏�
 ### 6.1 模板选择与加载
 
 1. 主应用启动时，调用 `TemplateService` 加载所有可用模板
-2. 用户浏览模板列表并选择所需模板
-3. 主应用加载模板元数据和预览信息
-4. 用户确认选择，系统将模板文件加载到内存
+2. `TemplateService` 通过API请求从模板服务器获取模板列表
+3. 用户浏览模板列表并选择所需模板
+4. 用户确认选择后，系统通过API从模板服务器获取模板文件
+5. 获取到的模板文件加载到内存文件系统中
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant App as 主应用
+    participant TS as TemplateService
+    participant Server as 模板服务器
+    participant FS as 文件系统
+
+    App->>TS: 加载模板列表
+    TS->>Server: GET /api/templates
+    Server->>FS: 读取模板目录
+    FS-->>Server: 返回模板元数据
+    Server-->>TS: 返回模板列表
+    TS-->>App: 展示模板列表
+    User->>App: 选择模板
+    App->>TS: 请求模板文件
+    TS->>Server: GET /api/templates/:name/files
+    Server->>FS: 读取模板文件列表
+    FS-->>Server: 返回文件列表
+    Server-->>TS: 返回文件列表
+    
+    loop 对每个文件
+        TS->>Server: GET /api/templates/:name/files/:file
+        Server->>FS: 读取文件内容
+        FS-->>Server: 返回文件内容
+        Server-->>TS: 返回文件内容
+    end
+    
+    TS-->>App: 加载模板文件到内存
+```
 
 ### 6.2 代码编辑
 
@@ -284,3 +344,119 @@ WebContainer 基于 [WebContainers API](https://webcontainers.io/)，提供浏�
 vite-Goblite 项目将提供一个强大的浏览器内低代码平台，使用户能够选择模板、编辑代码并实时构建和预览应用。通过合理的架构设计和技术选型，项目能够提供流畅的用户体验和强大的功能。
 
 通过模块化的设计和清晰的接口定义，项目可以灵活扩展，支持更多模板和功能。核心工具包的抽象使得各组件能够良好协作，为用户提供一体化的开发体验。
+
+## 10. 实现进度
+
+### 10.1 已完成功能
+
+#### 10.1.1 项目结构调整
+
+- 将 `web-container` 和 `editor` 子包从 `apps` 目录移至 `packages` 目录
+- 保留 `main-app` 在 `apps` 目录中作为主应用
+
+#### 10.1.2 核心包 (core) 实现
+
+- **类型定义**：完成模板元数据、文件系统和构建信息的接口定义
+- **事件总线**：实现基于发布-订阅模式的事件通信系统
+- **文件系统工具**：实现文件读写、目录操作等功能
+- **模板服务**：实现模板加载、过滤和管理功能
+- **WebContainer 工具**：封装 WebContainer API，提供初始化、文件加载、依赖安装和服务启动等功能
+
+#### 10.1.3 WebContainer 包实现
+
+- **WebContainerProvider**：提供 WebContainer 状态和操作的上下文
+- **WebContainerPreview**：实现应用预览组件
+- **WebContainerTerminal**：实现终端输出组件，基于 xterm.js
+- **WebContainer Hooks**：提供 React Hooks 用于访问 WebContainer 功能
+
+#### 10.1.4 编辑器包实现
+
+- **EditorProvider**：提供编辑器状态和操作的上下文
+- **CodeEditor**：基于 Monaco Editor 实现代码编辑器组件
+- **FileExplorer**：实现文件浏览器组件
+- **Editor Hooks**：提供 React Hooks 用于访问编辑器功能
+
+#### 10.1.5 主应用实现
+
+- **页面路由**：实现主页、模板选择和编辑器页面的路由
+- **布局组件**：实现应用的整体布局
+- **首页**：展示平台介绍和主要功能
+- **模板页面**：展示可用模板列表，支持过滤和选择
+- **编辑器页面**：集成编辑器和 WebContainer，提供代码编辑和预览功能
+
+### 10.2 待实现功能
+
+#### 10.2.1 模板系统
+
+- ~~创建示例模板~~
+- 实现模板导入/导出功能
+- 添加模板分类和标签系统
+
+#### 10.2.2 编辑器增强
+
+- 实现代码片段功能
+- 添加主题切换
+- 实现搜索/替换功能
+- 添加编辑器设置面板
+
+#### 10.2.3 WebContainer 增强
+
+- 优化依赖安装性能
+- 添加构建配置选项
+- 实现项目导出功能
+
+#### 10.2.4 用户体验优化
+
+- 添加加载状态和进度指示
+- 实现错误处理和恢复机制
+- 优化移动设备适配
+- 添加用户引导和帮助文档
+
+### 10.3 下一步计划
+
+1. 完善模板系统，创建更多模板
+2. 增强编辑器功能，提高开发体验
+3. 优化 WebContainer 性能，提高构建速度
+4. 完善错误处理机制，提高系统稳定性
+5. 添加单元测试和集成测试，确保代码质量
+
+## 11. 最新进度更新
+
+### 11.1 模板系统完善
+
+#### 11.1.1 Vue 落地页模板
+
+已完成 Vue 落地页模板的开发，包括以下内容：
+
+- **基础配置**：
+  - `template.json`：定义模板元数据，包括名称、描述、框架和语言等信息
+  - `package.json`：配置项目依赖和脚本
+  - `vite.config.ts`：Vite 构建工具配置
+  - `tsconfig.json` 和 `tsconfig.node.json`：TypeScript 配置
+  - `tailwind.config.js` 和 `postcss.config.js`：样式工具配置
+
+- **核心组件**：
+  - 布局组件：`Navbar.vue` 和 `Footer.vue`
+  - UI 组件：`SectionHeader.vue`、`FeatureCard.vue`、`PricingCard.vue` 和 `TestimonialCard.vue`
+  - 表单组件：`ContactForm.vue`
+
+- **页面视图**：
+  - `Home.vue`：主页面，包含英雄区域、特性展示、价格方案和客户评价等部分
+  - `About.vue`：关于页面
+
+- **资源文件**：
+  - 图片资源：logo、英雄图像等
+  - CSS 样式：基于 Tailwind CSS 的自定义样式
+
+#### 11.1.2 模板集成
+
+- 完成了模板在 `TemplatePage` 中的展示和筛选功能
+- 实现了模板在 `EditorPage` 中的加载和编辑功能
+- 集成了 WebContainer 用于构建和预览模板项目
+
+### 11.2 下一步计划
+
+1. 创建更多模板，如 React 模板、Angular 模板等
+2. 完善 WebContainer 的初始化和文件加载流程
+3. 优化编辑器体验，添加更多功能
+4. 实现模板导出功能，允许用户下载完整项目

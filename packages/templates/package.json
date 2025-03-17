@@ -1,0 +1,20 @@
+{
+  "name": "@vite-goblite/templates",
+  "version": "1.0.0",
+  "description": "Templates for vite-goblite",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && node scripts/build-templates.js",
+    "dev": "tsc -w"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "typescript": "^5.3.3"
+  }
+}
