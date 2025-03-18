@@ -18,7 +18,6 @@ vite-Goblite 是一个基于浏览器的低代码平台，提供模板选择、�
 ├── templates/          # 前端应用模板库
 │   ├── vue-template/   # Vue3 + Vite 模板
 │   ├── react-template/ # React + Vite 模板
-│   ├── server/         # 模板服务器，提供模板API
 │   └── ...             # 其他模板
 └── package.json        # Monorepo 根配置
 ```
@@ -29,7 +28,7 @@ vite-Goblite 是一个基于浏览器的低代码平台，提供模板选择、�
 - **WebContainer**：基于浏览器的构建引擎，负责构建和运行应用
 - **Editor**：在线代码编辑器，提供代码编辑功能
 - **核心工具包 (core)**：提供跨应用的共享功能
-- **模板服务器 (templates/server)**：提供模板API，负责读取和提供模板文件
+- **模板打包 (templates)**：提供模板打包和加载功能
 
 ## 3. 技术栈
 
@@ -121,31 +120,60 @@ WebContainer 基于 [WebContainers API](https://webcontainers.io/)，提供浏�
 - `EventBus`：事件总线实现
 - `Types`：共享类型定义
 
-### 4.5 模板服务器 (templates/server)
+### 4.5 模板打包 (templates)
 
-模板服务器提供API接口，负责读取和提供模板文件。
+为了简化部署和提高性能，我们将采用直接打包模板的方式，取代原有的模板服务器方案。
 
 **核心功能**：
-- 扫描模板目录，读取模板元数据
-- 提供模板列表API
-- 提供模板文件列表API
-- 提供模板文件内容API
-- 支持按需加载模板文件
+- 提供 `buildTemplates` 工具，将模板目录打包成符合 WebContainer 渲染格式的包
+- 在主应用中直接导入打包后的模板
+- 支持获取模板元数据和原始文件内容
+- 无需额外的服务器组件
 
 **主要模块**：
-- `TemplateService`：模板服务实现
-- `API路由`：RESTful API接口
+- `TemplateBuilder`：模板打包工具
+- `TemplateRegistry`：模板注册和管理
+- `TemplateLoader`：模板加载和解析
 
-**API接口**：
-- `GET /api/templates`：获取所有模板元数据
-- `GET /api/templates/:name/files`：获取指定模板的文件列表
-- `GET /api/templates/:name/files/:file`：获取指定模板的文件内容
+**实现方式**：
+- 开发一个构建脚本，遍历模板目录，读取每个模板的文件
+- 将模板文件转换为 WebContainer 所需的 FileSystemTree 格式
+- 生成包含所有模板的统一导出包
+- 在主应用中直接导入该包，无需通过 API 请求获取
 
 **优势**：
-- 减少网络传输量，按需加载文件
-- 直接从文件系统读取，无需硬编码模板内容
-- 便于部署和扩展
-- 自动发现新增模板
+- 减少网络请求，提高加载速度
+- 简化部署流程，无需额外的服务器组件
+- 减少运行时依赖
+- 支持离线使用
+- 便于版本控制和更新管理
+- 减少构建和部署复杂性
+
+**实现步骤**：
+1. 创建 `buildTemplates.ts` 脚本，负责遍历模板目录并生成打包文件
+2. 修改 `TemplateService` 类，支持从打包文件加载模板
+3. 在构建流程中集成模板打包步骤
+4. 更新主应用，使用新的模板加载方式
+
+**数据结构**：
+```typescript
+// 打包后的模板数据结构
+export interface PackagedTemplate {
+  // 模板元数据
+  metadata: TemplateMetadata;
+  // WebContainer 格式的文件系统树
+  files: FileSystemTree;
+}
+
+// 导出包的数据结构
+export interface TemplatePackage {
+  // 所有模板的映射
+  templates: Record<string, PackagedTemplate>;
+  // 模板版本
+  version: string;
+  // 打包时间
+  buildTime: string;
+}
 
 ## 5. 模板规范
 
@@ -198,7 +226,6 @@ WebContainer 基于 [WebContainers API](https://webcontainers.io/)，提供浏�
 ### 5.3 目录结构规范
 
 建议模板遵循如下目录结构：
-
 ```
 ├── public/              # 静态资源
 ├── src/                 # 源代码
@@ -220,39 +247,30 @@ WebContainer 基于 [WebContainers API](https://webcontainers.io/)，提供浏�
 ### 6.1 模板选择与加载
 
 1. 主应用启动时，调用 `TemplateService` 加载所有可用模板
-2. `TemplateService` 通过API请求从模板服务器获取模板列表
+2. `TemplateService` 通过导入打包后的模板包获取模板列表
 3. 用户浏览模板列表并选择所需模板
-4. 用户确认选择后，系统通过API从模板服务器获取模板文件
-5. 获取到的模板文件加载到内存文件系统中
+4. 用户确认选择后，系统通过 `TemplateLoader` 加载选中的模板
 
 ```mermaid
 sequenceDiagram
     participant User as 用户
     participant App as 主应用
     participant TS as TemplateService
-    participant Server as 模板服务器
+    participant TL as TemplateLoader
     participant FS as 文件系统
 
     App->>TS: 加载模板列表
-    TS->>Server: GET /api/templates
-    Server->>FS: 读取模板目录
-    FS-->>Server: 返回模板元数据
-    Server-->>TS: 返回模板列表
+    TS->>TL: 导入打包后的模板包
+    TL->>FS: 读取模板包内容
+    FS-->>TL: 返回模板列表
+    TL-->>TS: 返回模板列表
     TS-->>App: 展示模板列表
     User->>App: 选择模板
-    App->>TS: 请求模板文件
-    TS->>Server: GET /api/templates/:name/files
-    Server->>FS: 读取模板文件列表
-    FS-->>Server: 返回文件列表
-    Server-->>TS: 返回文件列表
-    
-    loop 对每个文件
-        TS->>Server: GET /api/templates/:name/files/:file
-        Server->>FS: 读取文件内容
-        FS-->>Server: 返回文件内容
-        Server-->>TS: 返回文件内容
-    end
-    
+    App->>TS: 请求模板加载
+    TS->>TL: 加载选中的模板
+    TL->>FS: 读取模板文件
+    FS-->>TL: 返回模板文件内容
+    TL-->>TS: 返回模板文件内容
     TS-->>App: 加载模板文件到内存
 ```
 
