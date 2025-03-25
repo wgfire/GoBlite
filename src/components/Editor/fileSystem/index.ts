@@ -1,4 +1,5 @@
-export { default as FileExplorer } from './FileExplorer';
-export { default as FileTabs } from './FileTabs';
-export { default as useFileSystem } from './useFileSystem';
+// 使用具名导出重新导出所有组件和类型
+export { FileExplorer } from './FileExplorer';
+export { FileTabs } from './FileTabs';
+export { useFileSystem } from './useFileSystem';
 export * from './types';

@@ -14,7 +14,7 @@ import {
   FiX
 } from 'react-icons/fi';
 import { FileItem, FileItemType } from './types';
-import useFileSystem from './useFileSystem';
+import { useFileSystem } from './useFileSystem';
 
 interface FileExplorerProps {
   onFileOpen?: (file: FileItem) => void;
@@ -27,7 +27,7 @@ interface EditingState {
   name: string;
 }
 
-const FileExplorer: React.FC<FileExplorerProps> = ({
+export const FileExplorer: React.FC<FileExplorerProps> = ({
   onFileOpen
 }) => {
   const {
@@ -49,7 +49,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
 
   const [editing, setEditing] = useState<EditingState | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [inputSelection, setInputSelection] = useState<{start: number, end: number} | null>(null);
 
   // 自动聚焦输入框，但不全选文本
   useEffect(() => {
@@ -58,21 +57,12 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   }, [editing]);
 
-  // 保存输入框选择状态
-  const handleInputSelect = (e: React.SyntheticEvent<HTMLInputElement>) => {
-    const target = e.target as HTMLInputElement;
-    setInputSelection({
-      start: target.selectionStart || 0,
-      end: target.selectionEnd || 0
-    });
-  };
-
   // 点击文档其他区域时取消编辑
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
-        editing && 
-        inputRef.current && 
+        editing &&
+        inputRef.current &&
         !inputRef.current.contains(e.target as Node) &&
         !(e.target as HTMLElement).closest('.edit-actions')
       ) {
@@ -122,7 +112,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         handleCancelEdit();
       }
     }
-    
+
     setEditing({
       path: item.path,
       type: 'rename',
@@ -133,7 +123,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   // 处理重命名保存
   const handleSaveRename = () => {
     if (!editing || editing.type !== 'rename') return;
-    
+
     const item = findItem(files, editing.path);
     if (!item || !editing.name.trim()) {
       setEditing(null);
@@ -154,7 +144,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   // 处理新建文件开始
   const handleStartAddFile = (parentPath: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
+
     if (editing) {
       // 如果已经在编辑状态，先保存当前编辑
       if (editing.type === 'rename') {
@@ -165,7 +155,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         handleCancelEdit();
       }
     }
-    
+
     // 确保父文件夹展开
     if (parentPath !== '/') {
       setExpandedFolders(prev => ({
@@ -173,7 +163,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         [parentPath]: true
       }));
     }
-    
+
     setEditing({
       path: `${parentPath}/__new_file__`,
       type: 'newFile',
@@ -185,7 +175,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   // 处理新建文件夹开始
   const handleStartAddFolder = (parentPath: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    
+
     if (editing) {
       // 如果已经在编辑状态，先保存当前编辑
       if (editing.type === 'rename') {
@@ -196,7 +186,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         handleCancelEdit();
       }
     }
-    
+
     // 确保父文件夹展开
     if (parentPath !== '/') {
       setExpandedFolders(prev => ({
@@ -204,7 +194,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
         [parentPath]: true
       }));
     }
-    
+
     setEditing({
       path: `${parentPath}/__new_folder__`,
       type: 'newFolder',
@@ -216,24 +206,24 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   // 处理新建文件/文件夹保存
   const handleSaveNew = () => {
     if (!editing || !editing.parentPath) return;
-    
+
     // 如果名称为空，取消创建
     if (!editing.name.trim()) {
       setEditing(null);
       return;
     }
-    
-    const newPath = editing.parentPath === '/' 
-      ? `/${editing.name}` 
+
+    const newPath = editing.parentPath === '/'
+      ? `/${editing.name}`
       : `${editing.parentPath}/${editing.name}`;
-    
+
     // 检查是否已存在同名文件/文件夹
     if (findItem(files, newPath)) {
       alert(`${editing.type === 'newFolder' ? '文件夹' : '文件'} ${editing.name} 已存在!`);
       setEditing(null);
       return;
     }
-    
+
     // 执行创建
     if (editing.type === 'newFile') {
       const newFile: FileItem = {
@@ -252,20 +242,19 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       };
       createFolder(editing.parentPath, newFolder);
     }
-    
+
     setEditing(null);
   };
 
   // 处理取消编辑
   const handleCancelEdit = () => {
     setEditing(null);
-    setInputSelection(null);
   };
 
   // 处理删除
   const handleDeleteItem = (item: FileItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    deleteItem(item);
+    deleteItem(item.path);
   };
 
   // 处理输入框按键事件
@@ -286,22 +275,10 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   // 处理输入框内容变化
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!editing) return;
-    
+
     const newValue = e.target.value;
     setEditing({ ...editing, name: newValue });
-    
-    // 如果有保存的选择状态，尝试恢复它（保持光标位置）
-    if (inputSelection && inputRef.current) {
-      const selStart = inputSelection.start;
-      const selEnd = inputSelection.end;
-      
-      // 使用setTimeout确保在React状态更新后执行
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.setSelectionRange(selStart, selEnd);
-        }
-      }, 0);
-    }
+
   };
 
   // 处理输入框失焦事件
@@ -341,9 +318,9 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
 
   const renderNewItemInput = (parentPath: string, type: 'newFile' | 'newFolder') => {
     if (!editing || editing.parentPath !== parentPath || editing.type !== type) return null;
-    
+
     const indentLevel = parentPath.split('/').filter(Boolean).length;
-    
+
     return (
       <motion.div
         className="relative"
@@ -354,8 +331,8 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       >
         <div className={`flex items-center h-8 pl-${(indentLevel + 1) * 4} pr-2 group`}>
           <div className="flex items-center justify-center w-5 h-5 mr-2">
-            {type === 'newFolder' ? 
-              <FiFolder className="text-yellow-400" /> : 
+            {type === 'newFolder' ?
+              <FiFolder className="text-yellow-400" /> :
               <FiFile className="text-gray-400" />
             }
           </div>
@@ -368,19 +345,18 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
               onChange={handleInputChange}
               onKeyDown={handleInputKeyDown}
               onBlur={handleInputBlur}
-              onSelect={handleInputSelect}
               placeholder={type === 'newFolder' ? "新文件夹名称" : "新文件名称"}
               autoComplete="off"
               spellCheck="false"
             />
             <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-gray-800 pl-1">
-              <button 
+              <button
                 className="p-1 rounded hover:bg-blue-600/20 text-blue-500"
                 onClick={handleSaveNew}
               >
                 <FiCheck size={14} />
               </button>
-              <button 
+              <button
                 className="p-1 rounded hover:bg-red-600/20 text-red-500"
                 onClick={handleCancelEdit}
               >
@@ -399,7 +375,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
       const isExpanded = expandedFolders[file.path];
       const isActive = activeFile === file.path;
       const isRenaming = editing?.path === file.path && editing?.type === 'rename';
-      
+
       // 计算缩进
       const paddingLeft = level * 16;
 
@@ -418,7 +394,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
               onClick={() => isFolder ? toggleFolder(file.path) : handleFileClick(file)}
             >
               {isFolder && (
-                <div 
+                <div
                   className="flex items-center justify-center w-4 h-4 mr-1 cursor-pointer text-gray-400 hover:text-white"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -428,7 +404,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
                   {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
                 </div>
               )}
-              
+
               <div className="flex items-center justify-center w-5 h-5 mr-2">
                 {isFolder ? (
                   <FiFolder className="text-yellow-400" />
@@ -436,7 +412,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
                   getFileIcon(file)
                 )}
               </div>
-              
+
               {isRenaming ? (
                 <div className="flex-1 relative">
                   <input
@@ -447,18 +423,17 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
                     onChange={handleInputChange}
                     onKeyDown={handleInputKeyDown}
                     onBlur={handleInputBlur}
-                    onSelect={handleInputSelect}
                     autoComplete="off"
                     spellCheck="false"
                   />
                   <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-gray-800 pl-1">
-                    <button 
+                    <button
                       className="p-1 rounded hover:bg-blue-600/20 text-blue-500"
                       onClick={handleSaveRename}
                     >
                       <FiCheck size={14} />
                     </button>
-                    <button 
+                    <button
                       className="p-1 rounded hover:bg-red-600/20 text-red-500"
                       onClick={handleCancelEdit}
                     >
@@ -543,7 +518,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
           >
             <FiFolderPlus size={16} />
           </button>
-          <button 
+          <button
             className="p-1.5 rounded hover:bg-gray-700 text-gray-400 hover:text-white"
             title="更多选项"
           >
@@ -551,7 +526,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
           </button>
         </div>
       </div>
-      <div className="overflow-y-auto flex-1">
+      <div className="overflow-y-auto flex-1 p-2">
         <AnimatePresence>
           {renderNewItemInput('/', 'newFile')}
           {renderNewItemInput('/', 'newFolder')}
@@ -562,4 +537,3 @@ const FileExplorer: React.FC<FileExplorerProps> = ({
   );
 };
 
-export default FileExplorer;

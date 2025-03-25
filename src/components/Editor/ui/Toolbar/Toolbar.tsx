@@ -1,14 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  FiSave,
   FiPlay,
   FiSettings,
   FiDownload,
   FiRefreshCw,
   FiCode,
-  FiCopy,
-  FiFileText,
 } from 'react-icons/fi';
 import ToolbarButton from './ToolbarButton';
 import './Toolbar.css';
@@ -26,7 +23,6 @@ interface ToolbarProps {
 const Toolbar: React.FC<ToolbarProps> = ({
   onSave,
   onRun,
-  onSearch,
   onRedo,
   onExport,
   onSettings,
@@ -45,44 +41,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
       </div>
 
       <div className="toolbar-actions">
-        <div className="toolbar-section">
-          <ToolbarButton
-            icon={<FiFileText />}
-            tooltip="New File"
-            onClick={() => console.log('New File')}
-            disabled={disabled}
-          />
-          <ToolbarButton
-            icon={<FiSave />}
-            tooltip="Save"
-            onClick={onSave}
-            disabled={disabled}
-            variant="primary"
-          />
-        </div>
-
-        <div className="toolbar-divider"></div>
-
-        <div className="toolbar-section">
-          <ToolbarButton
-            icon={<FiCopy />}
-            tooltip="Copy"
-            onClick={() => console.log('Copy')}
-            disabled={disabled}
-          />
-        </div>
-
-        <div className="toolbar-divider"></div>
-
-        <div className="toolbar-section">
-          <ToolbarButton
-            icon={<FiRefreshCw />}
-            tooltip="Redo"
-            onClick={onRedo}
-            disabled={disabled}
-          />
-        </div>
-
         <div className="toolbar-divider"></div>
 
         <div className="toolbar-section">

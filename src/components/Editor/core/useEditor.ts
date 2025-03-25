@@ -134,6 +134,24 @@ export const useEditor = (options: EditorOptions = {}) => {
     editorViewRef.current.dispatch(transaction);
   };
 
+  // 更新编辑器内容 - 用于文件切换
+  const updateContent = (content: string) => {
+    if (!editorViewRef.current) return;
+    
+    // 强制更新内容，无论当前内容是什么
+    contentRef.current = content;
+    
+    const transaction = editorViewRef.current.state.update({
+      changes: {
+        from: 0,
+        to: editorViewRef.current.state.doc.length,
+        insert: content
+      }
+    });
+
+    editorViewRef.current.dispatch(transaction);
+  };
+
   // 获取编辑器内容
   const getContent = (): string => {
     if (!editorViewRef.current) return contentRef.current;
@@ -270,6 +288,7 @@ export const useEditor = (options: EditorOptions = {}) => {
     editorContainerRef,
     editorViewRef,
     setContent,
+    updateContent,
     getContent,
     focus,
     refresh,
