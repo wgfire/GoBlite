@@ -1,10 +1,11 @@
 import { useAtom } from 'jotai';
 import { useCallback } from 'react';
-import { 
-  webContainerStatusAtom, 
-  previewUrlAtom, 
+import {
+  webContainerStatusAtom,
+  previewUrlAtom,
   errorMessageAtom,
-  webContainerVisibleAtom
+  webContainerVisibleAtom,
+  terminalExpandedAtom
 } from './atoms';
 import { WebContainerStatus } from './types';
 
@@ -19,6 +20,7 @@ export const useWebContainer = () => {
   const [previewUrl, setPreviewUrl] = useAtom(previewUrlAtom);
   const [error, setError] = useAtom(errorMessageAtom);
   const [isVisible, setIsVisible] = useAtom(webContainerVisibleAtom);
+  const [isTerminalExpanded, setIsTerminalExpanded] = useAtom(terminalExpandedAtom);
 
   /**
    * 初始化WebContainer
@@ -91,17 +93,23 @@ export const useWebContainer = () => {
     setIsVisible(visible);
   }, [setIsVisible]);
 
+  const toggleTerminal = useCallback(() => {
+    setIsTerminalExpanded(prev => !prev);
+  }, [setIsTerminalExpanded]);
+
   return {
     status,
     previewUrl,
     error,
     isVisible,
+    isTerminalExpanded,
     initialize,
     start,
     stop,
     reset,
     toggleVisibility,
     setVisibility,
+    toggleTerminal,
     isRunning: status === WebContainerStatus.RUNNING,
     isInitializing: status === WebContainerStatus.INITIALIZING,
     isError: status === WebContainerStatus.ERROR,

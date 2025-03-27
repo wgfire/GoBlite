@@ -31,6 +31,27 @@ export interface PreviewState {
   isLoading: boolean;
 }
 
+// WebContainer Hook 返回类型
+export interface WebContainerHookReturn {
+  status: WebContainerStatus;
+  previewUrl: string;
+  error: string | null;
+  isVisible: boolean;
+  isTerminalExpanded: boolean;
+  initialize: () => Promise<boolean>;
+  start: () => Promise<boolean>;
+  stop: () => void;
+  reset: () => void;
+  toggleVisibility: () => void;
+  setVisibility: (visible: boolean) => void;
+  toggleTerminal: () => void;
+  isRunning: boolean;
+  isInitializing: boolean;
+  isError: boolean;
+  isStopped: boolean;
+  isEmpty: boolean;
+}
+
 // 终端状态接口
 export interface TerminalState {
   tabs: TerminalTab[];
