@@ -9,7 +9,7 @@ import { css } from '@codemirror/lang-css';
 import { searchKeymap, search } from '@codemirror/search';
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 
-
+/**创建编辑器 */
 export interface EditorOptions {
   initialDoc?: string;
   extensions?: Extension[];
