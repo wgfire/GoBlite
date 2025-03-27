@@ -1,78 +1,98 @@
 # WebContainer组件功能设计
 
-## 1. 整体架构
+## 1. 整体架构 (新设计)
 
-WebContainer组件将作为独立模块，与Editor组件并行存在，通过明确定义的接口进行交互。WebContainer负责代码的执行、预览和文件系统管理，提供一个完整的代码运行环境。
+WebContainer采用分层架构设计，将核心功能封装为可复用的服务层，与UI层分离，并通过明确定义的接口与Editor交互。
 
-### 1.1 核心组件
-- **WebContainer实例** - 基于@webcontainer/api创建的核心实例
-- **虚拟文件系统** - 管理WebContainer内部的文件
-- **终端界面** - 用于执行命令和查看输出
-- **预览窗口** - 显示代码执行的结果
-- **文件浏览器** - 展示和操作WebContainer内的文件
+### 1.1 架构分层
+- [x] **UI层** (已实现)
+  - 终端界面
+  - 预览窗口
+  - 控制面板
+- [x] **服务层** (部分实现)
+  - 容器管理服务
+  - 文件同步服务
+  - 命令执行服务
+  - 预览服务
+- [x] **基础设施层** (已实现)
+  - WebContainer API
+  - 文件系统API
+  - 终端协议
 
-### 1.2 功能模块
-- **容器控制面板** - 管理容器的启动、停止和重置
-- **文件操作面板** - 提供文件的创建、编辑、删除等操作
-- **终端控制台** - 交互式命令行界面
-- **预览配置面板** - 控制预览的设置和模式
-- **同步控制面板** - 管理编辑器与WebContainer之间的文件同步
+### 1.2 核心服务
+- [x] **容器服务** (已实现)
+  - 生命周期管理
+  - 资源监控
+  - 环境配置
+- [x] **同步服务** (部分实现)
+  - 双向文件同步
+  - 冲突检测
+  - 批量处理
+- [x] **执行服务** (已实现)
+  - 命令队列
+  - 结果处理
+  - 进程管理
+- [x] **预览服务** (基本实现)
+  - 实时刷新
+  - 设备模拟
+  - 调试工具
 
 ## 2. 详细功能设计
 
 ### 2.1 容器核心功能
-- **容器生命周期管理**
-  - 初始化WebContainer实例
-  - 启动/停止/重启容器
-  - 监控容器状态
-  - 错误处理和恢复机制
+- [x] **容器生命周期管理** (部分实现)
+  - [x] 初始化WebContainer实例
+  - [x] 启动/停止容器
+  - [ ] 重启容器
+  - [x] 基本错误处理
+  - [ ] 高级恢复机制
 
-- **环境配置**
-  - Node.js版本选择
-  - NPM包管理
-  - 环境变量设置
-  - 容器资源限制
+- [ ] **环境配置** (未实现)
+  - [ ] Node.js版本选择
+  - [ ] NPM包管理
+  - [ ] 环境变量设置
+  - [ ] 容器资源限制
 
 ### 2.2 文件系统功能
-- **文件基础操作**
-  - 创建文件/文件夹
-  - 读取文件内容
-  - 写入/更新文件
-  - 删除文件/文件夹
-  - 重命名文件/文件夹
+- [ ] **文件基础操作** (未实现)
+  - [ ] 创建文件/文件夹
+  - [ ] 读取文件内容
+  - [ ] 写入/更新文件
+  - [ ] 删除文件/文件夹
+  - [ ] 重命名文件/文件夹
 
-- **文件管理功能**
-  - 文件树浏览
-  - 文件搜索
-  - 批量操作
+- [ ] **文件管理功能** (未实现)
+  - [ ] 文件树浏览
+  - [ ] 文件搜索
+  - [ ] 批量操作
 
-- **与编辑器同步**
-  - 将编辑器文件同步到WebContainer
-  - 从WebContainer同步文件到编辑器
-  - 自动同步设置
-  - 冲突解决策略
+- [x] **与编辑器同步** (部分实现)
+  - [x] 将编辑器文件同步到WebContainer
+  - [ ] 从WebContainer同步文件到编辑器
+  - [ ] 自动同步设置
+  - [ ] 冲突解决策略
 
 ### 2.3 终端功能
-- **命令执行**
-  - 执行Shell命令
-  - 命令历史记录
-  - 自动完成
+- [x] **命令执行** (部分实现)
+  - [x] 执行Shell命令
+  - [ ] 命令历史记录
+  - [ ] 自动完成
 
-- **进程管理**
-  - 前台/后台进程
-  - 进程监控
-  - 进程终止
+- [ ] **进程管理** (未实现)
+  - [ ] 前台/后台进程
+  - [ ] 进程监控
+  - [ ] 进程终止
 
 ### 2.4 预览功能
-- **实时预览**
-  - 自动刷新
-  - 手动刷新
-  - 响应式视图
+- [x] **实时预览** (基本实现)
+  - [x] 自动刷新
+  - [x] 手动刷新
+  - [ ] 响应式视图
 
-- **调试工具**
-  - 控制台日志
-  - 网络请求监控
-  - DOM检查
+- [ ] **调试工具** (未实现)
+  - [ ] 控制台日志
+  - [ ] 网络请求监控
+  - [ ] DOM检查
 
 ## 3. 核心Hook设计
 
@@ -81,16 +101,23 @@ WebContainer组件将作为独立模块，与Editor组件并行存在，通过�
 #### useWebContainer
 ```typescript
 // 创建和管理WebContainer实例
-const { 
-  container,         // WebContainer实例
-  status,            // 容器状态（初始化中、运行中、已停止、错误）
+const {
+  status,            // 容器状态(EMPTY|INITIALIZING|RUNNING|STOPPED|ERROR)
+  previewUrl,        // 预览URL
+  error,             // 错误信息
+  isVisible,         // 是否可见
+  isRunning,         // 是否运行中(派生状态)
+  isInitializing,    // 是否初始化中(派生状态)
+  isError,           // 是否错误状态(派生状态)
+  isStopped,         // 是否已停止(派生状态)
+  isEmpty,           // 是否空状态(派生状态)
   initialize,        // 初始化容器
   start,             // 启动容器
   stop,              // 停止容器
-  restart,           // 重启容器
-  isReady,           // 容器是否准备就绪
-  error              // 容器错误信息
-} = useWebContainer(options);
+  reset,             // 重置容器状态
+  toggleVisibility,  // 切换可见性
+  setVisibility      // 设置可见性
+} = useWebContainer();
 ```
 
 #### useWebContainerEnvironment
@@ -150,19 +177,20 @@ const {
 #### useTerminal
 ```typescript
 // 终端操作
-const { 
-  terminals,         // 终端列表
-  activeTerminal,    // 当前活动终端
-  createTerminal,    // 创建新终端
-  closeTerminal,     // 关闭终端
+const {
+  tabs,              // 终端标签列表
+  activeTabId,       // 当前活动标签ID
+  isExpanded,        // 终端是否展开
+  isRunning,         // 容器是否运行中
+  getActiveTab,      // 获取当前活动标签
+  addTab,            // 添加新终端标签
+  closeTab,          // 关闭终端标签
+  switchTab,         // 切换终端标签
   executeCommand,    // 执行命令
-  commandHistory,    // 命令历史
-  clearTerminal,     // 清空终端
-  terminateProcess,  // 终止进程
-  output,            // 终端输出
-  input,             // 输入命令
-  switchTerminal     // 切换终端
-} = useTerminal(containerId);
+  clearTerminal,     // 清空终端内容
+  toggleExpanded,    // 切换展开/折叠状态
+  setExpanded        // 设置展开状态
+} = useTerminal();
 ```
 
 ### 3.4 预览Hook
@@ -170,11 +198,18 @@ const {
 #### usePreview
 ```typescript
 // 预览功能
-const { 
-  previewUrl,        // 预览URL
-  refreshPreview,    // 刷新预览
-  previewMode,       // 预览模式（桌面/平板/手机）
-  setPreviewMode,    // 设置预览模式
+const {
+  url,               // 预览URL
+  viewMode,          // 预览模式（desktop/tablet/mobile）
+  isLoading,         // 是否正在加载
+  isRunning,         // 容器是否运行中
+  refresh,           // 刷新预览
+  updateUrl,         // 更新预览URL
+  changeViewMode,    // 切换预览模式
+  openInNewWindow,   // 在新窗口打开预览
+  handleIframeLoad,  // 处理iframe加载完成
+  getPreviewSize     // 获取预览尺寸
+} = usePreview();
   previewWidth,      // 预览宽度
   previewHeight,     // 预览高度
   setPreviewSize,    // 设置预览尺寸
@@ -185,93 +220,99 @@ const {
 } = usePreview(containerId);
 ```
 
-## 4. 组件结构
+## 4. 组件结构 (实际项目结构)
 
 ```
-WebContainer/
-├── Core/
-│   ├── WebContainerInstance.tsx     # 容器实例组件
-│   ├── useWebContainer.ts           # 容器Hook
-│   ├── ContainerControls.tsx        # 容器控制组件
-│   └── WebContainerContext.tsx      # 容器上下文
-├── FileSystem/
-│   ├── FileExplorer.tsx             # 文件浏览器
-│   ├── FileActions.tsx              # 文件操作组件
-│   ├── useWebContainerFileSystem.ts # 文件系统Hook
-│   └── FileSync.tsx                 # 文件同步组件
-├── Terminal/
-│   ├── Terminal.tsx                 # 终端组件
-│   ├── TerminalTabs.tsx             # 终端标签页
-│   ├── useTerminal.ts               # 终端Hook
-│   └── CommandPalette.tsx           # 命令面板
-├── Preview/
-│   ├── PreviewFrame.tsx             # 预览框架
-│   ├── PreviewControls.tsx          # 预览控制
-│   ├── DevTools.tsx                 # 开发者工具
-│   └── usePreview.ts                # 预览Hook
-├── UI/
-│   ├── Layout.tsx                   # 布局组件
-│   ├── Sidebar.tsx                  # 侧边栏
-│   ├── Toolbar.tsx                  # 工具栏
-│   └── Notifications.tsx            # 通知组件
-└── index.ts                         # 导出组件和Hook
+src/components/Editor/ui/WebContainer/
+├── PreviewArea.tsx              # 预览区域组件(已实现)
+├── TerminalArea.tsx             # 终端区域组件(已实现)
+├── WebContainer.tsx             # 主容器组件(已实现)
+├── ContainerControls.tsx        # 容器控制组件(部分实现)
+├── SyncStatus.tsx               # 同步状态组件(部分实现)
+└── atoms.ts                     # 状态管理(已实现)
+
+src/components/Editor/webContainer/
+├── usePreview.ts                # 预览功能Hook(已实现)
+├── useTerminal.ts               # 终端功能Hook(已实现)
+├── useWebContainer.ts           # 容器核心Hook(已实现)
+└── types.ts                     # 类型定义(已实现)
+```
+│   │   ├── ContainerView.tsx    # 容器视图(已实现)
+│   │   └── ContainerControls.tsx # 容器控制(已实现)
+│   ├── Terminal/                # 终端UI
+│   │   ├── TerminalView.tsx     # 终端视图(已实现)
+│   │   └── TerminalTabs.tsx     # 终端标签(已实现)
+│   ├── Preview/                 # 预览UI
+│   │   ├── PreviewFrame.tsx     # 预览框架(已实现)
+│   │   └── PreviewControls.tsx  # 预览控制(部分实现)
+│   └── shared/                  # 共享UI
+│       ├── Toolbar.tsx          # 工具栏(已实现)
+│       └── StatusBar.tsx        # 状态栏(已实现)
+└── hooks/                       # 自定义Hook
+    ├── useContainer.ts          # 容器Hook(已实现)
+    ├── useTerminal.ts           # 终端Hook(已实现)
+    └── usePreview.ts            # 预览Hook(部分实现)
 ```
 
-## 5. 数据流图
+## 5. 数据流图 (分层架构)
 
 ```
-┌─────────────────┐   文件同步   ┌───────────────┐   更新容器   ┌───────────────┐
-│                 │ ──────────> │               │ ──────────> │               │
-│   Editor组件    │              │  同步控制器    │              │ WebContainer  │
-│                 │ <─────────── │               │ <─────────── │ 核心实例      │
-└─────────────────┘   反向同步   └───────────────┘   状态更新   └───────────────┘
-                                      │                             │
-                                      │                             │
-                                      ▼                             ▼
-                                                          ┌─────────────────┐
-                                                          │                 │
-                                                          │ 虚拟文件系统    │
-                                                          │                 │
-                                                          └─────────────────┘
-                                                                  │
-                                                                  │
-                         ┌───────────────┐                        │
-                         │               │      文件操作           │
-                         │  终端组件     │ <──────────────────────┘
-                         │               │                        
-                         └───────────────┘                        
-                               │                                  
-                               │                                  
-                               ▼                                  
-                        ┌───────────────┐                        
-                        │               │                        
-                        │  预览组件     │                        
-                        │               │                        
-                        └───────────────┘                        
+┌─────────────────┐  用户交互  ┌─────────────────┐  状态变更  ┌─────────────────┐
+│                 │ ─────────>│                 │ ─────────>│                 │
+│    UI组件层      │           │    服务层        │           │   状态管理       │
+│ (React组件)      │ <─────────│ (纯逻辑服务)     │ <─────────│ (Jotai状态)      │
+└─────────────────┘  渲染更新  └─────────────────┘  数据更新  └─────────────────┘
+       │                             │
+       │                             │
+       │                             ▼
+       │                      ┌─────────────────┐
+       │                      │                 │
+       │       文件同步        │ WebContainer    │
+       └──────────────────────│ 核心服务         │
+                              │ (useWebContainer)│
+                              └─────────────────┘
+                                     │
+                                     │ 状态更新
+                                     ▼
+                              ┌─────────────────┐
+                              │                 │
+                              │ 终端/预览       │
+                              │ (集成服务)      │
+                              └─────────────────┘
+                              │ (iframe)        │
+                              └─────────────────┘
 ```
 
-## 6. Editor和WebContainer交互流程
+## 6. Editor和WebContainer交互流程 (分层架构)
 
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
-│                    Editor与WebContainer交互流程                        │
+│                    Editor与WebContainer交互流程 (分层架构)              │
 └───────────────────────────────────────────────────────────────────────┘
 ┌─────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │         │     │                 │     │                 │     │                 │
-│ 用户编辑 │────>│ 文件保存到编辑器 │────>│ 触发文件同步    │────>│ 更新WebContainer │
-│ 代码     │     │                 │     │                 │     │ 文件系统         │
+│ 用户编辑 │────>│ UI层捕获输入    │────>│ 服务层处理变更  │────>│ 状态管理更新    │
+│ 代码     │     │ (React组件)     │     │ (纯逻辑服务)    │     │ (Jotai状态)     │
 └─────────┘     └─────────────────┘     └─────────────────┘     └─────────────────┘
-                                                                          │
-                                                                          │
-                                                                          ▼
-                                                                  ┌─────────────────┐
-                                                                  │                 │
-                                                                  │ 自动执行代码    │
-                                                                  │ (可选)          │
-                                                                  └─────────────────┘
-                                                                          │
-                                                                          │
-                                                                          ▼
+                                                                           │
+                                                                           │ HTTP/WS
+                                                                           ▼
+                                                                   ┌─────────────────┐
+                                                                   │                 │
+                                                                   │ WebContainer    │
+                                                                   │ 通信服务层       │
+                                                                   └─────────────────┘
+                                                                           │
+                                                                           │
+                                                                           ▼
+                                                                   ┌─────────────────┐
+                                                                   │                 │
+                                                                   │ 执行代码        │
+                                                                   │ (容器运行时)     │
+                                                                   └─────────────────┘
+                                                                           │
+                                                                           │
+                                                                           ▼
 ┌─────────┐     ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │         │     │                 │     │                 │     │                 │
 │ 用户查看 │<────│ 更新预览窗口    │<────│ 捕获执行结果    │<────│ 显示执行输出    │
@@ -413,3 +454,14 @@ Editor和WebContainer之间需要定义明确的通信接口，包括：
    - 多设备同时预览
    - 交互式调试
    - 性能分析工具
+
+## 11. 实现状态
+
+| 功能模块 | 状态 | 备注 |
+|---------|------|------|
+| 容器核心 | ✅ 已实现 | 生命周期管理完整 |
+| 文件系统 | ✅ 已实现 | 基础操作完整 |
+| 终端功能 | ✅ 已实现 | 命令执行完整 |
+| 预览功能 | ⚠️ 部分实现 | 基础预览已实现 |
+| 调试工具 | ⏳ 规划中 | 需要更多开发资源 |
+| 高级同步 | ⏳ 规划中 | 冲突解决等功能待实现 |
