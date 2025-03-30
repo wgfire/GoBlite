@@ -1,0 +1,11 @@
+{
+  "files": {
+    "index.html": "index.html",
+    "index.tsx": "index.tsx", 
+    "package.json": "package.json",
+    "vite.config.ts": "vite.config.ts",
+    "components/Count.tsx": "components/Count.tsx",
+    "src/App.tsx": "src/App.tsx",
+    "src/main.tsx": "src/main.tsx"
+  }
+}
