@@ -15,7 +15,7 @@ export const Editor = ({
   onChange,
   readonly = false
 }: EditorProps) => {
-  const { activeFile, updateFileContent, activeFileContent } = useFileSystem();
+  const { activeFile, activeFileContent } = useFileSystem();
   const [currentFile, setCurrentFile] = useState<string | null>(null);
   const isUpdatingRef = useRef(false);
   
@@ -30,7 +30,7 @@ export const Editor = ({
   }, [onChange]);
   
   // 然后再使用这个函数
-  const { editorContainerRef, updateContent } = useEditor({
+  const { editorContainerRef, setContent } = useEditor({
     initialDoc: initialCode || "",
     onChange: handleEditorChange,
     readonly
@@ -44,7 +44,7 @@ export const Editor = ({
       
       // 只有当activeFile变化时才更新编辑器内容
       const content = activeFileContent ? activeFileContent : (initialCode || "");
-      updateContent(content);
+      setContent(content);
       setCurrentFile(activeFile);
       
       // 重置标志
@@ -52,7 +52,7 @@ export const Editor = ({
         isUpdatingRef.current = false;
       }, 0);
     }
-  }, [activeFile, currentFile, updateContent, activeFileContent, initialCode]);
+  }, [activeFile, currentFile, setContent, activeFileContent]);
 
   return (
     <div className="editor-container">

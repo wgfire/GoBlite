@@ -39,7 +39,6 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     renameItem,
     deleteItem,
     findItem,
-    activeFileContent,
   } = useFileSystem();
 
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
@@ -50,8 +49,6 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
 
   const [editing, setEditing] = useState<EditingState | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  console.log('activeFileContent 渲染', activeFileContent);
 
   // 自动聚焦输入框，但不全选文本
   useEffect(() => {

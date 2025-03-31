@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef } from "react";
 
 // 文件系统钩子
 export const useFileSystem = function (initialFiles?: FileItem[]) {
-  // 获取原子状态
-  const [files, setFiles] = useAtom(filesAtom);
+  // 分离读取和写入
+  const [files,setFiles] = useAtom(filesAtom);
   const [operations, setOperations] = useAtom(operationsAtom);
   const [activeFile, setActiveFile] = useAtom(activeFileAtom);
   const [openFiles, setOpenFiles] = useAtom(openFilesAtom);
@@ -26,19 +26,7 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
       initializedRef.current = true;
       return; // 初始化后直接返回，避免执行后续逻辑
     }
-
-    // 只有在文件系统已初始化但没有打开文件时才执行
-    if (files.length > 0 && openFiles.length === 0 && initializedRef.current) {
-
-        const firstFile = findFirstFile(files);
-        if (firstFile) {
-          console.log("找不到默认文件，打开第一个文件:", firstFile.path);
-          setActiveFile(firstFile.path);
-          setOpenFiles([firstFile.path]);
-        }
-      
-    }
-  }, [files, initialFiles, openFiles.length, setActiveFile, setFiles, setOpenFiles, initializedRef.current]);
+  }, [initialFiles, initializedRef.current]);
 
   // 查找第一个可用的文件
   const findFirstFile = (items: FileItem[]): FileItem | null => {
@@ -344,19 +332,19 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
   );
 
   // 更新文件内容
-  const updateFileContent = useCallback((filePath: string, content: string) => {
-    // 只有当内容真正变化时才更新状态
-    const file = findItem(files, filePath);
-    if (file && file.type === FileItemType.FILE && file.content !== content) {
-      // 更新文件内容
-      setFiles(prevFiles =>
-        findAndUpdateItem(prevFiles, filePath, (item) => ({
-          ...item,
-          content,
-        }))
-      );
-    }
-  }, [files, findItem, findAndUpdateItem, setFiles]);
+  const updateFileContent = useCallback((path: string, content: string) => {
+    setFiles(prevFiles => 
+      findAndUpdateItem(prevFiles, path, item => ({
+        ...item,
+        content
+      }))
+    );
+    
+    setOperations(prev => [
+      ...prev, 
+      { type: 'update', path }
+    ]);
+  }, [findAndUpdateItem, setFiles, setOperations]);
 
   // 设置活动文件标签
   const setActiveTab = useCallback(

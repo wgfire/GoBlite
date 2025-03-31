@@ -16,7 +16,6 @@ import { debounce } from "@/utils/debounce";
 const templateService = new TemplateService();
 
 export const App: React.FC = () => {
-  const [code, setCode] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [currentView, setCurrentView] = useState<"editor" | "webcontainer">("editor");
   const [templateLoaded, setTemplateLoaded] = useState(false);
@@ -31,6 +30,7 @@ export const App: React.FC = () => {
   // 使用WebContainer钩子
   const { previewUrl, error: webContainerError, isRunning, startApp } = useWebContainer();
 
+  console.log("activeFileContent 渲染", activeFileContent, activeFile);
   // 加载模板内容
   useEffect(() => {
     const loadTemplate = async () => {
@@ -58,13 +58,7 @@ export const App: React.FC = () => {
     loadTemplate();
   }, [selectedTemplate, templateLoaded, loadTemplateContent, resetFileSystem]);
 
-  // 初始化时打开默认文件
-  const isInitializedRef = useRef(false);
-
   useEffect(() => {
-    // 添加一个标志，避免重复执行
-    if (isInitializedRef.current) return;
-    
     console.log("App 初始化 useEffect 触发", { files, openFiles });
 
     // 如果模板正在加载，保持加载状态
@@ -82,7 +76,7 @@ export const App: React.FC = () => {
       if (defaultFile && defaultFile.type === FileItemType.FILE) {
         console.log("App 打开默认文件:", defaultFile.path);
         openFile(defaultFile);
-        setCode(defaultFile.content || "");
+        updateFileContent(defaultFile.path, defaultFile.content || "");
       } else {
         // 如果找不到 /src/App.tsx，尝试打开第一个文件
         console.log("App 找不到默认文件，尝试打开第一个文件");
@@ -90,50 +84,33 @@ export const App: React.FC = () => {
         if (firstFile) {
           console.log("App 打开第一个文件:", firstFile.path);
           openFile(firstFile);
-          setCode(firstFile.content || "");
+          updateFileContent(firstFile.path, firstFile.content || "");
         }
       }
     }
 
     // 加载完成后关闭加载状态
     setIsLoading(false);
-    isInitializedRef.current = true;
-  }, [files.length, openFiles.length, templateLoading, setIsLoading]);
-
-  // 当活动文件变化时，更新编辑器内容
-  const prevActiveFileRef = useRef(activeFile);
-  const prevCodeRef = useRef(code);
-
-  useEffect(() => {
-    console.log("App 活动文件变化:", activeFile);
-    // 只有当活动文件真正变化时才更新内容
-    if (activeFile && activeFile !== prevActiveFileRef.current) {
-      prevActiveFileRef.current = activeFile;
-
-      const content = activeFileContent;
-      // 只在内容确实发生变化时才更新状态
-      if (content !== prevCodeRef.current) {
-        prevCodeRef.current = content;
-        setCode(content);
-      }
-    }
-  }, [activeFile, activeFileContent]);
+  }, [templateLoading]);
 
   // 使用useCallback包装handleCodeChange，并添加防抖
-  const handleCodeChange = useCallback((newCode: string) => {
-    // 只设置本地状态，不立即更新文件系统
-    setCode(newCode);
-    
-    // 使用防抖更新文件内容，减少文件系统更新频率
-    debouncedUpdateRef.current(newCode);
-  }, []);
+  const handleCodeChange = useCallback(
+    (newCode: string) => {
+      // 使用防抖更新文件内容，减少文件系统更新频率
+      debouncedUpdateRef.current(newCode, activeFile);
+    },
+    [activeFile]
+  );
 
   // 创建防抖更新函数
-  const debouncedUpdateRef = useRef(debounce((newCode: string) => {
-    if (activeFile) {
-      updateFileContent(activeFile, newCode);
-    }
-  }, 500));
+  const debouncedUpdateRef = useRef(
+    debounce((newCode: string, file: string | null) => {
+      console.log("防抖更新文件内容:", file, newCode);
+      if (file) {
+        updateFileContent(file, newCode);
+      }
+    }, 500)
+  );
 
   // 确保在组件卸载时清理防抖函数
   useEffect(() => {
@@ -162,23 +139,21 @@ export const App: React.FC = () => {
   const handleRun = async () => {
     console.log("构建并运行代码");
 
-    // 保存所有打开的文件，确保最新内容被同步
-    if (activeFile && code !== undefined) {
-      updateFileContent(activeFile, code);
-    }
-
     // 启动WebContainer并同步文件
     try {
       // 自动切换到预览视图
       setCurrentView("webcontainer");
       console.log("正在启动WebContainer并同步文件...", files);
-      
+
       // 添加更详细的日志，显示每个文件的路径和类型
-      console.log("同步的文件列表详情:", files.map(f => ({
-        path: f.path,
-        type: f.type === FileItemType.FILE ? 'FILE' : 'FOLDER',
-        hasContent: f.type === FileItemType.FILE ? (f.content ? true : false) : 'N/A'
-      })));
+      console.log(
+        "同步的文件列表详情:",
+        files.map((f) => ({
+          path: f.path,
+          type: f.type === FileItemType.FILE ? "FILE" : "FOLDER",
+          hasContent: f.type === FileItemType.FILE ? (f.content ? true : false) : "N/A",
+        }))
+      );
 
       // 使用startApp方法一次性完成初始化、文件同步和依赖安装
       const success = await startApp(files);
@@ -197,7 +172,7 @@ export const App: React.FC = () => {
       console.error("启动WebContainer出错 - 详细错误:", {
         error: errorMsg,
         stack: error instanceof Error ? error.stack : undefined,
-        files: files.map(f => f.path)
+        files: files.map((f) => f.path),
       });
       throw error;
     }
@@ -209,11 +184,6 @@ export const App: React.FC = () => {
    */
   const handleRebuild = async () => {
     console.log("重新构建代码");
-
-    // 保存所有打开的文件，确保最新内容被同步
-    if (activeFile && code !== undefined) {
-      updateFileContent(activeFile, code);
-    }
 
     // 同步文件并重启服务
     try {
@@ -244,7 +214,6 @@ export const App: React.FC = () => {
     console.log("App 打开文件:", file.path);
     if (file && file.type === FileItemType.FILE) {
       openFile(file);
-      setCode(file.content || "");
     }
   };
 
@@ -255,7 +224,7 @@ export const App: React.FC = () => {
     // 获取文件内容
     const file = findItem(files, filePath);
     if (file && file.type === FileItemType.FILE) {
-      setCode(file.content || "");
+      updateFileContent(filePath, file.content || "");
     }
   };
 
@@ -301,7 +270,7 @@ export const App: React.FC = () => {
         <div className="editor-box">
           {currentView === "editor" && <FileTabs onTabSelect={handleTabSelect} />}
 
-          {currentView === "editor" ? <Editor initialCode={code} onChange={handleCodeChange} /> : <WebContainer isVisible={true} />}
+          {currentView === "editor" ? <Editor initialCode={activeFileContent} onChange={handleCodeChange} /> : <WebContainer isVisible={true} />}
         </div>
       </div>
     </div>

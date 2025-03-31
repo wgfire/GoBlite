@@ -138,7 +138,7 @@ export const useEditor = (options: EditorOptions = {}) => {
   const updateContent = (content: string) => {
     if (!editorViewRef.current) return;
     
-    // 强制更新内容，无论当前内容是什么
+
     contentRef.current = content;
     
     const transaction = editorViewRef.current.state.update({
