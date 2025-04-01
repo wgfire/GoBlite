@@ -1,25 +1,17 @@
-import React, { useRef } from 'react';
-import { FiRefreshCw, FiMonitor, FiTablet, FiSmartphone, FiExternalLink, FiStopCircle } from 'react-icons/fi';
-import { usePreview } from '@core/webContainer';
-import { PreviewAreaProps } from './types';
-import './PreviewArea.css';
+import React, { useRef } from "react";
+import { FiRefreshCw, FiMonitor, FiTablet, FiSmartphone, FiExternalLink } from "react-icons/fi";
+import { usePreview } from "@core/webContainer";
+import { PreviewAreaProps } from "./types";
+import "./PreviewArea.css";
 
-export const PreviewArea: React.FC<PreviewAreaProps> = ({ 
-  url = '', 
+export const PreviewArea: React.FC<PreviewAreaProps> = ({
+  url = "",
   isRunning = false,
   onRefresh,
-  onStop
+  onStop, // 保留参数以维持接口兼容性，但不主动使用
 }) => {
-  const {
-    viewMode,
-    isLoading,
-    changeViewMode,
-    refresh,
-    updateUrl,
-    openInNewWindow,
-    handleIframeLoad
-  } = usePreview();
-  
+  const { viewMode, isLoading, changeViewMode, refresh, updateUrl, openInNewWindow, handleIframeLoad } = usePreview();
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [urlInput, setUrlInput] = React.useState(url);
   const [iframeError, setIframeError] = React.useState(false);
@@ -40,13 +32,6 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
     setIframeError(false);
   };
 
-  // 处理停止
-  const handleStop = () => {
-    if (onStop) {
-      onStop();
-    }
-  };
-
   // 处理URL输入变化
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrlInput(e.target.value);
@@ -65,7 +50,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
   const handleOpenInNewWindow = () => {
     openInNewWindow();
   };
-  
+
   // 处理iframe加载错误
   const handleIframeError = () => {
     setIframeError(true);
@@ -75,61 +60,42 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
     <div className="preview-area">
       <div className="preview-toolbar">
         <div className="preview-controls">
-          {isRunning ? (
-            <button 
-              className="preview-control-button" 
-              onClick={handleStop}
-              title="停止服务"
-            >
-              <FiStopCircle />
-            </button>
-          ) : (
-            <button 
-              className="preview-control-button" 
-              onClick={handleRefresh}
-              title="启动服务"
-            >
-              <FiRefreshCw className={isLoading ? 'spin' : ''} />
-            </button>
-          )}
-          
-          <button 
-            className="preview-control-button" 
-            onClick={handleOpenInNewWindow}
-            title="在新窗口打开"
-            disabled={!url}
-          >
+          <button className="preview-control-button" onClick={handleRefresh} title={isRunning ? "刷新预览" : "启动服务"}>
+            <FiRefreshCw className={isLoading ? "spin" : ""} />
+          </button>
+
+          <button className="preview-control-button" onClick={handleOpenInNewWindow} title="在新窗口打开" disabled={!url}>
             <FiExternalLink />
           </button>
         </div>
-        
+
         <div className="preview-view-modes">
-          <button 
-            className={`preview-view-mode-button ${viewMode === 'desktop' ? 'active' : ''}`}
-            onClick={() => changeViewMode('desktop')}
+          <button
+            className={`preview-view-mode-button ${viewMode === "desktop" ? "active" : ""}`}
+            onClick={() => changeViewMode("desktop")}
             title="桌面视图"
           >
             <FiMonitor />
           </button>
-          <button 
-            className={`preview-view-mode-button ${viewMode === 'tablet' ? 'active' : ''}`}
-            onClick={() => changeViewMode('tablet')}
+          <button
+            className={`preview-view-mode-button ${viewMode === "tablet" ? "active" : ""}`}
+            onClick={() => changeViewMode("tablet")}
             title="平板视图"
           >
             <FiTablet />
           </button>
-          <button 
-            className={`preview-view-mode-button ${viewMode === 'mobile' ? 'active' : ''}`}
-            onClick={() => changeViewMode('mobile')}
+          <button
+            className={`preview-view-mode-button ${viewMode === "mobile" ? "active" : ""}`}
+            onClick={() => changeViewMode("mobile")}
             title="移动视图"
           >
             <FiSmartphone />
           </button>
         </div>
-        
+
         <form className="preview-url-bar" onSubmit={handleUrlSubmit}>
-          <input 
-            type="text" 
+          <input
+            type="text"
             className="preview-url-input"
             value={urlInput}
             onChange={handleUrlChange}
@@ -138,7 +104,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
           />
         </form>
       </div>
-      
+
       <div className={`preview-content ${viewMode}`}>
         {isLoading && (
           <div className="preview-loading">
@@ -146,7 +112,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
             <p>加载中...</p>
           </div>
         )}
-        
+
         {!url ? (
           <div className="preview-placeholder">
             <p>等待WebContainer内部服务启动</p>
@@ -158,7 +124,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
                   <small>这个过程可能需要几秒钟，取决于模板的复杂度</small>
                 </>
               ) : (
-                '请点击上方按钮启动WebContainer服务'
+                "请点击上方按钮启动WebContainer服务"
               )}
             </p>
           </div>
@@ -172,16 +138,13 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
                 <li>模板代码存在错误导致服务启动失败</li>
                 <li>浏览器安全策略限制了iframe的访问</li>
               </ul>
-              <button 
-                className="preview-retry-button"
-                onClick={handleRefresh}
-              >
+              <button className="preview-retry-button" onClick={handleRefresh}>
                 重试
               </button>
             </p>
           </div>
         ) : (
-          <iframe 
+          <iframe
             ref={iframeRef}
             className="preview-iframe"
             src={url}

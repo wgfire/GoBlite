@@ -96,6 +96,7 @@ export class WebContainerService {
 
   /**
    * 安装依赖
+   * 根据package.json的变化决定是否需要重新安装依赖
    */
   public async installDependencies(): Promise<void> {
     if (!this.webcontainerInstance) {
@@ -103,25 +104,52 @@ export class WebContainerService {
     }
 
     try {
-      // 检查是否有缓存
-      if (this.currentPackageJsonHash && this.dependencyCache.hasCache(this.currentPackageJsonHash)) {
-        this.notifyTerminalOutput("使用缓存的依赖...");
+      // 检查是否有package.json文件
+      const packageJsonContent = await this.webcontainerInstance.fs.readFile("package.json", "utf-8");
+      if (!packageJsonContent) {
+        throw new Error("未找到package.json文件");
+      }
+
+      // 计算当前package.json的哈希值
+      const currentHash = this.dependencyCache.generateCacheKey(packageJsonContent);
+
+      // 检查package.json是否发生变化
+      const hasPackageJsonChanged = currentHash !== this.currentPackageJsonHash;
+
+      // 如果package.json没有变化，且存在缓存，直接使用缓存
+      if (!hasPackageJsonChanged && this.dependencyCache.hasCache(this.currentPackageJsonHash)) {
+        this.notifyTerminalOutput("package.json未变化，使用缓存的依赖...");
 
         // 从缓存获取node_modules
-        const cachedNodeModules = this.dependencyCache.getCache(this.currentPackageJsonHash);
+        const cachedData = this.dependencyCache.getCache(this.currentPackageJsonHash);
+        if (!cachedData || !cachedData.nodeModulesSnapshot) {
+          this.notifyTerminalOutput("缓存的依赖无效，将重新安装依赖...");
+          return;
+        }
 
-        // 挂载缓存的node_modules
-        if (cachedNodeModules && cachedNodeModules.nodeModulesSnapshot) {
+        try {
+          // 确保node_modules目录存在
+          try {
+            await this.webcontainerInstance.fs.readdir("node_modules");
+          } catch {
+            // 如果node_modules不存在，创建它
+            await this.webcontainerInstance.fs.mkdir("node_modules");
+          }
+
+          // 挂载缓存的node_modules
           await this.webcontainerInstance.mount({
-            node_modules: cachedNodeModules.nodeModulesSnapshot,
+            node_modules: cachedData.nodeModulesSnapshot,
           });
           this.notifyTerminalOutput("依赖加载完成（从缓存）");
           return;
+        } catch (mountError) {
+          console.error("挂载缓存的node_modules失败:", mountError);
+          this.notifyTerminalOutput("缓存的依赖加载失败，将重新安装依赖...");
         }
       }
 
-      // 如果没有缓存，正常安装依赖
-      this.notifyTerminalOutput("开始安装依赖...");
+      // 如果package.json发生变化或没有缓存，重新安装依赖
+      this.notifyTerminalOutput(hasPackageJsonChanged ? "package.json已更新，重新安装依赖..." : "开始安装依赖...");
 
       // 执行npm install命令
       const installProcess = await this.webcontainerInstance.spawn("npm", ["install"]);
@@ -144,21 +172,39 @@ export class WebContainerService {
 
       this.notifyTerminalOutput("依赖安装完成");
 
-      // 如果有package.json哈希，缓存node_modules
-      if (this.currentPackageJsonHash) {
-        try {
-          // 获取node_modules内容进行缓存
-          const nodeModulesDir = await this.webcontainerInstance.fs.readdir("node_modules", {
-            withFileTypes: true,
-          });
+      // 更新package.json哈希值并缓存新的node_modules
+      this.currentPackageJsonHash = currentHash;
 
-          // 缓存node_modules
-          this.dependencyCache.setCache(this.currentPackageJsonHash, nodeModulesDir);
-          this.notifyTerminalOutput("依赖已缓存，下次将更快");
-        } catch (cacheErr) {
-          console.error("缓存依赖失败:", cacheErr);
-          // 缓存失败不影响主流程
+      // 等待一段时间确保node_modules目录已经创建完成
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      try {
+        // 检查node_modules目录是否存在
+        const nodeModulesExists = await this.webcontainerInstance.fs
+          .readdir("node_modules")
+          .then(() => true)
+          .catch(() => false);
+
+        if (!nodeModulesExists) {
+          throw new Error("node_modules目录不存在");
         }
+
+        // 获取node_modules内容进行缓存
+        const nodeModulesDir = await this.webcontainerInstance.fs.readdir("node_modules", {
+          withFileTypes: true,
+        });
+
+        if (!nodeModulesDir || !Array.isArray(nodeModulesDir)) {
+          throw new Error("获取node_modules目录内容失败");
+        }
+
+        // 缓存node_modules
+        this.dependencyCache.setCache(this.currentPackageJsonHash, nodeModulesDir);
+        this.notifyTerminalOutput("依赖已缓存，下次将更快");
+      } catch (cacheErr) {
+        console.error("缓存依赖失败:", cacheErr);
+        // 缓存失败不影响主流程，只记录错误
+        this.notifyTerminalOutput("依赖安装完成，但缓存失败，下次将重新安装");
       }
     } catch (err) {
       this.error = err instanceof Error ? err.message : "安装依赖失败";
@@ -169,6 +215,7 @@ export class WebContainerService {
 
   /**
    * 启动开发服务器
+   * 增加端口冲突检查和处理
    * @returns Promise<string> 服务器URL
    */
   public async startDevServer(): Promise<string> {
@@ -177,6 +224,75 @@ export class WebContainerService {
     }
 
     try {
+      // 首先检查是否有服务正在运行，确保清理环境
+      if (this.serverStarted) {
+        this.notifyTerminalOutput("检测到已有服务在运行，正在清理...");
+
+        // 如果服务器管理器可用，停止服务器
+        if (this.serverManager) {
+          await this.serverManager.stopServer();
+        }
+
+        // 额外检查常见端口，确保它们被释放
+        try {
+          const ports = [3000, 5173, 8080, 4000];
+          for (const port of ports) {
+            const checkProcess = await this.webcontainerInstance.spawn("sh", [
+              "-c",
+              `lsof -i:${port} | grep LISTEN || echo "No process on port ${port}"`,
+            ]);
+
+            // 收集输出
+            const outputStream = new WritableStream({
+              write: (data) => {
+                if (data.includes("LISTEN")) {
+                  this.notifyTerminalOutput(`检测到端口 ${port} 被占用，尝试释放...`);
+                  // 尝试终止进程
+                  setTimeout(async () => {
+                    try {
+                      const killProcess = await this.webcontainerInstance!.spawn("sh", ["-c", `fuser -k ${port}/tcp || true`]);
+                      await killProcess.exit;
+                    } catch (err) {
+                      console.error(`释放端口 ${port} 失败:`, err);
+                    }
+                  }, 0);
+                }
+              },
+            });
+
+            checkProcess.output.pipeTo(outputStream);
+            await checkProcess.exit;
+          }
+
+          // 等待端口释放完成
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        } catch (err) {
+          console.error("检查端口占用失败:", err);
+          // 继续执行，不中断主流程
+        }
+
+        // 重置服务状态
+        this.serverStarted = false;
+        this.serverUrl = "";
+      }
+
+      // 检查package.json是否存在
+      try {
+        await this.webcontainerInstance.fs.readFile("package.json", "utf-8");
+      } catch (err) {
+        console.error("检查package.json失败:", err);
+        throw new Error("未找到package.json文件，请确保项目文件完整");
+      }
+
+      // 检查node_modules是否存在
+      try {
+        await this.webcontainerInstance.fs.readdir("node_modules");
+      } catch (err) {
+        console.error("检查node_modules失败:", err);
+        this.notifyTerminalOutput("未找到node_modules，需要安装依赖...");
+        await this.installDependencies();
+      }
+
       // 使用服务器管理器启动服务器
       if (this.serverManager) {
         this.serverUrl = await this.serverManager.startServer();
@@ -306,12 +422,37 @@ export class WebContainerService {
       this.serverManager.stopServer();
     }
 
+    // 清理资源
+    if (this.webcontainerInstance) {
+      try {
+        // 尝试杀死所有仍在运行的进程
+        this.notifyTerminalOutput("正在清理WebContainer资源...");
+
+        // 在WebContainer中运行清理命令
+        setTimeout(async () => {
+          if (this.webcontainerInstance) {
+            try {
+              // 尝试杀死所有Node进程
+              const cleanup = await this.webcontainerInstance.spawn("sh", ["-c", "pkill -f node || true"]);
+              await cleanup.exit;
+            } catch (err) {
+              // 忽略清理错误
+              console.error("清理进程失败:", err);
+            }
+          }
+        }, 100);
+      } catch (err) {
+        console.error("清理WebContainer资源失败:", err);
+      }
+    }
+
     // 目前WebContainer API不提供直接停止的方法
     // 但我们可以重置状态
     this.isRunning = false;
     this.serverUrl = "";
     this.serverStarted = false;
     this.notifyTerminalOutput("WebContainer 已停止");
+    this.notifyTerminalOutput("服务器已停止");
   }
 
   /**
@@ -370,10 +511,10 @@ export class WebContainerService {
       if (path.length === 0) {
         if (file.type === FileItemType.FOLDER) {
           tree[file.name] = { directory: {} };
-          
+
           // 递归处理子文件/文件夹
           if (file.children && file.children.length > 0) {
-            file.children.forEach(child => {
+            file.children.forEach((child) => {
               buildFileTree((tree[file.name] as { directory: FileSystemTree }).directory, [], child);
             });
           }
@@ -399,16 +540,16 @@ export class WebContainerService {
     // 处理所有文件
     for (const file of files) {
       // 规范化路径：移除开头的斜杠，分割路径
-      const normalizedPath = file.path.startsWith('/') ? file.path.substring(1) : file.path;
-      const pathSegments = normalizedPath.split('/');
-      
+      const normalizedPath = file.path.startsWith("/") ? file.path.substring(1) : file.path;
+      const pathSegments = normalizedPath.split("/");
+
       // 文件/文件夹名是路径的最后一部分
-      const fileName = pathSegments.pop() || '';
-      
+      const fileName = pathSegments.pop() || "";
+
       // 创建一个新的FileItem，确保name是文件名而不是完整路径
       const processedFile: FileItem = {
         ...file,
-        name: fileName
+        name: fileName,
       };
 
       // 构建文件树

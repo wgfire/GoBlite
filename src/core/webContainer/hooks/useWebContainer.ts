@@ -27,11 +27,12 @@ export const useWebContainer = () => {
       serviceRef.current = WebContainerService.getInstance();
     }
 
-    // 组件卸载时清理资源
+    // 移除组件卸载时停止服务的逻辑，保持服务持续运行
     return () => {
-      if (serviceRef.current) {
-        serviceRef.current.stop();
-      }
+      // 不再停止服务，允许在视图切换时保持状态
+      // if (serviceRef.current) {
+      //   serviceRef.current.stop();
+      // }
     };
   }, []);
 
@@ -238,6 +239,11 @@ export const useWebContainer = () => {
     error,
     isVisible,
     isTerminalExpanded,
+    isEmpty: status === WebContainerStatus.EMPTY,
+    isInitializing: status === WebContainerStatus.INITIALIZING,
+    isRunning: status === WebContainerStatus.RUNNING,
+    isError: status === WebContainerStatus.ERROR,
+    isStopped: status === WebContainerStatus.STOPPED,
     initialize,
     syncFiles,
     startApp,
@@ -247,10 +253,6 @@ export const useWebContainer = () => {
     toggleVisibility,
     setVisibility,
     toggleTerminal,
-    isRunning: status === WebContainerStatus.RUNNING,
-    isInitializing: status === WebContainerStatus.INITIALIZING,
-    isError: status === WebContainerStatus.ERROR,
-    isStopped: status === WebContainerStatus.STOPPED,
-    isEmpty: status === WebContainerStatus.EMPTY,
+    setIsVisible,
   };
 };

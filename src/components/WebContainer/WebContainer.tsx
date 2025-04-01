@@ -1,35 +1,35 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { PreviewArea } from './PreviewArea';
-import { TerminalArea } from './TerminalArea';
-import { EmptyState } from './EmptyState';
-import { useWebContainer } from '@core/webContainer';
-import { WebContainerStatus } from '@core/webContainer/types';
-import './WebContainer.css';
+import React, { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { PreviewArea } from "./PreviewArea";
+import { TerminalArea } from "./TerminalArea";
+import { EmptyState } from "./EmptyState";
+import { useWebContainer } from "@core/webContainer";
+import { WebContainerStatus } from "@core/webContainer/types";
+import "./WebContainer.css";
 
-import { WebContainerProps } from './types';
+import { WebContainerProps } from "./types";
 
 export const WebContainer: React.FC<WebContainerProps> = ({ isVisible }) => {
   // 使用WebContainer hook获取状态和方法
-  const {
-    status,
-    previewUrl,
-    error,
-    initialize,
-    start,
-    stop,
-    isTerminalExpanded,
-    toggleTerminal
-  } = useWebContainer();
+  const { status, previewUrl, error, initialize, start, isTerminalExpanded, toggleTerminal, setIsVisible } = useWebContainer();
+
+
+
+  // 处理可见性变化
+  useEffect(() => {
+    // 更新全局状态中的可见性
+    setIsVisible(isVisible);
+
+    // 如果变为可见且状态为STOPPED，尝试重启
+    if (isVisible && status === WebContainerStatus.STOPPED) {
+      console.log("WebContainer变为可见，检查服务状态...");
+      start();
+    }
+  }, [isVisible, setIsVisible, status]);
 
   // 处理启动服务
   const handleStart = () => {
     start();
-  };
-
-  // 处理停止服务
-  const handleStop = () => {
-    stop();
   };
 
   // 处理重试
@@ -37,22 +37,16 @@ export const WebContainer: React.FC<WebContainerProps> = ({ isVisible }) => {
     initialize();
   };
 
+  // 即使WebContainer不可见，也保留DOM结构但隐藏它
+  // 这样可以保持状态，避免频繁的挂载/卸载
   if (!isVisible) {
-    return null;
+    return <div style={{ display: "none" }} className="webcontainer-hidden"></div>;
   }
 
   return (
     <AnimatePresence>
-      <motion.div 
-        className="webcontainer"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {status === WebContainerStatus.EMPTY && (
-          <EmptyState onStart={handleStart} />
-        )}
+      <motion.div className="webcontainer" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+        {status === WebContainerStatus.EMPTY && <EmptyState onStart={handleStart} />}
 
         {status === WebContainerStatus.INITIALIZING && (
           <div className="webcontainer-loading">
@@ -64,24 +58,22 @@ export const WebContainer: React.FC<WebContainerProps> = ({ isVisible }) => {
         {status === WebContainerStatus.ERROR && (
           <div className="webcontainer-error">
             <h3>初始化失败</h3>
-            <p>{error || '无法启动 WebContainer 服务，请检查网络连接或刷新页面重试。'}</p>
+            <p>{error || "无法启动 WebContainer 服务，请检查网络连接或刷新页面重试。"}</p>
             <button onClick={handleRetry}>重试</button>
           </div>
         )}
 
         {(status === WebContainerStatus.RUNNING || status === WebContainerStatus.STOPPED) && (
           <div className="webcontainer-content">
-            <PreviewArea 
+            <PreviewArea
               url={previewUrl}
               isRunning={status === WebContainerStatus.RUNNING}
               onRefresh={() => handleStart()}
-              onStop={handleStop}
+              onStop={() => {
+                /* 移除停止功能 */
+              }}
             />
-            <TerminalArea 
-              isExpanded={isTerminalExpanded}
-              onToggle={toggleTerminal}
-              isRunning={status === WebContainerStatus.RUNNING}
-            />
+            <TerminalArea isExpanded={isTerminalExpanded} onToggle={toggleTerminal} isRunning={status === WebContainerStatus.RUNNING} />
           </div>
         )}
       </motion.div>

@@ -25,10 +25,11 @@ export const App: React.FC = () => {
   const { selectedTemplate, loading: templateLoading, error: templateError, loadTemplateContent } = useTemplate(templateService);
 
   // 使用文件系统钩子
-  const { updateFileContent, activeFileContent, activeFile, openFile, files, findItem, openFiles, setActiveTab, resetFileSystem, findFirstFile } = useFileSystem();
+  const { updateFileContent, activeFileContent, activeFile, openFile, files, findItem, openFiles, setActiveTab, resetFileSystem, findFirstFile } =
+    useFileSystem();
 
   // 使用WebContainer钩子
-  const { previewUrl, error: webContainerError, isRunning, startApp } = useWebContainer();
+  const { previewUrl, error: webContainerError, startApp } = useWebContainer();
 
   console.log("activeFileContent 渲染", activeFileContent, activeFile);
   // 加载模板内容
@@ -119,19 +120,6 @@ export const App: React.FC = () => {
     };
   }, []);
 
-  const handleSave = () => {
-    console.log("保存文件");
-    // 这里可以实现实际的文件保存逻辑
-  };
-
-  const handleRedo = () => {
-    console.log("重做操作");
-  };
-
-  const handleSearch = () => {
-    console.log("搜索内容");
-  };
-
   /**
    * 处理构建和运行
    * 首次构建时，会初始化WebContainer、同步文件、安装依赖并启动服务
@@ -185,6 +173,8 @@ export const App: React.FC = () => {
   const handleRebuild = async () => {
     console.log("重新构建代码");
 
+    setCurrentView("webcontainer");
+
     // 同步文件并重启服务
     try {
       console.log("正在同步最新文件并重启服务...");
@@ -204,9 +194,11 @@ export const App: React.FC = () => {
 
   /**
    * 切换编辑器和预览视图
+   * 只改变界面显示，不影响WebContainer服务状态
    */
   const handleToggleView = () => {
-    console.log("切换视图");
+    console.log("切换视图，仅改变UI显示");
+    // 只改变视图状态，不调用stop或start
     setCurrentView(currentView === "editor" ? "webcontainer" : "editor");
   };
 
@@ -253,15 +245,14 @@ export const App: React.FC = () => {
   return (
     <div className="app-container">
       <Toolbar
-        onSave={handleSave}
-        onRedo={handleRedo}
-        onSearch={handleSearch}
         onRun={handleRun}
         onRebuild={handleRebuild}
         onToggleView={handleToggleView}
-        isRunning={isRunning}
+        onExport={() => console.log("导出应用")}
+        onSettings={() => console.log("打开设置")}
         isBuilt={isBuilt}
         disabled={isLoading || templateLoading}
+        currentView={currentView}
       />
       <div className="app-content">
         <div className="file-explorer-container">
@@ -270,7 +261,14 @@ export const App: React.FC = () => {
         <div className="editor-box">
           {currentView === "editor" && <FileTabs onTabSelect={handleTabSelect} />}
 
-          {currentView === "editor" ? <Editor initialCode={activeFileContent} onChange={handleCodeChange} /> : <WebContainer isVisible={true} />}
+          <div className="content-container" style={{ position: "relative", height: "calc(100% - 40px)" }}>
+            <div className="view-container" style={{ display: currentView === "editor" ? "block" : "none", height: "100%" }}>
+              <Editor initialCode={activeFileContent} onChange={handleCodeChange} />
+            </div>
+            <div className="view-container" style={{ display: currentView === "webcontainer" ? "block" : "none", height: "100%" }}>
+              <WebContainer isVisible={currentView === "webcontainer"} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
