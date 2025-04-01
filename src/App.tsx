@@ -11,6 +11,7 @@ import { useWebContainer } from "./core/webContainer";
 import { useTemplate } from "./template/useTemplate";
 import "./App.css";
 import { debounce } from "@/utils/debounce";
+import Chat from "./components/Chat";
 
 // 创建模板服务实例
 const templateService = new TemplateService();
@@ -255,6 +256,9 @@ export const App: React.FC = () => {
         currentView={currentView}
       />
       <div className="app-content">
+        <div className="chat-box">
+          <Chat></Chat>
+        </div>
         <div className="file-explorer-container">
           <FileExplorer onFileOpen={handleFileOpen} />
         </div>
