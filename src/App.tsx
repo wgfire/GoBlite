@@ -256,7 +256,7 @@ export const App: React.FC = () => {
         currentView={currentView}
       />
       <div className="app-content">
-        <div className="chat-box">
+        <div className="chat-box basis-[25%]">
           <Chat></Chat>
         </div>
         <div className="file-explorer-container">

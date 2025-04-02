@@ -15,3 +15,4 @@ export interface UploadedFile {
   file: File;
   previewUrl?: string; // For images
 }
+export type HeaderTab = "templates" | "assets";

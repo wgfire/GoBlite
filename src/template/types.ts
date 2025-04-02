@@ -9,7 +9,9 @@ export interface Template {
   id: string;
   name: string;
   description?: string;
-  files: Record<string, string>;
+  icon?:string,
+  fields?:Record<string, unknown>[],
+  files?: Record<string, string>;
 }
 
 export interface TemplateLoadResult {

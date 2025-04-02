@@ -7,7 +7,7 @@ interface MessageListProps {
   isSending: boolean;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, isSending }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, isSending }) => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       {messages.map((message) => (
@@ -59,5 +59,3 @@ const MessageList: React.FC<MessageListProps> = ({ messages, isSending }) => {
     </div>
   );
 };
-
-export default MessageList;

@@ -8,7 +8,7 @@ export const PreviewArea: React.FC<PreviewAreaProps> = ({
   url = "",
   isRunning = false,
   onRefresh,
-  onStop, // 保留参数以维持接口兼容性，但不主动使用
+  onStop, 
 }) => {
   const { viewMode, isLoading, changeViewMode, refresh, updateUrl, openInNewWindow, handleIframeLoad } = usePreview();
 
