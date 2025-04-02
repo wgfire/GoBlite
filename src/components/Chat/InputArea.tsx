@@ -104,7 +104,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, onOptimizePrompt, 
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder="Type your message..."
-            className="w-full py-3 px-4 bg-slate-800 text-white placeholder-slate-400 focus:outline-none rounded-lg relative z-10 border border-slate-700"
+            className="no-scrollbar w-full py-3 px-4 bg-slate-800 text-white placeholder-slate-400 focus:outline-none rounded-lg relative z-10 border border-slate-700"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();

@@ -4,6 +4,8 @@ import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
 import { HeaderTab, Message, UploadedFile } from "./types";
 import { Template } from "@/template/types";
+import { AnimatePresence,motion } from "framer-motion";
+import { TemplateForm } from "../TemplateForm";
 
 const Chat: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -11,6 +13,7 @@ const Chat: React.FC = () => {
   const [isSending, setIsSending] = useState(false);
   const [activeTab, setActiveTab] = useState<HeaderTab>("templates");
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
   const handleSend = useCallback(async (prompt: string, files: UploadedFile[]) => {
     if (!prompt.trim() && files.length === 0) return;
 
@@ -58,25 +61,38 @@ const Chat: React.FC = () => {
   }, []);
   const handleTemplateSelect = (template: Template) => {
     setSelectedTemplate(template);
+    setShowTemplateForm(true);
   };
+  const handleTemplateFormSubmit = (data: Record<string, string>) => {
+   console.log("Template form submitted:", data);
+  }
+  const handleTemplateFormClose = () => {
+    setSelectedTemplate(null);
+  }
 
   return (
-    <div className="flex flex-col h-full bg-gray-900 text-gray-200">
-      <ChatHeader
-        onTemplateSelect={handleTemplateSelect}
-        selectedTemplate={selectedTemplate}
-        isMobile={false}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+    <div className="flex flex-col h-full bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative">
+      <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
       <MessageList messages={messages} isSending={isSending} />
-      <InputArea
-        onSend={handleSend}
-        onOptimizePrompt={handleOptimizePrompt}
-        isSending={isSending}
-        uploadedFiles={uploadedFiles}
-        setUploadedFiles={setUploadedFiles}
-      />
+      <InputArea onSend={handleSend} onOptimizePrompt={handleOptimizePrompt} isSending={isSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} />
+
+      <AnimatePresence>
+        {showTemplateForm && selectedTemplate && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 flex items-center justify-center p-4 z-[100]"
+            style={{
+              backgroundColor: "rgba(15, 23, 42, 0.8)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <TemplateForm template={selectedTemplate} onSubmit={handleTemplateFormSubmit} onClose={handleTemplateFormClose} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

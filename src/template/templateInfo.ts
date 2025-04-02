@@ -2,27 +2,63 @@ import { Template } from "./types";
 
 export const TEMPLATES: Template[] = [
     {
-      id: "ecommerce",
+      id: "react-template",
       name: "SEM Landing",
       description: "Perfect for online stores and product launches",
       icon: "🛍️",
       fields: [
+        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
+        { id: "license", name: "牌照选择", type: "select", options: [
+          { value: "FSC", label: "FSC" },
+          { value: "ASIC", label: "ASIC" },
+          { value: "CIMA", label: "CIMA" }
+        ]},
+        { id: "watermark", name: "生图水印", type: "radio", options: [
+          { value: "yes", label: "是" },
+          { value: "no", label: "否" }
+        ]},
+        { id: "footerRisk", name: "底部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
+        { id: "headerRisk", name: "头部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
         { id: "productName", name: "Product Name", type: "text", placeholder: "Enter product name" },
         { id: "productDescription", name: "Product Description", type: "textarea", placeholder: "Describe your product" },
-        { id: "primaryColor", name: "Primary Color", type: "color" },
         { id: "cta", name: "Call to Action", type: "text", placeholder: "Buy Now" },
+        { id: "additionalInfo", name: "附加信息", type: "textarea", placeholder: "请输入其他补充信息" },
       ],
     },
     {
-      id: "saas",
+      id: "vue-template",
       name: "Investing Landing",
       description: "For software and service platforms",
       icon: "💻",
       fields: [
+        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
+        { id: "license", name: "牌照选择", type: "select", options: [
+          { value: "FSC", label: "FSC" },
+          { value: "ASIC", label: "ASIC" },
+          { value: "CIMA", label: "CIMA" }
+        ]},
+        { id: "watermark", name: "生图水印", type: "radio", options: [
+          { value: "yes", label: "是" },
+          { value: "no", label: "否" }
+        ]},
+        { id: "footerRisk", name: "底部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
+        { id: "headerRisk", name: "头部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
         { id: "platformName", name: "Platform Name", type: "text", placeholder: "Enter platform name" },
         { id: "tagline", name: "Tagline", type: "text", placeholder: "Your catchy tagline" },
         { id: "features", name: "Key Features", type: "textarea", placeholder: "List key features" },
-        { id: "accentColor", name: "Accent Color", type: "color" },
+        { id: "disclaimer", name: "免责声明", type: "textarea", placeholder: "请输入免责声明内容" },
       ],
     },
     {
@@ -31,9 +67,27 @@ export const TEMPLATES: Template[] = [
       description: "Showcase your agency's work and services",
       icon: "🏢",
       fields: [
+        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
+        { id: "license", name: "牌照选择", type: "select", options: [
+          { value: "FSC", label: "FSC" },
+          { value: "ASIC", label: "ASIC" },
+          { value: "CIMA", label: "CIMA" }
+        ]},
+        { id: "watermark", name: "生图水印", type: "radio", options: [
+          { value: "yes", label: "是" },
+          { value: "no", label: "否" }
+        ]},
+        { id: "footerRisk", name: "底部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
+        { id: "headerRisk", name: "头部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
         { id: "agencyName", name: "Agency Name", type: "text", placeholder: "Enter agency name" },
         { id: "services", name: "Services", type: "textarea", placeholder: "List your services" },
-        { id: "brandColor", name: "Brand Color", type: "color" },
+        { id: "contactInfo", name: "联系方式", type: "text", placeholder: "请输入联系电话和邮箱" },
       ],
     },
     {
@@ -42,10 +96,29 @@ export const TEMPLATES: Template[] = [
       description: "For conferences, webinars, and events",
       icon: "🎪",
       fields: [
+        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
+        { id: "license", name: "牌照选择", type: "select", options: [
+          { value: "FSC", label: "FSC" },
+          { value: "ASIC", label: "ASIC" },
+          { value: "CIMA", label: "CIMA" }
+        ]},
+        { id: "watermark", name: "生图水印", type: "radio", options: [
+          { value: "yes", label: "是" },
+          { value: "no", label: "否" }
+        ]},
+        { id: "footerRisk", name: "底部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
+        { id: "headerRisk", name: "头部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
         { id: "eventName", name: "Event Name", type: "text", placeholder: "Enter event name" },
         { id: "eventDate", name: "Event Date", type: "text", placeholder: "Enter event date" },
         { id: "eventLocation", name: "Event Location", type: "text", placeholder: "Enter location" },
         { id: "eventDescription", name: "Event Description", type: "textarea", placeholder: "Describe your event" },
+        { id: "eventCapacity", name: "活动人数限制", type: "text", placeholder: "请输入最大参与人数" },
       ],
     },
     {
@@ -54,9 +127,27 @@ export const TEMPLATES: Template[] = [
       description: "For content creators and publishers",
       icon: "📝",
       fields: [
+        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
+        { id: "license", name: "牌照选择", type: "select", options: [
+          { value: "FSC", label: "FSC" },
+          { value: "ASIC", label: "ASIC" },
+          { value: "CIMA", label: "CIMA" }
+        ]},
+        { id: "watermark", name: "生图水印", type: "radio", options: [
+          { value: "yes", label: "是" },
+          { value: "no", label: "否" }
+        ]},
+        { id: "footerRisk", name: "底部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
+        { id: "headerRisk", name: "头部风险提示", type: "radio", options: [
+          { value: "yes", label: "显示" },
+          { value: "no", label: "隐藏" }
+        ]},
         { id: "blogName", name: "Blog Name", type: "text", placeholder: "Enter blog name" },
         { id: "categories", name: "Categories", type: "textarea", placeholder: "List your categories" },
-        { id: "themeColor", name: "Theme Color", type: "color" },
+        { id: "publishFrequency", name: "发布频率", type: "text", placeholder: "请输入内容发布频率" },
       ],
     },
     {
@@ -67,7 +158,6 @@ export const TEMPLATES: Template[] = [
       fields: [
         { id: "organizationName", name: "Organization Name", type: "text", placeholder: "Enter organization name" },
         { id: "mission", name: "Mission Statement", type: "textarea", placeholder: "Your mission statement" },
-        { id: "causeColor", name: "Cause Color", type: "color" },
       ],
     },
     {
@@ -79,7 +169,6 @@ export const TEMPLATES: Template[] = [
         { id: "restaurantName", name: "Restaurant Name", type: "text", placeholder: "Enter restaurant name" },
         { id: "cuisine", name: "Cuisine Type", type: "text", placeholder: "Type of cuisine" },
         { id: "specialDish", name: "Special Dish", type: "text", placeholder: "Your signature dish" },
-        { id: "themeColor", name: "Theme Color", type: "color" },
       ],
     },
     {
@@ -91,7 +180,6 @@ export const TEMPLATES: Template[] = [
         { id: "name", name: "Your Name", type: "text", placeholder: "Enter your name" },
         { id: "profession", name: "Profession", type: "text", placeholder: "Your profession" },
         { id: "bio", name: "Bio", type: "textarea", placeholder: "Write a short bio" },
-        { id: "accentColor", name: "Accent Color", type: "color" },
       ],
     },
     {
@@ -123,7 +211,6 @@ export const TEMPLATES: Template[] = [
         { id: "institutionName", name: "Institution Name", type: "text", placeholder: "Enter institution name" },
         { id: "courseType", name: "Course Type", type: "text", placeholder: "Type of course" },
         { id: "benefits", name: "Benefits", type: "textarea", placeholder: "List the benefits" },
-        { id: "brandColor", name: "Brand Color", type: "color" },
       ],
     },
     {
@@ -134,7 +221,6 @@ export const TEMPLATES: Template[] = [
       fields: [
         { id: "serviceName", name: "Service Name", type: "text", placeholder: "Enter service name" },
         { id: "benefits", name: "Health Benefits", type: "textarea", placeholder: "List health benefits" },
-        { id: "accentColor", name: "Brand Color", type: "color" },
       ],
     },
 

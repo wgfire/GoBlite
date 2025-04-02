@@ -51,8 +51,8 @@ export const ChatHeader = ({ onTemplateSelect, selectedTemplate, isMobile, activ
 
           {selectedTemplate && (
             <Button className="flex items-center space-x-2 bg-slate-800/50 px-3 py-1.5 rounded-full border border-slate-700">
-              <Button variant="ghost" size="sm" spellCheck className="cursor-pointer">
-                <AiFillPlusCircle></AiFillPlusCircle>
+              <Button variant="link" size="icon" spellCheck className="cursor-pointer text-cyan-500 hover:text-cyan-600">
+                创建
               </Button>
               <span className="text-white text-sm font-medium">{selectedTemplate.name}</span>
             </Button>

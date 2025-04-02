@@ -5,12 +5,23 @@ export interface TemplateFile {
   content: string;
 }
 
+export interface FieldItem {
+ type:string
+ id:string,
+ name:string,
+ placeholder?:string
+ options?:{
+  label:string,
+  value:any
+ }[]
+}
+
 export interface Template {
   id: string;
   name: string;
   description?: string;
   icon?:string,
-  fields?:Record<string, unknown>[],
+  fields:FieldItem[],
   files?: Record<string, string>;
 }
 
