@@ -12,6 +12,7 @@ import { useTemplate } from "./template/useTemplate";
 import "./App.css";
 import { debounce } from "@/utils/debounce";
 import Chat from "./components/Chat";
+import { logDebug } from "./utils/logDebug";
 
 // 创建模板服务实例
 const templateService = new TemplateService();
@@ -21,6 +22,9 @@ export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<"editor" | "webcontainer">("editor");
   const [templateLoaded, setTemplateLoaded] = useState(false);
   const [isBuilt, setIsBuilt] = useState(false); // 新增状态，标记是否已经构建
+
+  // 使用ref跟踪初始化状态，避免文件初始化时重复打开文件
+  const initializedRef = useRef(false);
 
   // 使用模板钩子
   const { selectedTemplate, loading: templateLoading, error: templateError, loadTemplateContent } = useTemplate(templateService);
@@ -32,7 +36,28 @@ export const App: React.FC = () => {
   // 使用WebContainer钩子
   const { previewUrl, error: webContainerError, startApp } = useWebContainer();
 
-  console.log("activeFileContent 渲染", activeFileContent, activeFile);
+  // 使用条件日志代替直接console.log
+  logDebug("activeFileContent 渲染", activeFileContent, activeFile);
+
+  const openDefault = () => {
+    const defaultFile = findItem(files, "/src/App.tsx");
+    console.log("App 默认文件:", defaultFile);
+    if (defaultFile && defaultFile.type === FileItemType.FILE) {
+      console.log("App 打开默认文件:", defaultFile.path);
+      openFile(defaultFile);
+      updateFileContent(defaultFile.path, defaultFile.content || "");
+    } else {
+      // 如果找不到 /src/App.tsx，尝试打开第一个文件
+      console.log("App 找不到默认文件，尝试打开第一个文件");
+      const firstFile = findFirstFile(files);
+      if (firstFile) {
+        console.log("App 打开第一个文件:", firstFile.path);
+        openFile(firstFile);
+        updateFileContent(firstFile.path, firstFile.content || "");
+      }
+    }
+  };
+
   // 加载模板内容
   useEffect(() => {
     const loadTemplate = async () => {
@@ -40,13 +65,14 @@ export const App: React.FC = () => {
 
       setIsLoading(true);
       try {
-        console.log(`加载模板: ${selectedTemplate}`);
+        logDebug(`加载模板: ${selectedTemplate}`);
         const result = await loadTemplateContent(selectedTemplate);
 
         if (result.success && result.files) {
-          console.log("模板加载成功，重置文件系统");
+          logDebug("模板加载成功，重置文件系统");
           resetFileSystem(result.files);
           setTemplateLoaded(true);
+          openDefault()
         } else {
           console.error("模板加载失败:", result.error);
         }
@@ -61,7 +87,7 @@ export const App: React.FC = () => {
   }, [selectedTemplate, templateLoaded, loadTemplateContent, resetFileSystem]);
 
   useEffect(() => {
-    console.log("App 初始化 useEffect 触发", { files, openFiles });
+    logDebug("App 初始化 useEffect 触发", { files, openFiles });
 
     // 如果模板正在加载，保持加载状态
     if (templateLoading) {
@@ -69,31 +95,9 @@ export const App: React.FC = () => {
       return;
     }
 
-    // 如果没有打开的文件，则打开一个默认文件
-    if (openFiles.length === 0 && files.length > 0) {
-      console.log("App 尝试打开默认文件");
-      // 尝试打开 /src/App.tsx 文件，使用模板中定义的大小写
-      const defaultFile = findItem(files, "/src/App.tsx");
-      console.log("App 默认文件:", defaultFile);
-      if (defaultFile && defaultFile.type === FileItemType.FILE) {
-        console.log("App 打开默认文件:", defaultFile.path);
-        openFile(defaultFile);
-        updateFileContent(defaultFile.path, defaultFile.content || "");
-      } else {
-        // 如果找不到 /src/App.tsx，尝试打开第一个文件
-        console.log("App 找不到默认文件，尝试打开第一个文件");
-        const firstFile = findFirstFile(files);
-        if (firstFile) {
-          console.log("App 打开第一个文件:", firstFile.path);
-          openFile(firstFile);
-          updateFileContent(firstFile.path, firstFile.content || "");
-        }
-      }
-    }
-
     // 加载完成后关闭加载状态
     setIsLoading(false);
-  }, [templateLoading]);
+  }, [templateLoading]); // 添加完整的依赖数组
 
   // 使用useCallback包装handleCodeChange，并添加防抖
   const handleCodeChange = useCallback(
@@ -107,11 +111,11 @@ export const App: React.FC = () => {
   // 创建防抖更新函数
   const debouncedUpdateRef = useRef(
     debounce((newCode: string, file: string | null) => {
-      console.log("防抖更新文件内容:", file, newCode);
+      console.log("防抖更新文件内容:", file);
       if (file) {
         updateFileContent(file, newCode);
       }
-    }, 500)
+    }, 1000) // 将防抖时间从500ms增加到1000ms，减少更新频率
   );
 
   // 确保在组件卸载时清理防抖函数

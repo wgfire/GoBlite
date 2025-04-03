@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef } from 'react';
-import { EditorState, Extension } from '@codemirror/state';
-import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection, crosshairCursor } from '@codemirror/view';
-import { defaultKeymap, history, historyKeymap, undo as undoCommand, redo as redoCommand, indentWithTab } from '@codemirror/commands';
-import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldGutter, foldKeymap } from '@codemirror/language';
-import { javascript } from '@codemirror/lang-javascript';
-import { html } from '@codemirror/lang-html';
-import { css } from '@codemirror/lang-css';
-import { searchKeymap, search } from '@codemirror/search';
+import { useEffect, useMemo, useRef } from "react";
+import { EditorState, Extension } from "@codemirror/state";
+import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection, crosshairCursor } from "@codemirror/view";
+import { defaultKeymap, history, historyKeymap, undo as undoCommand, redo as redoCommand, indentWithTab } from "@codemirror/commands";
+import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldGutter, foldKeymap } from "@codemirror/language";
+import { javascript } from "@codemirror/lang-javascript";
+import { html } from "@codemirror/lang-html";
+import { css } from "@codemirror/lang-css";
+import { searchKeymap, search } from "@codemirror/search";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 
 /**创建编辑器 */
@@ -15,7 +15,7 @@ export interface EditorOptions {
   extensions?: Extension[];
   onChange?: (value: string) => void;
   readonly?: boolean;
-  language?: 'javascript' | 'typescript' | 'html' | 'css' | 'json';
+  language?: "javascript" | "typescript" | "html" | "css" | "json";
 }
 
 // 默认的Hello World JavaScript代码
@@ -33,13 +33,7 @@ console.log(message);
 `;
 
 export const useEditor = (options: EditorOptions = {}) => {
-  const {
-    initialDoc = DEFAULT_JAVASCRIPT_CODE,
-    extensions = [],
-    onChange,
-    readonly = false,
-    language = 'javascript'
-  } = options;
+  const { initialDoc = DEFAULT_JAVASCRIPT_CODE, extensions = [], onChange, readonly = false, language = "javascript" } = options;
 
   const editorViewRef = useRef<EditorView | null>(null);
   const editorContainerRef = useRef<HTMLDivElement | null>(null);
@@ -61,13 +55,13 @@ export const useEditor = (options: EditorOptions = {}) => {
   // 根据语言选择相应的语言支持
   const getLanguageExtension = useMemo(() => {
     switch (language) {
-      case 'javascript':
-      case 'typescript':
-      case 'json':
+      case "javascript":
+      case "typescript":
+      case "json":
         return javascript();
-      case 'html':
+      case "html":
         return html();
-      case 'css':
+      case "css":
         return css();
       default:
         return javascript({ jsx: true });
@@ -87,20 +81,13 @@ export const useEditor = (options: EditorOptions = {}) => {
       rectangularSelection(),
       crosshairCursor(),
       search({
-        top: true
+        top: true,
       }),
       foldGutter(),
-      keymap.of([
-        ...defaultKeymap,
-        ...historyKeymap,
-        ...searchKeymap,
-        ...foldKeymap,
-        ...completionKeymap,
-        indentWithTab,
-      ]),
+      keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, ...foldKeymap, ...completionKeymap, indentWithTab]),
       getLanguageExtension,
       autoParams,
-      EditorView.updateListener.of(update => {
+      EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           const newContent = update.state.doc.toString();
           contentRef.current = newContent;
@@ -110,7 +97,7 @@ export const useEditor = (options: EditorOptions = {}) => {
         }
       }),
     ];
-  }, []); 
+  }, [language, getLanguageExtension]);
 
   // 更新 onChange 引用以避免闭包问题
   useEffect(() => {
@@ -118,8 +105,11 @@ export const useEditor = (options: EditorOptions = {}) => {
   }, [onChange]);
 
   // 设置编辑器内容，但仅在内容实际变化且不是由编辑器内部更改触发时
-  const setContent = (content: string) => {
-    if (!editorViewRef.current || content === contentRef.current) return;
+  const setContent = (content: string, force: boolean = false) => {
+    if (!editorViewRef.current) return;
+
+    // 仅在内容实际变化或强制更新时才更新
+    if (!force && content === contentRef.current) return;
 
     contentRef.current = content;
 
@@ -127,29 +117,16 @@ export const useEditor = (options: EditorOptions = {}) => {
       changes: {
         from: 0,
         to: editorViewRef.current.state.doc.length,
-        insert: content
-      }
+        insert: content,
+      },
     });
 
     editorViewRef.current.dispatch(transaction);
   };
 
-  // 更新编辑器内容 - 用于文件切换
+  // 更新编辑器内容 - 用于文件切换，总是强制更新
   const updateContent = (content: string) => {
-    if (!editorViewRef.current) return;
-    
-
-    contentRef.current = content;
-    
-    const transaction = editorViewRef.current.state.update({
-      changes: {
-        from: 0,
-        to: editorViewRef.current.state.doc.length,
-        insert: content
-      }
-    });
-
-    editorViewRef.current.dispatch(transaction);
+    setContent(content, true);
   };
 
   // 获取编辑器内容
@@ -179,9 +156,9 @@ export const useEditor = (options: EditorOptions = {}) => {
       changes: {
         from: selection.from,
         to: selection.to,
-        insert: content
+        insert: content,
       },
-      selection: { anchor: selection.from + content.length }
+      selection: { anchor: selection.from + content.length },
     });
 
     editorViewRef.current.dispatch(transaction);
@@ -202,21 +179,21 @@ export const useEditor = (options: EditorOptions = {}) => {
   // 格式化代码
   const formatCode = () => {
     // 实现代码格式化逻辑，可以使用prettier或其他格式化库
-    console.log('Format code functionality to be implemented');
+    console.log("Format code functionality to be implemented");
   };
 
   // 切换注释
   const toggleComment = () => {
     if (!editorViewRef.current) return;
     // 使用CodeMirror的注释功能
-    console.log('Toggle comment functionality to be implemented');
+    console.log("Toggle comment functionality to be implemented");
   };
 
   // 查找和替换
   const findAndReplace = (find: string, replace: string, replaceAll: boolean = false) => {
     if (!editorViewRef.current) return;
     // 实现查找和替换逻辑
-    console.log('Find and replace functionality to be implemented');
+    console.log("Find and replace functionality to be implemented");
   };
 
   // 初始化编辑器
@@ -232,17 +209,13 @@ export const useEditor = (options: EditorOptions = {}) => {
     // 创建编辑器状态
     const state = EditorState.create({
       doc: contentRef.current,
-      extensions: [
-        ...baseExtensions,
-        ...extensions,
-        ...(readonly ? [EditorState.readOnly.of(true)] : [])
-      ]
+      extensions: [...baseExtensions, ...extensions, ...(readonly ? [EditorState.readOnly.of(true)] : [])],
     });
 
     // 创建编辑器视图
     const view = new EditorView({
       state,
-      parent: editorContainerRef.current
+      parent: editorContainerRef.current,
     });
 
     editorViewRef.current = view;
@@ -273,11 +246,7 @@ export const useEditor = (options: EditorOptions = {}) => {
     if (editorViewRef.current && extensions.length > 0) {
       const newState = EditorState.create({
         doc: editorViewRef.current.state.doc,
-        extensions: [
-          ...baseExtensions,
-          ...(readonly ? [EditorState.readOnly.of(true)] : []),
-          ...extensions
-        ]
+        extensions: [...baseExtensions, ...(readonly ? [EditorState.readOnly.of(true)] : []), ...extensions],
       });
 
       editorViewRef.current.setState(newState);
@@ -297,6 +266,6 @@ export const useEditor = (options: EditorOptions = {}) => {
     insertAtCursor,
     formatCode,
     toggleComment,
-    findAndReplace
+    findAndReplace,
   };
 };

@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaRegImages } from "react-icons/fa";
 import { IoSparklesOutline } from "react-icons/io5";
 import { LuLayoutTemplate } from "react-icons/lu";
-import { AiFillPlusCircle } from "react-icons/ai";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Template } from "@/template/types";

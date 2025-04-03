@@ -6,22 +6,22 @@ export interface TemplateFile {
 }
 
 export interface FieldItem {
- type:string
- id:string,
- name:string,
- placeholder?:string
- options?:{
-  label:string,
-  value:any
- }[]
+  type: string;
+  id: string;
+  name: string;
+  placeholder?: string;
+  options?: {
+    label: string;
+    value: any;
+  }[];
 }
 
 export interface Template {
   id: string;
   name: string;
   description?: string;
-  icon?:string,
-  fields:FieldItem[],
+  icon?: string;
+  fields: FieldItem[];
   files?: Record<string, string>;
 }
 

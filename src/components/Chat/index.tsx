@@ -4,7 +4,7 @@ import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
 import { HeaderTab, Message, UploadedFile } from "./types";
 import { Template } from "@/template/types";
-import { AnimatePresence,motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
 
 const Chat: React.FC = () => {
@@ -64,17 +64,30 @@ const Chat: React.FC = () => {
     setShowTemplateForm(true);
   };
   const handleTemplateFormSubmit = (data: Record<string, string>) => {
-   console.log("Template form submitted:", data);
-  }
+    console.log("Template form submitted:", data);
+  };
   const handleTemplateFormClose = () => {
     setSelectedTemplate(null);
-  }
+  };
 
   return (
     <div className="flex flex-col h-full bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative">
-      <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
+      <div className="absolute  right-0 h-full w-[1px] bg-gradient-to-r from-purple-500/0 via-cyan-500/50 to-purple-500/0"></div>
+      <ChatHeader
+        onTemplateSelect={handleTemplateSelect}
+        selectedTemplate={selectedTemplate}
+        isMobile={false}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
       <MessageList messages={messages} isSending={isSending} />
-      <InputArea onSend={handleSend} onOptimizePrompt={handleOptimizePrompt} isSending={isSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} />
+      <InputArea
+        onSend={handleSend}
+        onOptimizePrompt={handleOptimizePrompt}
+        isSending={isSending}
+        uploadedFiles={uploadedFiles}
+        setUploadedFiles={setUploadedFiles}
+      />
 
       <AnimatePresence>
         {showTemplateForm && selectedTemplate && (

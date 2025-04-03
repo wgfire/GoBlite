@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useEditor } from "@core/editor/hooks/useEditor";
 import { useFileSystem } from "@core/fileSystem/hooks/useFileSystem";
 import "./style/editor.css";
-import './style/syntax.css';
+import "./style/syntax.css";
 
 interface EditorProps {
   initialCode?: string;
@@ -10,49 +10,24 @@ interface EditorProps {
   readonly?: boolean;
 }
 
-export const Editor = ({
-  initialCode,
-  onChange,
-  readonly = false
-}: EditorProps) => {
-  const { activeFile, activeFileContent } = useFileSystem();
-  const [currentFile, setCurrentFile] = useState<string | null>(null);
-  const isUpdatingRef = useRef(false);
-  
+export const Editor = ({ initialCode, onChange, readonly = false }: EditorProps) => {
   // 先定义handleEditorChange函数
-  const handleEditorChange = useCallback((newContent: string) => {
-    if (isUpdatingRef.current) return; // 防止循环更新
-    
-    // 只调用外部的onChange，不直接更新文件系统
-    if (onChange) {
-      onChange(newContent);
-    }
-  }, [onChange]);
-  
+  const handleEditorChange = useCallback(
+    (newContent: string) => {
+      // 只调用外部的onChange，不直接更新文件系统
+      if (onChange) {
+        onChange(newContent);
+      }
+    },
+    [onChange]
+  );
+
   // 然后再使用这个函数
-  const { editorContainerRef, setContent } = useEditor({
+  const { editorContainerRef } = useEditor({
     initialDoc: initialCode || "",
     onChange: handleEditorChange,
-    readonly
+    readonly,
   });
-
-  // 当active file变化时，更新编辑器内容
-  useEffect(() => {
-    if (activeFile && activeFile !== currentFile) {
-      // 设置标志，防止触发onChange回调
-      isUpdatingRef.current = true;
-      
-      // 只有当activeFile变化时才更新编辑器内容
-      const content = activeFileContent ? activeFileContent : (initialCode || "");
-      setContent(content);
-      setCurrentFile(activeFile);
-      
-      // 重置标志
-      setTimeout(() => {
-        isUpdatingRef.current = false;
-      }, 0);
-    }
-  }, [activeFile, currentFile, setContent, activeFileContent]);
 
   return (
     <div className="editor-container">

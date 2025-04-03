@@ -1,12 +1,21 @@
 import { useAtom, useAtomValue } from "jotai";
-import { FileItem, FileItemType } from "../types";
-import { filesAtom, operationsAtom, activeFileAtom, openFilesAtom, findItemHelper, getParentPathHelper, findAndUpdateItemHelper, activeFileContentAtom } from "../atoms";
+import { FileItem, FileItemType, FileMetadata } from "../types";
+import {
+  filesAtom,
+  operationsAtom,
+  activeFileAtom,
+  openFilesAtom,
+  findItemHelper,
+  getParentPathHelper,
+  findAndUpdateItemHelper,
+  activeFileContentAtom,
+} from "../atoms";
 import { useCallback, useEffect, useRef } from "react";
 
 // 文件系统钩子
 export const useFileSystem = function (initialFiles?: FileItem[]) {
   // 分离读取和写入
-  const [files,setFiles] = useAtom(filesAtom);
+  const [files, setFiles] = useAtom(filesAtom);
   const [operations, setOperations] = useAtom(operationsAtom);
   const [activeFile, setActiveFile] = useAtom(activeFileAtom);
   const [openFiles, setOpenFiles] = useAtom(openFilesAtom);
@@ -15,6 +24,32 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
   // 使用 ref 跟踪初始化状态，避免重复初始化
   const initializedRef = useRef(false);
 
+  // 添加文件路径缓存，避免频繁遍历文件树
+  const pathToItemCacheRef = useRef<Map<string, FileItem>>(new Map());
+
+  // 构建并更新文件路径缓存
+  const updateFileCache = useCallback((fileItems: FileItem[]) => {
+    const cache = new Map<string, FileItem>();
+
+    // 递归遍历文件树并构建缓存
+    const traverseFiles = (items: FileItem[]) => {
+      for (const item of items) {
+        cache.set(item.path, item);
+        if (item.type === FileItemType.FOLDER && item.children) {
+          traverseFiles(item.children);
+        }
+      }
+    };
+
+    traverseFiles(fileItems);
+    pathToItemCacheRef.current = cache;
+  }, []);
+
+  // 监听文件变化并更新缓存
+  useEffect(() => {
+    updateFileCache(files);
+  }, [files, updateFileCache]);
+
   // 初始化时自动打开默认文件
   useEffect(() => {
     console.log("useFileSystem 初始化");
@@ -22,11 +57,55 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     // 如果提供了初始文件，则使用它们初始化文件系统
     if (initialFiles && initialFiles.length > 0 && !initializedRef.current) {
       console.log("使用初始文件初始化文件系统:", initialFiles);
-      setFiles(initialFiles);
+      // 为初始文件添加元数据
+      const filesWithMetadata = addMetadataToFiles(initialFiles);
+      setFiles(filesWithMetadata);
+      updateFileCache(filesWithMetadata);
       initializedRef.current = true;
       return; // 初始化后直接返回，避免执行后续逻辑
     }
-  }, [initialFiles, initializedRef.current]);
+  }, [initialFiles, initializedRef.current, setFiles, updateFileCache]);
+
+  // 为文件添加元数据
+  const addMetadataToFiles = useCallback((items: FileItem[]): FileItem[] => {
+    const now = Date.now();
+
+    const processItem = (item: FileItem): FileItem => {
+      // 如果已有元数据，则保留
+      const metadata: FileMetadata = item.metadata || {
+        createdAt: now,
+        updatedAt: now,
+        size: item.type === FileItemType.FILE && item.content ? new Blob([item.content]).size : undefined,
+      };
+
+      if (item.type === FileItemType.FOLDER && item.children) {
+        return {
+          ...item,
+          metadata,
+          children: item.children.map(processItem),
+        };
+      }
+
+      return {
+        ...item,
+        metadata,
+      };
+    };
+
+    return items.map(processItem);
+  }, []);
+
+  // 使用缓存优化的查找函数
+  const findItem = useCallback((items: FileItem[], path: string): FileItem | null => {
+    // 先从缓存查找
+    const cachedItem = pathToItemCacheRef.current.get(path);
+    if (cachedItem) {
+      return cachedItem;
+    }
+
+    // 缓存未命中时回退到原始查找方法
+    return findItemHelper(items, path);
+  }, []);
 
   // 查找第一个可用的文件
   const findFirstFile = (items: FileItem[]): FileItem | null => {
@@ -45,19 +124,23 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
   const resetFileSystem = useCallback(
     (newFiles: FileItem[]) => {
       console.log("重置文件系统:", newFiles);
-      setFiles(newFiles);
+
+      // 为新文件添加元数据
+      const filesWithMetadata = addMetadataToFiles(newFiles);
+
+      // 更新文件系统状态
+      setFiles(filesWithMetadata);
       setOperations([]);
       setActiveFile(null);
       setOpenFiles([]);
+
+      // 更新文件路径缓存
+      updateFileCache(filesWithMetadata);
+
       initializedRef.current = false;
     },
-    [setFiles, setOperations, setActiveFile, setOpenFiles]
+    [setFiles, setOperations, setActiveFile, setOpenFiles, addMetadataToFiles, updateFileCache]
   );
-
-  // 查找文件或文件夹
-  const findItem = useCallback((items: FileItem[], path: string): FileItem | null => {
-    return findItemHelper(items, path);
-  }, []);
 
   // 获取父路径
   const getParentPath = useCallback((path: string): string => {
@@ -89,22 +172,49 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
         return;
       }
 
+      // 添加创建时间和更新时间元数据
+      const now = Date.now();
+      const fileWithMetadata = {
+        ...newFile,
+        metadata: {
+          ...(newFile.metadata || {}),
+          createdAt: now,
+          updatedAt: now,
+          size: newFile.content ? new Blob([newFile.content]).size : 0,
+        },
+      };
+
       setFiles((prevFiles) => {
         // 如果添加到根目录
         if (parentPath === "/") {
-          return [...prevFiles, newFile];
+          const updatedFiles = [...prevFiles, fileWithMetadata];
+          // 更新缓存，避免额外的遍历操作
+          updateFileCache(updatedFiles);
+          return updatedFiles;
         }
 
         // 添加到子文件夹
-        return findAndUpdateItem(prevFiles, parentPath, (item) => ({
+        const updatedFiles = findAndUpdateItem(prevFiles, parentPath, (item) => ({
           ...item,
-          children: [...(item.children || []), newFile],
+          children: [...(item.children || []), fileWithMetadata],
         }));
+
+        // 更新缓存
+        updateFileCache(updatedFiles);
+        return updatedFiles;
       });
 
-      setOperations((prev) => [...prev, { type: "create", path: newFile.path, isFolder: false }]);
+      setOperations((prev) => [
+        ...prev,
+        {
+          type: "create",
+          path: newFile.path,
+          isFolder: false,
+          timestamp: now,
+        },
+      ]);
     },
-    [files, findItem, findAndUpdateItem, setFiles, setOperations]
+    [files, findItem, findAndUpdateItem, setFiles, setOperations, updateFileCache]
   );
 
   // 创建新文件夹
@@ -118,22 +228,48 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
         return;
       }
 
+      // 添加创建时间和更新时间元数据
+      const now = Date.now();
+      const folderWithMetadata = {
+        ...newFolder,
+        metadata: {
+          ...(newFolder.metadata || {}),
+          createdAt: now,
+          updatedAt: now,
+        },
+      };
+
       setFiles((prevFiles) => {
         // 如果添加到根目录
         if (parentPath === "/") {
-          return [...prevFiles, newFolder];
+          const updatedFiles = [...prevFiles, folderWithMetadata];
+          // 更新缓存
+          updateFileCache(updatedFiles);
+          return updatedFiles;
         }
 
         // 添加到子文件夹
-        return findAndUpdateItem(prevFiles, parentPath, (item) => ({
+        const updatedFiles = findAndUpdateItem(prevFiles, parentPath, (item) => ({
           ...item,
-          children: [...(item.children || []), newFolder],
+          children: [...(item.children || []), folderWithMetadata],
         }));
+
+        // 更新缓存
+        updateFileCache(updatedFiles);
+        return updatedFiles;
       });
 
-      setOperations((prev) => [...prev, { type: "create", path: newFolder.path, isFolder: true }]);
+      setOperations((prev) => [
+        ...prev,
+        {
+          type: "create",
+          path: newFolder.path,
+          isFolder: true,
+          timestamp: now,
+        },
+      ]);
     },
-    [files, findItem, findAndUpdateItem, setFiles, setOperations]
+    [files, findItem, findAndUpdateItem, setFiles, setOperations, updateFileCache]
   );
 
   // 打开文件
@@ -196,59 +332,88 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     (item: FileItem, newName: string) => {
       if (!item) return;
 
+      const now = Date.now();
       const oldPath = item.path;
       const parentPath = getParentPath(oldPath);
-      const newPath = `${parentPath === "/" ? "" : parentPath}/${newName}`;
+
+      // 构建新路径
+      const newPath = parentPath === "/" ? `/${newName}` : `${parentPath}/${newName}`;
 
       // 检查新路径是否已存在
       if (findItem(files, newPath)) {
-        alert(`${item.type === FileItemType.FOLDER ? "文件夹" : "文件"} ${newName} 已存在!`);
+        alert(`名称 '${newName}' 已存在!`);
         return;
       }
 
-      // 更新文件或文件夹
-      setFiles((prevFiles) => {
-        // 创建一个新的文件或文件夹，使用新的名称和路径
-        const updatedItem: FileItem = {
-          ...item,
-          name: newName,
-          path: newPath,
-        };
-
-        // 如果是文件夹，更新所有子项的路径
-        if (item.type === FileItemType.FOLDER && item.children) {
-          updatedItem.children = item.children.map((child) => {
-            const childNewPath = child.path.replace(oldPath, newPath);
-            return {
-              ...child,
-              path: childNewPath,
+      // 递归更新路径
+      const updatePaths = (oldItemPath: string, newItemPath: string, items: FileItem[]): FileItem[] => {
+        return items.map((f) => {
+          // 如果是要重命名的项，更新路径和名称
+          if (f.path === oldItemPath) {
+            // 更新元数据中的更新时间
+            const updatedItem = {
+              ...f,
+              name: newName,
+              path: newItemPath,
+              metadata: {
+                ...(f.metadata || { createdAt: now }),
+                updatedAt: now,
+              },
             };
-          });
-        }
 
-        // 从父文件夹中移除旧项并添加新项
-        const parent = findParent(prevFiles, oldPath);
+            // 如果是文件夹，还需要递归更新所有子项路径
+            if (f.type === FileItemType.FOLDER && f.children) {
+              const updatedChildren = f.children.map((child) => {
+                const childNewPath = child.path.replace(oldItemPath, newItemPath);
+                return updatePaths(child.path, childNewPath, [child])[0];
+              });
 
-        if (!parent) {
-          // 如果没有父文件夹（即在根目录），直接替换
-          return prevFiles.map((f) => (f.path === oldPath ? updatedItem : f));
-        }
+              return {
+                ...updatedItem,
+                children: updatedChildren,
+              };
+            }
 
-        // 更新父文件夹
-        return findAndUpdateItem(prevFiles, parent.path, (p) => ({
-          ...p,
-          children: [...(p.children || []).filter((c) => c.path !== oldPath), updatedItem],
-        }));
+            return updatedItem;
+          }
+
+          // 如果是文件夹，递归处理子项
+          if (f.type === FileItemType.FOLDER && f.children) {
+            return {
+              ...f,
+              children: updatePaths(oldItemPath, newItemPath, f.children),
+            };
+          }
+
+          return f;
+        });
+      };
+
+      // 更新文件系统
+      setFiles((prevFiles) => {
+        const updatedFiles = updatePaths(oldPath, newPath, prevFiles);
+        // 更新缓存
+        updateFileCache(updatedFiles);
+        return updatedFiles;
       });
 
-      // 更新打开的文件和活动文件
-      if (openFiles.includes(oldPath)) {
-        setOpenFiles((prev) => prev.map((p) => (p === oldPath ? newPath : p)));
-      }
-
+      // 如果是重命名当前活动文件，更新活动文件路径
       if (activeFile === oldPath) {
         setActiveFile(newPath);
       }
+
+      // 更新打开的文件列表
+      setOpenFiles((prev) => {
+        return prev.map((p) => {
+          if (p === oldPath) {
+            return newPath;
+          }
+          if (item.type === FileItemType.FOLDER && p.startsWith(oldPath + "/")) {
+            return newPath + p.substring(oldPath.length);
+          }
+          return p;
+        });
+      });
 
       setOperations((prev) => [
         ...prev,
@@ -257,10 +422,24 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
           path: oldPath,
           newPath,
           isFolder: item.type === FileItemType.FOLDER,
+          timestamp: now,
         },
       ]);
     },
-    [activeFile, files, findItem, findParent, getParentPath, openFiles, findAndUpdateItem, setActiveFile, setFiles, setOpenFiles, setOperations]
+    [
+      activeFile,
+      files,
+      findItem,
+      findParent,
+      getParentPath,
+      openFiles,
+      findAndUpdateItem,
+      setActiveFile,
+      setFiles,
+      setOpenFiles,
+      setOperations,
+      updateFileCache,
+    ]
   );
 
   // 删除文件或文件夹
@@ -270,19 +449,26 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
       if (!item) return;
 
       const parentPath = getParentPath(path);
+      const now = Date.now();
 
       // 从父文件夹中移除项
       setFiles((prevFiles) => {
+        let updatedFiles;
+
         if (parentPath === "/") {
           // 如果在根目录，直接过滤掉
-          return prevFiles.filter((f) => f.path !== path);
+          updatedFiles = prevFiles.filter((f) => f.path !== path);
+        } else {
+          // 更新父文件夹
+          updatedFiles = findAndUpdateItem(prevFiles, parentPath, (p) => ({
+            ...p,
+            children: (p.children || []).filter((c) => c.path !== path),
+          }));
         }
 
-        // 更新父文件夹
-        return findAndUpdateItem(prevFiles, parentPath, (p) => ({
-          ...p,
-          children: (p.children || []).filter((c) => c.path !== path),
-        }));
+        // 更新缓存
+        updateFileCache(updatedFiles);
+        return updatedFiles;
       });
 
       // 如果删除的是文件夹，关闭所有子文件
@@ -325,26 +511,60 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
           type: "delete",
           path,
           isFolder: item.type === FileItemType.FOLDER,
+          timestamp: now,
+        },
+      ]);
+
+      // 从缓存中删除项及其所有子项
+      const cache = pathToItemCacheRef.current;
+      if (item.type === FileItemType.FOLDER) {
+        // 删除文件夹及其所有子项
+        Array.from(cache.keys()).forEach((key) => {
+          if (key === path || key.startsWith(`${path}/`)) {
+            cache.delete(key);
+          }
+        });
+      } else {
+        // 只删除单个文件
+        cache.delete(path);
+      }
+    },
+    [activeFile, files, findItem, getParentPath, openFiles, findAndUpdateItem, setActiveFile, setFiles, setOpenFiles, setOperations, updateFileCache]
+  );
+
+  // 更新文件内容（添加更新时间戳）
+  const updateFileContent = useCallback(
+    (path: string, content: string) => {
+      const now = Date.now();
+
+      setFiles((prevFiles) =>
+        findAndUpdateItem(prevFiles, path, (item) => {
+          // 计算新的文件大小
+          const size = new Blob([content]).size;
+
+          return {
+            ...item,
+            content,
+            metadata: {
+              ...(item.metadata || { createdAt: now }),
+              updatedAt: now,
+              size,
+            },
+          };
+        })
+      );
+
+      setOperations((prev) => [
+        ...prev,
+        {
+          type: "update",
+          path,
+          timestamp: now,
         },
       ]);
     },
-    [activeFile, files, findItem, getParentPath, openFiles, findAndUpdateItem, setActiveFile, setFiles, setOpenFiles, setOperations]
+    [findAndUpdateItem, setFiles, setOperations]
   );
-
-  // 更新文件内容
-  const updateFileContent = useCallback((path: string, content: string) => {
-    setFiles(prevFiles => 
-      findAndUpdateItem(prevFiles, path, item => ({
-        ...item,
-        content
-      }))
-    );
-    
-    setOperations(prev => [
-      ...prev, 
-      { type: 'update', path }
-    ]);
-  }, [findAndUpdateItem, setFiles, setOperations]);
 
   // 设置活动文件标签
   const setActiveTab = useCallback(
@@ -377,5 +597,6 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     setActiveTab,
     resetFileSystem,
     findFirstFile,
+    updateFileCache, // 导出缓存更新方法
   };
 };
