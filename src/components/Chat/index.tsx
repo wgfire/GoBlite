@@ -72,22 +72,10 @@ const Chat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative">
-      <div className="absolute  right-0 h-full w-[1px] bg-gradient-to-r from-purple-500/0 via-cyan-500/50 to-purple-500/0"></div>
-      <ChatHeader
-        onTemplateSelect={handleTemplateSelect}
-        selectedTemplate={selectedTemplate}
-        isMobile={false}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <div className="absolute right-0 h-full w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"></div>
+      <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
       <MessageList messages={messages} isSending={isSending} />
-      <InputArea
-        onSend={handleSend}
-        onOptimizePrompt={handleOptimizePrompt}
-        isSending={isSending}
-        uploadedFiles={uploadedFiles}
-        setUploadedFiles={setUploadedFiles}
-      />
+      <InputArea onSend={handleSend} onOptimizePrompt={handleOptimizePrompt} isSending={isSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} />
 
       <AnimatePresence>
         {showTemplateForm && selectedTemplate && (

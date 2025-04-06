@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Toolbar } from "@components/Toolbar";
 import { FileExplorer } from "@components/FileExplorer";
 import { FileTabs } from "@components/FileTabs";
@@ -13,6 +13,7 @@ import "./App.css";
 import { debounce } from "@/utils/debounce";
 import Chat from "./components/Chat";
 import { logDebug } from "./utils/logDebug";
+import useMemoizedFn from "@/hooks/useMemoizedFn"; // Import the custom hook
 
 // 创建模板服务实例
 const templateService = new TemplateService();
@@ -22,9 +23,6 @@ export const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<"editor" | "webcontainer">("editor");
   const [templateLoaded, setTemplateLoaded] = useState(false);
   const [isBuilt, setIsBuilt] = useState(false); // 新增状态，标记是否已经构建
-
-  // 使用ref跟踪初始化状态，避免文件初始化时重复打开文件
-  const initializedRef = useRef(false);
 
   // 使用模板钩子
   const { selectedTemplate, loading: templateLoading, error: templateError, loadTemplateContent } = useTemplate(templateService);
@@ -99,14 +97,12 @@ export const App: React.FC = () => {
     setIsLoading(false);
   }, [templateLoading]); // 添加完整的依赖数组
 
-  // 使用useCallback包装handleCodeChange，并添加防抖
-  const handleCodeChange = useCallback(
-    (newCode: string) => {
-      // 使用防抖更新文件内容，减少文件系统更新频率
-      debouncedUpdateRef.current(newCode, activeFile);
-    },
-    [activeFile]
-  );
+  // 使用useMemoizedFn包装handleCodeChange，并添加防抖
+  const handleCodeChange = useMemoizedFn((newCode: string) => {
+    // 使用防抖更新文件内容，减少文件系统更新频率
+    // useMemoizedFn 保证函数引用不变，内部能访问最新的 activeFile
+    debouncedUpdateRef.current(newCode, activeFile);
+  });
 
   // 创建防抖更新函数
   const debouncedUpdateRef = useRef(
@@ -205,9 +201,9 @@ export const App: React.FC = () => {
     console.log("切换视图，仅改变UI显示");
     // 只改变视图状态，不调用stop或start
     setCurrentView(currentView === "editor" ? "webcontainer" : "editor");
-  };
+  }; 
 
-  const handleFileOpen = (file: FileItem) => {
+  const handleFileOpen = (file: FileItem) => { // Reverted to original definition for now
     console.log("App 打开文件:", file.path);
     if (file && file.type === FileItemType.FILE) {
       openFile(file);
@@ -218,11 +214,6 @@ export const App: React.FC = () => {
     console.log("App 选择标签:", filePath);
     // 设置活动文件
     setActiveTab(filePath);
-    // 获取文件内容
-    const file = findItem(files, filePath);
-    if (file && file.type === FileItemType.FILE) {
-      updateFileContent(filePath, file.content || "");
-    }
   };
 
   // 显示加载或错误状态

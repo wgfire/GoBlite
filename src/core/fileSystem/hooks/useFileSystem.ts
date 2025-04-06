@@ -1,15 +1,6 @@
 import { useAtom, useAtomValue } from "jotai";
 import { FileItem, FileItemType, FileMetadata } from "../types";
-import {
-  filesAtom,
-  operationsAtom,
-  activeFileAtom,
-  openFilesAtom,
-  findItemHelper,
-  getParentPathHelper,
-  findAndUpdateItemHelper,
-  activeFileContentAtom,
-} from "../atoms";
+import { filesAtom, operationsAtom, activeFileAtom, openFilesAtom, findItemHelper, getParentPathHelper, findAndUpdateItemHelper, activeFileContentAtom } from "../atoms";
 import { useCallback, useEffect, useRef } from "react";
 
 // 文件系统钩子
@@ -26,6 +17,9 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
 
   // 添加文件路径缓存，避免频繁遍历文件树
   const pathToItemCacheRef = useRef<Map<string, FileItem>>(new Map());
+
+  // 用于防止重复调用的标志
+  const isRenamingRef = useRef<Record<string, boolean>>({});
 
   // 构建并更新文件路径缓存
   const updateFileCache = useCallback((fileItems: FileItem[]) => {
@@ -44,27 +38,6 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     traverseFiles(fileItems);
     pathToItemCacheRef.current = cache;
   }, []);
-
-  // 监听文件变化并更新缓存
-  useEffect(() => {
-    updateFileCache(files);
-  }, [files, updateFileCache]);
-
-  // 初始化时自动打开默认文件
-  useEffect(() => {
-    console.log("useFileSystem 初始化");
-
-    // 如果提供了初始文件，则使用它们初始化文件系统
-    if (initialFiles && initialFiles.length > 0 && !initializedRef.current) {
-      console.log("使用初始文件初始化文件系统:", initialFiles);
-      // 为初始文件添加元数据
-      const filesWithMetadata = addMetadataToFiles(initialFiles);
-      setFiles(filesWithMetadata);
-      updateFileCache(filesWithMetadata);
-      initializedRef.current = true;
-      return; // 初始化后直接返回，避免执行后续逻辑
-    }
-  }, [initialFiles, initializedRef.current, setFiles, updateFileCache]);
 
   // 为文件添加元数据
   const addMetadataToFiles = useCallback((items: FileItem[]): FileItem[] => {
@@ -94,6 +67,27 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
 
     return items.map(processItem);
   }, []);
+
+  // 监听文件变化并更新缓存
+  useEffect(() => {
+    updateFileCache(files);
+  }, [files, updateFileCache]);
+
+  // 初始化时自动打开默认文件
+  useEffect(() => {
+    console.log("useFileSystem 初始化");
+
+    // 如果提供了初始文件，则使用它们初始化文件系统
+    if (initialFiles && initialFiles.length > 0 && !initializedRef.current) {
+      console.log("使用初始文件初始化文件系统:", initialFiles);
+      // 为初始文件添加元数据
+      const filesWithMetadata = addMetadataToFiles(initialFiles);
+      setFiles(filesWithMetadata);
+      updateFileCache(filesWithMetadata);
+      initializedRef.current = true;
+      return; // 初始化后直接返回，避免执行后续逻辑
+    }
+  }, [initialFiles, setFiles, updateFileCache, addMetadataToFiles]);
 
   // 使用缓存优化的查找函数
   const findItem = useCallback((items: FileItem[], path: string): FileItem | null => {
@@ -281,6 +275,13 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
         return;
       }
 
+      // 验证文件是否存在
+      const existingFile = findItem(files, file.path);
+      if (!existingFile) {
+        console.error(`要打开的文件不存在: ${file.path}`);
+        return;
+      }
+
       // 设置活动文件
       setActiveFile(file.path);
 
@@ -294,7 +295,7 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
         return prev;
       });
     },
-    [setActiveFile, setOpenFiles]
+    [files, findItem, setActiveFile, setOpenFiles]
   );
 
   // 关闭文件
@@ -332,8 +333,23 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     (item: FileItem, newName: string) => {
       if (!item) return;
 
-      const now = Date.now();
+      // 添加调用堆栈跟踪，帮助调试
+      console.log("重命名被调用:", item.path, newName);
+      console.log(new Error().stack);
+
       const oldPath = item.path;
+
+      // 检查是否正在重命名同一个文件
+      if (isRenamingRef.current[oldPath]) {
+        console.log("重命名操作已在进行中，忽略重复调用:", oldPath);
+        return;
+      }
+
+      // 设置重命名标志
+      isRenamingRef.current[oldPath] = true;
+      console.log("设置重命名标志:", oldPath);
+
+      const now = Date.now();
       const parentPath = getParentPath(oldPath);
 
       // 构建新路径
@@ -342,6 +358,8 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
       // 检查新路径是否已存在
       if (findItem(files, newPath)) {
         alert(`名称 '${newName}' 已存在!`);
+        // 重置重命名标志
+        isRenamingRef.current[oldPath] = false;
         return;
       }
 
@@ -363,9 +381,36 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
 
             // 如果是文件夹，还需要递归更新所有子项路径
             if (f.type === FileItemType.FOLDER && f.children) {
+              // 保留原始子文件的名称，只更新路径
               const updatedChildren = f.children.map((child) => {
-                const childNewPath = child.path.replace(oldItemPath, newItemPath);
-                return updatePaths(child.path, childNewPath, [child])[0];
+                // 获取子项相对于父文件夹的路径
+                const childOldPath = child.path;
+                const childRelativePath = childOldPath.substring(oldItemPath.length);
+
+                // 构建新路径，保留子项的相对路径
+                let childNewPath;
+                if (oldItemPath === "/") {
+                  // 如果是根目录，特殊处理
+                  childNewPath = `/${newName}${childRelativePath}`;
+                } else {
+                  childNewPath = `${newItemPath}${childRelativePath}`;
+                }
+
+                // 创建更新后的子项，仅更新路径，保留原始名称
+                const updatedChild = {
+                  ...child,
+                  path: childNewPath,
+                };
+
+                // 如果子项是文件夹，递归更新其子项
+                if (updatedChild.type === FileItemType.FOLDER && updatedChild.children) {
+                  return {
+                    ...updatedChild,
+                    children: updatePaths(childOldPath, childNewPath, updatedChild.children),
+                  };
+                }
+
+                return updatedChild;
               });
 
               return {
@@ -394,6 +439,15 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
         const updatedFiles = updatePaths(oldPath, newPath, prevFiles);
         // 更新缓存
         updateFileCache(updatedFiles);
+
+        // 检查更新后的文件是否存在
+        const renamedItem = findItem(updatedFiles, newPath);
+        if (!renamedItem) {
+          console.error(`重命名后的文件未找到: ${newPath}`);
+        } else {
+          console.log(`重命名成功: ${oldPath} -> ${newPath}`);
+        }
+
         return updatedFiles;
       });
 
@@ -404,15 +458,33 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
 
       // 更新打开的文件列表
       setOpenFiles((prev) => {
-        return prev.map((p) => {
+        // 创建一个新的数组，避免引用问题
+        const updatedOpenFiles = prev.map((p) => {
           if (p === oldPath) {
+            console.log(`更新打开的文件路径: ${p} -> ${newPath}`);
             return newPath;
           }
           if (item.type === FileItemType.FOLDER && p.startsWith(oldPath + "/")) {
-            return newPath + p.substring(oldPath.length);
+            const updatedPath = newPath + p.substring(oldPath.length);
+            console.log(`更新文件夹内文件路径: ${p} -> ${updatedPath}`);
+            return updatedPath;
           }
           return p;
         });
+
+        // 确保没有重复的路径
+        const uniqueOpenFiles = [...new Set(updatedOpenFiles)];
+        console.log("更新后的打开文件列表:", uniqueOpenFiles);
+
+        // 验证更新后的文件是否存在
+        uniqueOpenFiles.forEach((filePath) => {
+          const fileExists = findItem(files, filePath);
+          if (!fileExists) {
+            console.log(`警告: 打开文件列表中的文件不存在: ${filePath}`);
+          }
+        });
+
+        return uniqueOpenFiles;
       });
 
       setOperations((prev) => [
@@ -425,21 +497,39 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
           timestamp: now,
         },
       ]);
+
+      // 更新缓存以确保文件内容与新路径关联
+      // 在重置标志前先确保缓存已更新
+      const updatedFile = findItem(files, newPath);
+      if (updatedFile && updatedFile.type === FileItemType.FILE) {
+        console.log(`更新文件缓存: ${newPath}`);
+        // 强制更新文件内容，确保缓存与新路径关联
+        if (activeFile === newPath) {
+          // 如果是活动文件，先切换到空文件再切回来，强制刷新缓存
+          setActiveFile(null);
+          setTimeout(() => {
+            setActiveFile(newPath);
+          }, 0);
+        }
+      }
+
+      // 重置重命名标志，允许再次重命名
+      // 使用 Promise 来确保在状态更新完成后重置标志
+      // 使用 requestAnimationFrame 确保在下一帧渲染周期后执行
+      requestAnimationFrame(() => {
+        // 使用 Promise 确保在微任务队列中执行
+        Promise.resolve().then(() => {
+          setTimeout(() => {
+            // 清除重命名标志
+            if (isRenamingRef.current[oldPath]) {
+              delete isRenamingRef.current[oldPath];
+              console.log(`重命名操作完成，重置标志: ${oldPath}`);
+            }
+          }, 500); // 增加延迟时间，确保操作完成
+        });
+      });
     },
-    [
-      activeFile,
-      files,
-      findItem,
-      findParent,
-      getParentPath,
-      openFiles,
-      findAndUpdateItem,
-      setActiveFile,
-      setFiles,
-      setOpenFiles,
-      setOperations,
-      updateFileCache,
-    ]
+    [activeFile, files, findItem, getParentPath, setActiveFile, setFiles, setOpenFiles, setOperations, updateFileCache]
   );
 
   // 删除文件或文件夹
@@ -570,11 +660,21 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
   const setActiveTab = useCallback(
     (path: string) => {
       console.log("设置活动标签:", path);
+
+      // 验证文件是否存在
+      const existingFile = findItem(files, path);
+      if (!existingFile) {
+        console.error(`要设置为活动标签的文件不存在: ${path}`);
+        return;
+      }
+
       if (openFiles.includes(path)) {
         setActiveFile(path);
+      } else {
+        console.log(`文件 ${path} 不在打开列表中，无法设置为活动标签`);
       }
     },
-    [openFiles, setActiveFile]
+    [files, findItem, openFiles, setActiveFile]
   );
 
   return {

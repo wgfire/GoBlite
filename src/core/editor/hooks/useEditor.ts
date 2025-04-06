@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef } from "react";
-import { EditorState, Extension } from "@codemirror/state";
+import { EditorState, Extension, StateEffect } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine, drawSelection, rectangularSelection, crosshairCursor } from "@codemirror/view";
 import { defaultKeymap, history, historyKeymap, undo as undoCommand, redo as redoCommand, indentWithTab } from "@codemirror/commands";
-import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching, foldGutter, foldKeymap } from "@codemirror/language";
+import useMemoizedFn from "@/hooks/useMemoizedFn"; // Import the custom hook
+import { indentOnInput, bracketMatching, foldGutter, foldKeymap } from "@codemirror/language";
 import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";
 import { css } from "@codemirror/lang-css";
 import { searchKeymap, search } from "@codemirror/search";
 import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
+import { EditorTheme, themeExtensionAtom } from "@components/Editor/theme/themeManager";
+import { useAtomValue } from "jotai";
 
 /**创建编辑器 */
 export interface EditorOptions {
@@ -16,6 +19,7 @@ export interface EditorOptions {
   onChange?: (value: string) => void;
   readonly?: boolean;
   language?: "javascript" | "typescript" | "html" | "css" | "json";
+  theme?: EditorTheme;
 }
 
 // 默认的Hello World JavaScript代码
@@ -34,6 +38,9 @@ console.log(message);
 
 export const useEditor = (options: EditorOptions = {}) => {
   const { initialDoc = DEFAULT_JAVASCRIPT_CODE, extensions = [], onChange, readonly = false, language = "javascript" } = options;
+
+  // 获取主题扩展
+  const themeExtension = useAtomValue(themeExtensionAtom);
 
   const editorViewRef = useRef<EditorView | null>(null);
   const editorContainerRef = useRef<HTMLDivElement | null>(null);
@@ -76,7 +83,6 @@ export const useEditor = (options: EditorOptions = {}) => {
       history(),
       bracketMatching(),
       indentOnInput(),
-      syntaxHighlighting(defaultHighlightStyle),
       drawSelection(),
       rectangularSelection(),
       crosshairCursor(),
@@ -87,6 +93,7 @@ export const useEditor = (options: EditorOptions = {}) => {
       keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap, ...foldKeymap, ...completionKeymap, indentWithTab]),
       getLanguageExtension,
       autoParams,
+      themeExtension, // Use the theme extension
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           const newContent = update.state.doc.toString();
@@ -97,58 +104,68 @@ export const useEditor = (options: EditorOptions = {}) => {
         }
       }),
     ];
-  }, [language, getLanguageExtension]);
+  }, [getLanguageExtension, themeExtension, autoParams]);
 
   // 更新 onChange 引用以避免闭包问题
   useEffect(() => {
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // 设置编辑器内容，但仅在内容实际变化且不是由编辑器内部更改触发时
+  // 设置编辑器内容
   const setContent = (content: string, force: boolean = false) => {
-    if (!editorViewRef.current) return;
+    const view = editorViewRef.current;
+    if (!view) return;
 
-    // 仅在内容实际变化或强制更新时才更新
-    if (!force && content === contentRef.current) return;
+    // 仅在强制更新或内容与编辑器当前实际内容不同时才更新
+    const currentDoc = view.state.doc.toString();
+    if (!force && content === currentDoc) {
+      console.log("setContent: Content is the same, skipping update.");
+      return;
+    }
 
-    contentRef.current = content;
+    console.log(`setContent: Updating content (force=${force}).`);
+    // contentRef should only be updated by the updateListener to reflect the true editor state.
+    // Do not update contentRef here.
 
-    const transaction = editorViewRef.current.state.update({
+    const transaction = view.state.update({
       changes: {
         from: 0,
-        to: editorViewRef.current.state.doc.length,
+        to: view.state.doc.length,
         insert: content,
       },
+      // Optionally, preserve selection if needed, though full replace usually resets it.
+      // selection: view.state.selection,
+      // userEvent: 'setContent' // Add a user event annotation if needed for other extensions
     });
 
-    editorViewRef.current.dispatch(transaction);
+    view.dispatch(transaction);
   };
 
   // 更新编辑器内容 - 用于文件切换，总是强制更新
-  const updateContent = (content: string) => {
+  const updateContent = useMemoizedFn((content: string) => {
     setContent(content, true);
-  };
+  });
 
   // 获取编辑器内容
-  const getContent = (): string => {
+  const getContent = useMemoizedFn((): string => {
     if (!editorViewRef.current) return contentRef.current;
     return editorViewRef.current.state.doc.toString();
-  };
+  });
 
   // 聚焦编辑器
-  const focus = () => {
+  const focus = useMemoizedFn(() => {
     editorViewRef.current?.focus();
-  };
+  });
 
   // 刷新编辑器
-  const refresh = () => {
+  const refresh = useMemoizedFn(() => {
     if (editorViewRef.current) {
       editorViewRef.current.requestMeasure();
     }
-  };
+  });
 
   // 在光标位置插入内容
-  const insertAtCursor = (content: string) => {
+  const insertAtCursor = useMemoizedFn((content: string) => {
     if (!editorViewRef.current) return;
 
     const selection = editorViewRef.current.state.selection.main;
@@ -162,41 +179,43 @@ export const useEditor = (options: EditorOptions = {}) => {
     });
 
     editorViewRef.current.dispatch(transaction);
-  };
+  });
 
   // 撤销操作
-  const undo = () => {
+  const undo = useMemoizedFn(() => {
     if (!editorViewRef.current) return;
     undoCommand(editorViewRef.current);
-  };
+  });
 
   // 重做操作
-  const redo = () => {
+  const redo = useMemoizedFn(() => {
     if (!editorViewRef.current) return;
     redoCommand(editorViewRef.current);
-  };
+  });
 
   // 格式化代码
-  const formatCode = () => {
+  const formatCode = useMemoizedFn(() => {
     // 实现代码格式化逻辑，可以使用prettier或其他格式化库
     console.log("Format code functionality to be implemented");
-  };
+  });
 
   // 切换注释
-  const toggleComment = () => {
+  const toggleComment = useMemoizedFn(() => {
     if (!editorViewRef.current) return;
     // 使用CodeMirror的注释功能
     console.log("Toggle comment functionality to be implemented");
-  };
+  });
 
   // 查找和替换
-  const findAndReplace = (find: string, replace: string, replaceAll: boolean = false) => {
+  const findAndReplace = useMemoizedFn((find: string, replace: string) => {
+    // Removed unused _replaceAll parameter
     if (!editorViewRef.current) return;
     // 实现查找和替换逻辑
-    console.log("Find and replace functionality to be implemented");
-  };
+    // TODO: Implement find and replace, potentially using the 'replaceAll' flag later
+    console.log("Find and replace functionality to be implemented", find, replace);
+  });
 
-  // 初始化编辑器
+  // 初始化编辑器 - 只在组件挂载时初始化一次
   useEffect(() => {
     // 如果容器尚未准备好，不执行任何操作
     if (!editorContainerRef.current) return;
@@ -208,7 +227,7 @@ export const useEditor = (options: EditorOptions = {}) => {
 
     // 创建编辑器状态
     const state = EditorState.create({
-      doc: contentRef.current,
+      doc: contentRef.current, // Use initialDoc for initial state, not contentRef
       extensions: [...baseExtensions, ...extensions, ...(readonly ? [EditorState.readOnly.of(true)] : [])],
     });
 
@@ -220,6 +239,8 @@ export const useEditor = (options: EditorOptions = {}) => {
 
     editorViewRef.current = view;
 
+    console.log("Editor initialized.");
+
     // 组件卸载时销毁编辑器
     return () => {
       if (editorViewRef.current) {
@@ -227,31 +248,22 @@ export const useEditor = (options: EditorOptions = {}) => {
         editorViewRef.current = null;
       }
     };
-  }, [readonly, extensions]); // 移除 baseExtensions 依赖
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 有意忽略依赖项，只在组件挂载时初始化一次
 
-  // 当initialDoc从外部更改并且与当前内容不同时更新编辑器内容
+  // 当扩展或只读状态变化时，使用 reconfigure 更新编辑器
   useEffect(() => {
-    // 只在编辑器没有焦点或初始化时更新内容
-    if (initialDoc !== undefined && initialDoc !== contentRef.current && editorViewRef.current) {
-      // 检查编辑器是否有焦点
-      const editorHasFocus = document.activeElement === editorViewRef.current.dom;
-      if (!editorHasFocus) {
-        setContent(initialDoc);
-      }
-    }
-  }, [initialDoc]);
+    // 如果编辑器尚未初始化，不执行任何操作
+    if (!editorViewRef.current) return;
 
-  useEffect(() => {
-    // 当extensions发生变化时，应用新的扩展，但不重新创建编辑器
-    if (editorViewRef.current && extensions.length > 0) {
-      const newState = EditorState.create({
-        doc: editorViewRef.current.state.doc,
-        extensions: [...baseExtensions, ...(readonly ? [EditorState.readOnly.of(true)] : []), ...extensions],
-      });
+    // 使用 StateEffect.reconfigure 更新扩展，而不是重新创建编辑器实例
+    const combinedExtensions = [...baseExtensions, ...extensions, ...(readonly ? [EditorState.readOnly.of(true)] : [])];
+    editorViewRef.current.dispatch({
+      effects: StateEffect.reconfigure.of(combinedExtensions),
+    });
 
-      editorViewRef.current.setState(newState);
-    }
-  }, [extensions, readonly, baseExtensions]);
+    console.log("Editor extensions reconfigured.");
+  }, [baseExtensions, extensions, readonly]);
 
   return {
     editorContainerRef,

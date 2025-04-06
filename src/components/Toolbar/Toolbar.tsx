@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { FiPlay, FiSettings, FiDownload, FiRefreshCw, FiCode, FiMonitor, FiEdit } from "react-icons/fi";
 import ToolbarButton from "./ToolbarButton";
+import { ThemeSwitcher } from "@components/Editor";
 import "./Toolbar.css";
 
 interface ToolbarProps {
@@ -15,26 +16,12 @@ interface ToolbarProps {
   currentView?: "editor" | "webcontainer";
 }
 
-const Toolbar: React.FC<ToolbarProps> = ({
-  onRun,
-  onRebuild,
-  onToggleView,
-  onExport,
-  onSettings,
-  disabled = false,
-  isBuilt = false,
-  currentView = "editor",
-}) => {
+const Toolbar: React.FC<ToolbarProps> = ({ onRun, onRebuild, onToggleView, onExport, onSettings, disabled = false, isBuilt = false, currentView = "editor" }) => {
   // 确定当前是否在编辑器视图
   const isEditorView = currentView === "editor";
 
   return (
-    <motion.div
-      className="editor-toolbar"
-      initial={{ opacity: 0, y: -10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-    >
+    <motion.div className="editor-toolbar" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }}>
       <div className="toolbar-logo">
         <span className="code-icon">&lt;/&gt;</span>
         <span className="logo-text">GoBlite</span>
@@ -70,6 +57,12 @@ const Toolbar: React.FC<ToolbarProps> = ({
         <div className="toolbar-section">
           <ToolbarButton icon={<FiDownload />} tooltip="导出" onClick={onExport} disabled={disabled} />
           <ToolbarButton icon={<FiSettings />} tooltip="设置" onClick={onSettings} disabled={disabled} />
+        </div>
+
+        <div className="toolbar-divider"></div>
+
+        <div className="toolbar-section flex items-center">
+          <ThemeSwitcher />
         </div>
       </div>
     </motion.div>

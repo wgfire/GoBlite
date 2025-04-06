@@ -1,0 +1,124 @@
+/* Theme Switcher Container */
+.theme-switcher-container {
+  position: relative;
+  z-index: 10;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+/* Theme Switcher Trigger */
+.theme-switcher-trigger {
+  background-color: rgba(30, 41, 59, 0.8) !important;
+  border-color: rgba(51, 65, 85, 0.5) !important;
+  border-radius: 6px !important;
+  padding: 0 10px !important;
+  height: 28px !important;
+  min-width: 100px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.theme-switcher-trigger:hover {
+  background-color: rgba(51, 65, 85, 0.8) !important;
+  border-color: rgba(71, 85, 105, 0.6) !important;
+}
+
+.theme-switcher-trigger:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5) !important;
+  border-color: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Theme Switcher Value */
+.theme-switcher-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.theme-switcher-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.theme-switcher-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Theme Switcher Content */
+.theme-switcher-content {
+  background-color: rgba(30, 41, 59, 0.95) !important;
+  border-color: rgba(51, 65, 85, 0.8) !important;
+  border-radius: 6px !important;
+  padding: 4px !important;
+  min-width: 120px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(8px) !important;
+  animation: fadeIn 0.2s ease-out !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Theme Switcher Item */
+.theme-switcher-item {
+  border-radius: 4px !important;
+  padding: 6px 8px !important;
+  margin: 2px 0 !important;
+  font-size: 12px !important;
+  color: #e2e8f0 !important;
+  transition: all 0.15s ease !important;
+}
+
+.theme-switcher-item:hover {
+  background-color: rgba(51, 65, 85, 0.8) !important;
+}
+
+.theme-switcher-item:focus {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  outline: none !important;
+}
+
+.theme-switcher-item-active {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  color: #60a5fa !important;
+}
+
+/* Theme Switcher Option */
+.theme-switcher-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-switcher-option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.theme-switcher-option-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

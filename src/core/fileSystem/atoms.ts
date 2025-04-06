@@ -174,14 +174,21 @@ export const activeFileContentAtom = atom(
     // 如果没有活动文件，返回空字符串
     if (!activeFile) return "";
 
+    // 查找活动文件
+    const file = findItemHelper(files, activeFile);
+
+    // 如果文件不存在，返回空字符串
+    if (!file) {
+      console.error(`活动文件不存在: ${activeFile}`);
+      return "";
+    }
+
     // 如果缓存路径匹配当前活动文件，直接返回缓存内容
     if (cache.path === activeFile) {
       return cache.content;
     }
 
-    // 查找活动文件
-    const file = findItemHelper(files, activeFile);
-    const content = file && file.type === FileItemType.FILE ? file.content || "" : "";
+    const content = file.type === FileItemType.FILE ? file.content || "" : "";
 
     // 不在getter中调用set，改为返回内容
     return content;
