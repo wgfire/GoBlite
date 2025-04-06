@@ -10,6 +10,7 @@ export interface FieldItem {
   id: string;
   name: string;
   placeholder?: string;
+  required?: boolean;
   options?: {
     label: string;
     value: any;

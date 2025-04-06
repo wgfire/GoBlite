@@ -7,7 +7,8 @@ export const TEMPLATES: Template[] = [
       description: "Perfect for online stores and product launches",
       icon: "🛍️",
       fields: [
-        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
+        { id: "urlPath", name: "页面路径", type: "text", placeholder: "输入dl-开头的访问路径",required:false },
+        { id: "domainName", name: "域名", type: "text", placeholder: "请输入域名" },
         { id: "license", name: "牌照选择", type: "select", options: [
           { value: "FSC", label: "FSC" },
           { value: "ASIC", label: "ASIC" },
@@ -25,9 +26,7 @@ export const TEMPLATES: Template[] = [
           { value: "yes", label: "显示" },
           { value: "no", label: "隐藏" }
         ]},
-        { id: "productName", name: "Product Name", type: "text", placeholder: "Enter product name" },
-        { id: "productDescription", name: "Product Description", type: "textarea", placeholder: "Describe your product" },
-        { id: "cta", name: "Call to Action", type: "text", placeholder: "Buy Now" },
+        { id: "formPrompt", name: "表单提示词", type: "textarea", placeholder: "请输入表单内容说明" },
         { id: "additionalInfo", name: "附加信息", type: "textarea", placeholder: "请输入其他补充信息" },
       ],
     },
@@ -114,11 +113,6 @@ export const TEMPLATES: Template[] = [
           { value: "yes", label: "显示" },
           { value: "no", label: "隐藏" }
         ]},
-        { id: "eventName", name: "Event Name", type: "text", placeholder: "Enter event name" },
-        { id: "eventDate", name: "Event Date", type: "text", placeholder: "Enter event date" },
-        { id: "eventLocation", name: "Event Location", type: "text", placeholder: "Enter location" },
-        { id: "eventDescription", name: "Event Description", type: "textarea", placeholder: "Describe your event" },
-        { id: "eventCapacity", name: "活动人数限制", type: "text", placeholder: "请输入最大参与人数" },
       ],
     },
     {
@@ -146,8 +140,6 @@ export const TEMPLATES: Template[] = [
           { value: "no", label: "隐藏" }
         ]},
         { id: "blogName", name: "Blog Name", type: "text", placeholder: "Enter blog name" },
-        { id: "categories", name: "Categories", type: "textarea", placeholder: "List your categories" },
-        { id: "publishFrequency", name: "发布频率", type: "text", placeholder: "请输入内容发布频率" },
       ],
     },
     {

@@ -4,11 +4,15 @@ import { FileExplorer } from "@components/FileExplorer";
 import { FileTabs } from "@components/FileTabs";
 import { Editor } from "@components/Editor";
 import { WebContainer } from "@components/WebContainer";
+import TemplateGallery from "@components/TemplateGallery";
+import { TemplateForm } from "@components/TemplateForm";
 
 import { TemplateService } from "./template/templateService";
 import { FileItem, FileItemType, useFileSystem } from "./core/fileSystem";
 import { useWebContainer } from "./core/webContainer";
 import { useTemplate } from "./template/useTemplate";
+import { Template } from "./template/types";
+import { TEMPLATES } from "./template/templateInfo";
 import "./App.css";
 import { debounce } from "@/utils/debounce";
 import Chat from "./components/Chat";
@@ -20,16 +24,18 @@ const templateService = new TemplateService();
 
 export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<"editor" | "webcontainer">("editor");
+  const [currentView, setCurrentView] = useState<"editor" | "webcontainer" | "templateGallery">("templateGallery");
   const [templateLoaded, setTemplateLoaded] = useState(false);
   const [isBuilt, setIsBuilt] = useState(false); // 新增状态，标记是否已经构建
+  const [isBuilding, setIsBuilding] = useState(false); // 标记是否正在构建中
+  const [showTemplateForm, setShowTemplateForm] = useState(false);
+  const [selectedTemplateForForm, setSelectedTemplateForForm] = useState<Template | null>(null);
 
   // 使用模板钩子
   const { selectedTemplate, loading: templateLoading, error: templateError, loadTemplateContent } = useTemplate(templateService);
 
   // 使用文件系统钩子
-  const { updateFileContent, activeFileContent, activeFile, openFile, files, findItem, openFiles, setActiveTab, resetFileSystem, findFirstFile } =
-    useFileSystem();
+  const { updateFileContent, activeFileContent, activeFile, openFile, files, findItem, openFiles, setActiveTab, resetFileSystem, findFirstFile } = useFileSystem();
 
   // 使用WebContainer钩子
   const { previewUrl, error: webContainerError, startApp } = useWebContainer();
@@ -70,7 +76,7 @@ export const App: React.FC = () => {
           logDebug("模板加载成功，重置文件系统");
           resetFileSystem(result.files);
           setTemplateLoaded(true);
-          openDefault()
+          openDefault();
         } else {
           console.error("模板加载失败:", result.error);
         }
@@ -126,7 +132,14 @@ export const App: React.FC = () => {
    * 首次构建时，会初始化WebContainer、同步文件、安装依赖并启动服务
    */
   const handleRun = async () => {
+    // 如果正在构建中，则不允许再次点击
+    if (isBuilding) {
+      console.log("正在构建中，请稍后...");
+      return;
+    }
+
     console.log("构建并运行代码");
+    setIsBuilding(true); // 设置构建中状态
 
     // 启动WebContainer并同步文件
     try {
@@ -163,7 +176,12 @@ export const App: React.FC = () => {
         stack: error instanceof Error ? error.stack : undefined,
         files: files.map((f) => f.path),
       });
+      // 出错时切换回编辑器视图
+      setCurrentView("editor");
       throw error;
+    } finally {
+      // 无论成功还是失败，都重置构建中状态
+      setIsBuilding(false);
     }
   };
 
@@ -172,7 +190,14 @@ export const App: React.FC = () => {
    * 当已经构建过一次后，只需要同步最新文件并重启服务
    */
   const handleRebuild = async () => {
+    // 如果正在构建中，则不允许再次点击
+    if (isBuilding) {
+      console.log("正在重新构建中，请稍后...");
+      return;
+    }
+
     console.log("重新构建代码");
+    setIsBuilding(true); // 设置构建中状态
 
     setCurrentView("webcontainer");
 
@@ -190,6 +215,11 @@ export const App: React.FC = () => {
       }
     } catch (error) {
       console.error("重新构建出错:", error);
+      // 出错时切换回编辑器视图
+      setCurrentView("editor");
+    } finally {
+      // 无论成功还是失败，都重置构建中状态
+      setIsBuilding(false);
     }
   };
 
@@ -200,10 +230,61 @@ export const App: React.FC = () => {
   const handleToggleView = () => {
     console.log("切换视图，仅改变UI显示");
     // 只改变视图状态，不调用stop或start
-    setCurrentView(currentView === "editor" ? "webcontainer" : "editor");
-  }; 
+    if (currentView === "editor") {
+      setCurrentView("webcontainer");
+    } else if (currentView === "webcontainer") {
+      setCurrentView("editor");
+    }
+  };
 
-  const handleFileOpen = (file: FileItem) => { // Reverted to original definition for now
+  /**
+   * 打开模板画廊
+   */
+  const handleOpenTemplateGallery = () => {
+    setCurrentView("templateGallery");
+  };
+
+  /**
+   * 处理模板选择
+   */
+  const handleTemplateSelect = (template: Template) => {
+    setSelectedTemplateForForm(template);
+    setShowTemplateForm(true);
+  };
+
+  /**
+   * 处理模板表单提交
+   */
+  const handleTemplateFormSubmit = (formData: Record<string, string>) => {
+    console.log("模板表单提交:", formData);
+
+    // 关闭表单
+    setShowTemplateForm(false);
+
+    // 切换到编辑器视图
+    setCurrentView("editor");
+
+    // 如果正在构建中，则不自动构建
+    if (isBuilding) {
+      console.log("正在构建中，跳过自动构建");
+      return;
+    }
+
+    // 自动构建预览
+    setTimeout(() => {
+      handleRun();
+    }, 1000);
+  };
+
+  /**
+   * 关闭模板表单
+   */
+  const handleTemplateFormClose = () => {
+    setShowTemplateForm(false);
+  };
+
+  const handleFileOpen = (file: FileItem) => {
+    // Reverted to original definition for now
     console.log("App 打开文件:", file.path);
     if (file && file.type === FileItemType.FILE) {
       openFile(file);
@@ -244,6 +325,7 @@ export const App: React.FC = () => {
         onRun={handleRun}
         onRebuild={handleRebuild}
         onToggleView={handleToggleView}
+        onOpenTemplates={handleOpenTemplateGallery}
         onExport={() => console.log("导出应用")}
         onSettings={() => console.log("打开设置")}
         isBuilt={isBuilt}
@@ -251,24 +333,39 @@ export const App: React.FC = () => {
         currentView={currentView}
       />
       <div className="app-content">
-        <div className="chat-box basis-[25%]">
-          <Chat></Chat>
-        </div>
-        <div className="file-explorer-container">
-          <FileExplorer onFileOpen={handleFileOpen} />
-        </div>
-        <div className="editor-box">
-          {currentView === "editor" && <FileTabs onTabSelect={handleTabSelect} />}
-
-          <div className="content-container" style={{ position: "relative", height: "calc(100% - 40px)" }}>
-            <div className="view-container" style={{ display: currentView === "editor" ? "block" : "none", height: "100%" }}>
-              <Editor initialCode={activeFileContent} onChange={handleCodeChange} />
-            </div>
-            <div className="view-container" style={{ display: currentView === "webcontainer" ? "block" : "none", height: "100%" }}>
-              <WebContainer isVisible={currentView === "webcontainer"} />
-            </div>
+        {currentView === "templateGallery" ? (
+          <div className="template-gallery-container w-full h-full">
+            <TemplateGallery templates={TEMPLATES} onSelect={handleTemplateSelect} />
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="chat-box basis-[25%]">
+              <Chat></Chat>
+            </div>
+            <div className="file-explorer-container">
+              <FileExplorer onFileOpen={handleFileOpen} />
+            </div>
+            <div className="editor-box">
+              {currentView === "editor" && <FileTabs onTabSelect={handleTabSelect} />}
+
+              <div className="content-container" style={{ position: "relative", height: "calc(100% - 40px)" }}>
+                <div className="view-container" style={{ display: currentView === "editor" ? "block" : "none", height: "100%" }}>
+                  <Editor initialCode={activeFileContent} onChange={handleCodeChange} />
+                </div>
+                <div className="view-container" style={{ display: currentView === "webcontainer" ? "block" : "none", height: "100%" }}>
+                  <WebContainer isVisible={currentView === "webcontainer"} />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* 模板表单弹窗 */}
+        {showTemplateForm && selectedTemplateForForm && (
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-[100]" style={{ backgroundColor: "rgba(15, 23, 42, 0.8)", backdropFilter: "blur(8px)" }}>
+            <TemplateForm template={selectedTemplateForForm} onSubmit={handleTemplateFormSubmit} onClose={handleTemplateFormClose} />
+          </div>
+        )}
       </div>
     </div>
   );

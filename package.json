@@ -28,7 +28,10 @@
     "@codemirror/search": "^6.5.8",
     "@codemirror/state": "^6.5.1",
     "@codemirror/view": "^6.36.2",
+    "@hookform/resolvers": "^5.0.1",
     "@lezer/highlight": "^1.2.1",
+    "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-radio-group": "^1.2.3",
     "@radix-ui/react-select": "^2.1.6",
     "@radix-ui/react-slot": "^1.1.2",
     "@uiw/codemirror-theme-solarized": "^4.23.10",
@@ -38,6 +41,7 @@
     "framer-motion": "^11.18.0",
     "jotai": "^2.12.2",
     "lucide-react": "^0.487.0",
+    "react-hook-form": "^7.55.0",
     "react-icons": "^5.5.0",
     "tailwind-merge": "^3.1.0",
     "tw-animate-css": "^1.2.5"
