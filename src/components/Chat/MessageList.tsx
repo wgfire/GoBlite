@@ -1,23 +1,30 @@
-import React from 'react';
-import { Message } from './types';
-import { FiImage, FiFile, FiX } from 'react-icons/fi';
+import React, { useContext } from "react";
+import { Message } from "./types";
+import { FiImage, FiFile, FiX } from "react-icons/fi";
+import { AIResponseContent } from "./AIResponseHandler";
+import { AIMessageType, AIMessageContent } from "@/core/ai/types";
 
 interface MessageListProps {
   messages: Message[];
   isSending: boolean;
+  parseAIResponse?: (text: string) => AIMessageContent[];
 }
 
-export const MessageList: React.FC<MessageListProps> = ({ messages, isSending }) => {
+export const MessageList: React.FC<MessageListProps> = ({ messages, isSending, parseAIResponse }) => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       {messages.map((message) => (
-        <div key={message.id} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-          <div className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${
-            message.sender === 'user' 
-              ? 'bg-blue-600 text-white' 
-              : 'bg-gray-700 text-gray-200'
-          }`}>
-            <p className="whitespace-pre-wrap">{message.text}</p>
+        <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${
+              message.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200"
+            }`}
+          >
+            {message.sender === "ai" ? (
+              <AIResponseContent text={message.text} parseContent={parseAIResponse} />
+            ) : (
+              <p className="whitespace-pre-wrap">{message.text}</p>
+            )}
             {message.files && message.files.length > 0 && (
               <div className="mt-2 space-y-2">
                 {message.files.map((file) => (

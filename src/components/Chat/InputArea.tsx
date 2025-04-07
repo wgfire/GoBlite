@@ -1,18 +1,18 @@
 import React, { useState, useRef, ChangeEvent } from "react";
 import { UploadedFile } from "./types";
 import { FiSend, FiUpload, FiZap, FiFile, FiX } from "react-icons/fi";
-import { RiLoader2Line } from "react-icons/ri";
 import { AnimatePresence, motion } from "framer-motion";
-import {Button} from '@components/ui/button'
+import { Button } from "@components/ui/button";
 interface InputAreaProps {
   onSend: (prompt: string, files: UploadedFile[]) => void;
   onOptimizePrompt: (prompt: string) => Promise<string>;
   isSending: boolean;
   uploadedFiles: UploadedFile[];
   setUploadedFiles: React.Dispatch<React.SetStateAction<UploadedFile[]>>;
+  onCancel?: () => void;
 }
 
-export const InputArea: React.FC<InputAreaProps> = ({ onSend, onOptimizePrompt, isSending, uploadedFiles, setUploadedFiles }) => {
+export const InputArea: React.FC<InputAreaProps> = ({ onSend, onOptimizePrompt, isSending, uploadedFiles, setUploadedFiles, onCancel }) => {
   const [prompt, setPrompt] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
@@ -83,65 +83,74 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, onOptimizePrompt, 
       )}
 
       <div className="flex items-center gap-2 relative">
-      
-          <AnimatePresence>
-            {isFocused && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute -inset-[1px] rounded-lg"
-                style={{ zIndex: 0 }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 rounded-lg animate-gradient-x"></div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+        <AnimatePresence>
+          {isFocused && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute -inset-[1px] rounded-lg"
+              style={{ zIndex: 0 }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 rounded-lg animate-gradient-x"></div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            placeholder="Type your message..."
-            className="no-scrollbar w-full py-3 px-4 bg-slate-800 text-white placeholder-slate-400 focus:outline-none rounded-lg relative z-10 border border-slate-700"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-          />
-            <AnimatePresence>
-            {prompt && (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                className="absolute right-0 bottom-[-25px] transform -translate-y-1/2 z-10"
-              >
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Type your message..."
+          className="no-scrollbar w-full py-3 px-4 bg-slate-800 text-white placeholder-slate-400 focus:outline-none rounded-lg relative z-10 border border-slate-700"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSend();
+            }
+          }}
+        />
+        <AnimatePresence>
+          {prompt && (
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="absolute right-0 bottom-[-25px] transform -translate-y-1/2 z-10"
+            >
+              {isSending ? (
+                <Button
+                  type="button"
+                  onClick={onCancel}
+                  size="icon"
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center"
+                >
+                  <FiX size={16} />
+                </Button>
+              ) : (
                 <Button
                   type="submit"
                   onClick={handleSend}
                   size="icon"
-                  disabled={isSending || !prompt.trim()}
+                  disabled={!prompt.trim()}
                   className="bg-gradient-to-r from-cyan-500 to-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center"
                 >
-                  {isSending ? <RiLoader2Line size={16} className="animate-spin" /> : <FiSend size={16} />}
+                  <FiSend size={16} />
                 </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      
-        {/* <button
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* <button
           onClick={handleSend}
           disabled={isSending}
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg p-3 disabled:opacity-50 transition-colors"
         >
           {isSending ? <div className="w-5 h-5 border-2 border-t-transparent border-white rounded-full animate-spin"></div> : <FiSend size={20} />}
         </button> */}
-      
 
       <div className="flex  mt-2">
         <div className="flex space-x-2">
@@ -156,7 +165,7 @@ export const InputArea: React.FC<InputAreaProps> = ({ onSend, onOptimizePrompt, 
         </div>
         <button
           onClick={handleOptimize}
-          disabled={isOptimizing || !prompt.trim()}
+          disabled={isOptimizing || !prompt.trim() || isSending}
           className="text-yellow-400 hover:text-yellow-300 p-2 rounded-full hover:bg-gray-700 transition-colors disabled:opacity-50"
           title="Optimize prompt"
         >
