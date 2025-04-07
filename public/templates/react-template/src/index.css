@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .container {
+    @apply px-4 mx-auto max-w-7xl sm:px-6 lg:px-8;
+  }
+  
+  .btn {
+    @apply inline-flex items-center justify-center px-5 py-3 text-base font-medium transition-colors rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply text-white bg-primary-600 hover:bg-primary-700 focus:ring-primary-500;
+  }
+  
+  .btn-secondary {
+    @apply text-primary-700 bg-primary-100 hover:bg-primary-200 focus:ring-primary-500;
+  }
+  
+  .btn-accent {
+    @apply text-white bg-accent-600 hover:bg-accent-700 focus:ring-accent-500;
+  }
+  
+  .section {
+    @apply py-12 md:py-20;
+  }
+  
+  .section-title {
+    @apply mb-4 text-3xl font-bold tracking-tight text-secondary-900 sm:text-4xl md:text-5xl;
+  }
+  
+  .section-subtitle {
+    @apply max-w-3xl mx-auto mt-3 text-xl text-secondary-500 sm:mt-4;
+  }
+}
+
+/* Font imports */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');

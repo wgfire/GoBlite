@@ -42,6 +42,8 @@ const Toolbar: React.FC<ToolbarProps> = ({ onRun, onRebuild, onToggleView, onExp
             variant={currentView === "templateGallery" ? "primary" : "default"}
             active={currentView === "templateGallery"}
           />
+          {/* 在currentView == templateGallery时显示*/}
+          {currentView === "templateGallery" && <ToolbarButton icon={<FiEdit />} tooltip="返回编辑器" onClick={onToggleView} disabled={disabled} variant={"primary"} />}
 
           {/* 切换视图按钮 - 只在编辑器和预览视图之间切换时显示 */}
           {isBuilt && currentView !== "templateGallery" && (

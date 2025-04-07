@@ -234,6 +234,8 @@ export const App: React.FC = () => {
       setCurrentView("webcontainer");
     } else if (currentView === "webcontainer") {
       setCurrentView("editor");
+    } else if (currentView === "templateGallery") {
+      setCurrentView("editor");
     }
   };
 
@@ -342,7 +344,7 @@ export const App: React.FC = () => {
             <div className="chat-box basis-[25%]">
               <Chat></Chat>
             </div>
-            <div className="file-explorer-container">
+            <div className="file-explorer-container" style={{ display: currentView === "editor" ? "block" : "none" }}>
               <FileExplorer onFileOpen={handleFileOpen} />
             </div>
             <div className="editor-box">

@@ -2,11 +2,12 @@ import React, { useState, useCallback, useEffect } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
+import { InputOperations } from "./InputOperations";
 import { HeaderTab, Message, UploadedFile } from "./types";
 import { Template } from "@/template/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
-import useAIService from "@/core/ai/hooks/useAIService";
+import useAIService, { AIModelType } from "@/core/ai/hooks/useAIService";
 import { useFileSystem } from "@/core/fileSystem";
 import { useWebContainer } from "@/core/webContainer";
 import { AIGenerationType, AIMessageType, AIMessageContent } from "@/core/ai/types";
@@ -28,7 +29,17 @@ const Chat: React.FC = () => {
     optimizePrompt: aiOptimizePrompt,
     processTemplate,
     cancelRequest,
+    currentModelType,
+    switchModel,
   } = useAIService({ autoInit: true });
+
+  // 模型切换处理
+  const handleModelChange = useCallback(
+    async (modelType: AIModelType) => {
+      await switchModel(modelType);
+    },
+    [switchModel]
+  );
 
   // 获取文件系统和WebContainer钩子
   const fileSystem = useFileSystem();
@@ -279,21 +290,26 @@ const Chat: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative">
       <div className="absolute right-0 h-full w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"></div>
-      <ChatHeader
-        onTemplateSelect={handleTemplateSelect}
-        selectedTemplate={selectedTemplate}
-        isMobile={false}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
       <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-      <InputArea
-        onSend={handleSend}
-        onOptimizePrompt={handleOptimizePrompt}
+      <InputArea onSend={handleSend} isSending={isSending || isProcessing} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
+      <InputOperations
+        onOptimizePrompt={() => handleOptimizePrompt("")}
+        isOptimizing={false}
         isSending={isSending || isProcessing}
-        uploadedFiles={uploadedFiles}
-        setUploadedFiles={setUploadedFiles}
-        onCancel={handleCancelRequest}
+        hasPrompt={false}
+        onFileUpload={(e) => {
+          if (e.target.files) {
+            const newFiles = Array.from(e.target.files).map((file) => ({
+              id: crypto.randomUUID(),
+              file,
+              previewUrl: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined,
+            }));
+            setUploadedFiles((prev) => [...prev, ...newFiles]);
+          }
+        }}
+        currentModel={currentModelType}
+        onModelChange={handleModelChange}
       />
 
       <AnimatePresence>

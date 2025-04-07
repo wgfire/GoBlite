@@ -1,11 +1,21 @@
 {
   "files": {
     "index.html": "index.html",
-    "index.tsx": "index.tsx", 
+    "index.tsx": "index.tsx",
     "package.json": "package.json",
     "vite.config.ts": "vite.config.ts",
-    "components/Count.tsx": "components/Count.tsx",
+    "tailwind.config.js": "tailwind.config.js",
+    "postcss.config.js": "postcss.config.js",
     "src/App.tsx": "src/App.tsx",
-    "src/main.tsx": "src/main.tsx"
+    "src/main.tsx": "src/main.tsx",
+    "src/index.css": "src/index.css",
+    "src/components/Layout.tsx": "src/components/Layout.tsx",
+    "src/components/Navbar.tsx": "src/components/Navbar.tsx",
+    "src/components/HeroSection.tsx": "src/components/HeroSection.tsx",
+    "src/components/FeaturesSection.tsx": "src/components/FeaturesSection.tsx",
+    "src/components/TestimonialsSection.tsx": "src/components/TestimonialsSection.tsx",
+    "src/components/PricingSection.tsx": "src/components/PricingSection.tsx",
+    "src/components/CTASection.tsx": "src/components/CTASection.tsx",
+    "src/components/Footer.tsx": "src/components/Footer.tsx"
   }
 }

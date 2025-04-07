@@ -1,0 +1,8 @@
+This directory will contain images for the template.
+In a real implementation, you would add:
+- hero-bg.jpg (background for hero section)
+- cta-bg.jpg (background for call-to-action section)
+- logo.svg (company logo)
+- app-screenshot.png (trading platform screenshot)
+- chart.svg (trading chart illustration)
+- and other assets

@@ -75,6 +75,22 @@ export interface CodeGenerationResult {
 }
 
 /**
+ * 图像生成选项
+ */
+export interface ImageGenerationOptions {
+  /** 生成图像数量 */
+  count?: number;
+  /** 图像尺寸 */
+  size?: string;
+  /** 图像质量 */
+  quality?: string;
+  /** 图像格式 */
+  format?: string;
+  /** 图像风格 */
+  style?: string;
+}
+
+/**
  * 图像生成结果
  */
 export interface ImageGenerationResult {
@@ -100,15 +116,15 @@ export interface ImageGenerationResult {
  */
 export enum AIServiceStatus {
   /** 未初始化 */
-  UNINITIALIZED = 'uninitialized',
+  UNINITIALIZED = "uninitialized",
   /** 初始化中 */
-  INITIALIZING = 'initializing',
+  INITIALIZING = "initializing",
   /** 就绪 */
-  READY = 'ready',
+  READY = "ready",
   /** 处理中 */
-  PROCESSING = 'processing',
+  PROCESSING = "processing",
   /** 错误 */
-  ERROR = 'error'
+  ERROR = "error",
 }
 
 /**
@@ -116,11 +132,11 @@ export enum AIServiceStatus {
  */
 export enum AIGenerationType {
   /** 代码生成 */
-  CODE = 'code',
+  CODE = "code",
   /** 图像生成 */
-  IMAGE = 'image',
+  IMAGE = "image",
   /** 混合生成 */
-  MIXED = 'mixed'
+  MIXED = "mixed",
 }
 
 /**
@@ -176,15 +192,15 @@ export interface TemplateProcessResult {
  */
 export enum AIMessageType {
   /** 文本 */
-  TEXT = 'text',
+  TEXT = "text",
   /** 代码 */
-  CODE = 'code',
+  CODE = "code",
   /** 图像 */
-  IMAGE = 'image',
+  IMAGE = "image",
   /** 文件 */
-  FILE = 'file',
+  FILE = "file",
   /** 错误 */
-  ERROR = 'error'
+  ERROR = "error",
 }
 
 /**
@@ -208,7 +224,7 @@ export interface AIEnhancedMessage {
   /** 消息ID */
   id: string;
   /** 发送者 */
-  sender: 'user' | 'ai';
+  sender: "user" | "ai";
   /** 时间戳 */
   timestamp: number;
   /** 原始文本 */
