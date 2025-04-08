@@ -2,14 +2,7 @@
  * AI服务实现
  */
 
-import {
-  AIServiceConfig,
-  AIRequestOptions,
-  AIResponse,
-  CodeGenerationResult,
-  ImageGenerationResult,
-  AIServiceStatus
-} from './types';
+import { AIServiceConfig, AIRequestOptions, AIResponse, CodeGenerationResult, ImageGenerationResult, ImageGenerationOptions, AIServiceStatus } from "./types";
 
 /**
  * AI服务类
@@ -47,10 +40,10 @@ export class AIService {
     try {
       this.status = AIServiceStatus.INITIALIZING;
       this.config = config;
-      
+
       // 验证API密钥和配置
       const isValid = await this.validateConfig();
-      
+
       if (isValid) {
         this.status = AIServiceStatus.READY;
         this.error = null;
@@ -78,10 +71,40 @@ export class AIService {
       return false;
     }
 
-    // TODO: 实现实际的API验证
-    // 这里可以发送一个简单的请求来验证API密钥和URL是否有效
-    
-    return true;
+    try {
+      // 发送一个简单的请求来验证API密钥和URL是否有效
+      // 这里使用模型列表API，它通常不消耗token且响应快 暂时不验证
+      // const testUrl = this.config.baseUrl;
+
+      // const response = await fetch(testUrl, {
+      //   method: "POST",
+      //   headers: {
+      //     Authorization: `Bearer ${this.config.apiKey}`,
+      //     'Content-Type': "application/json",
+      //   },
+      //   // 设置较短的超时时间
+      //   signal: AbortSignal.timeout(5000),
+      //   body: JSON.stringify({
+      //     model: "deepseek-chat",
+      //     messages: [
+      //       { role: "system", content: "You are a helpful assistant." },
+      //       { role: "user", content: "Hello!" },
+      //     ],
+      //     stream: false,
+      //   }),
+      // });
+
+      // if (!response.ok) {
+      //   const errorData = await response.json();
+      //   this.error = errorData.error?.message || `API验证失败: ${response.status}`;
+      //   return false;
+      // }
+
+      return true;
+    } catch (err) {
+      this.error = err instanceof Error ? err.message : "API验证失败";
+      return false;
+    }
   }
 
   /**
@@ -93,61 +116,91 @@ export class AIService {
     if (!this.config) {
       return {
         success: false,
-        error: "服务未初始化"
+        error: "服务未初始化",
       };
     }
 
     if (this.status !== AIServiceStatus.READY) {
       return {
         success: false,
-        error: `服务状态不正确: ${this.status}`
+        error: `服务状态不正确: ${this.status}`,
       };
     }
 
     try {
       this.status = AIServiceStatus.PROCESSING;
       this.abortController = new AbortController();
-      
+
       const response = await fetch(`${this.config.baseUrl}/v1/chat/completions`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           model: this.config.modelName,
-          messages: [
-            ...(options.systemPrompt ? [{ role: 'system', content: options.systemPrompt }] : []),
-            { role: 'user', content: options.prompt }
-          ],
+          messages: [...(options.systemPrompt ? [{ role: "system", content: options.systemPrompt }] : []), { role: "user", content: options.prompt }],
           temperature: options.temperature ?? 0.7,
           max_tokens: options.maxTokens,
-          stop: options.stopSequences
+          stop: options.stopSequences,
         }),
         signal: this.abortController.signal,
-        ...(this.config.timeout ? { timeout: this.config.timeout } : {})
+        ...(this.config.timeout ? { timeout: this.config.timeout } : {}),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `请求失败: ${response.status}`);
+        let errorMessage = `请求失败: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || errorMessage;
+        } catch (e) {
+          // 如果响应不是JSON格式，使用默认错误消息
+          console.error("Failed to parse error response:", e);
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
-      
+      let data;
+      try {
+        data = await response.json();
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "未知错误";
+        throw new Error(`解析响应失败: ${errorMessage}`);
+      }
+
       this.status = AIServiceStatus.READY;
+
+      // 处理不同模型的响应格式
+      let content = "";
+      if (data.choices && data.choices.length > 0) {
+        // OpenAI 格式
+        content = data.choices[0]?.message?.content || data.choices[0]?.text || "";
+      } else if (data.response) {
+        // 某些模型可能使用 response 字段
+        content = data.response;
+      } else if (data.output) {
+        // 某些模型可能使用 output 字段
+        content = data.output;
+      } else if (data.result) {
+        // 某些模型可能使用 result 字段
+        content = data.result;
+      } else if (typeof data === "string") {
+        // 直接返回字符串
+        content = data;
+      }
+
       return {
         success: true,
-        content: data.choices[0]?.message?.content,
-        usage: data.usage
+        content,
+        usage: data.usage,
       };
     } catch (err) {
       this.status = AIServiceStatus.ERROR;
       this.error = err instanceof Error ? err.message : "请求失败";
-      
+
       return {
         success: false,
-        error: this.error
+        error: this.error,
       };
     } finally {
       this.abortController = null;
@@ -162,34 +215,35 @@ export class AIService {
   public async generateCode(options: AIRequestOptions): Promise<CodeGenerationResult> {
     try {
       // 添加代码生成相关的系统提示词
-      const systemPrompt = options.systemPrompt || 
+      const systemPrompt =
+        options.systemPrompt ||
         "你是一个专业的代码生成助手。请根据用户的需求生成代码。" +
-        "返回格式应为markdown代码块，每个文件使用单独的代码块，并在代码块前注明文件路径。" +
-        "例如: ```filepath:src/index.js\nconsole.log('Hello');\n```";
-      
+          "返回格式应为markdown代码块，每个文件使用单独的代码块，并在代码块前注明文件路径。" +
+          "例如: ```filepath:src/index.js\nconsole.log('Hello');\n```";
+
       const response = await this.sendRequest({
         ...options,
-        systemPrompt
+        systemPrompt,
       });
 
       if (!response.success) {
         return {
           success: false,
-          error: response.error
+          error: response.error,
         };
       }
 
       // 解析响应中的代码文件
       const files = this.parseCodeFromResponse(response.content || "");
-      
+
       return {
         success: true,
-        files
+        files,
       };
     } catch (err) {
       return {
         success: false,
-        error: err instanceof Error ? err.message : "代码生成失败"
+        error: err instanceof Error ? err.message : "代码生成失败",
       };
     }
   }
@@ -199,31 +253,31 @@ export class AIService {
    * @param content 响应内容
    * @returns 解析出的文件列表
    */
-  private parseCodeFromResponse(content: string): Array<{path: string, content: string, language?: string}> {
-    const files: Array<{path: string, content: string, language?: string}> = [];
-    
+  private parseCodeFromResponse(content: string): Array<{ path: string; content: string; language?: string }> {
+    const files: Array<{ path: string; content: string; language?: string }> = [];
+
     // 匹配markdown代码块: ```language:filepath ... ```
     const codeBlockRegex = /```(?:([\w-]+):)?([^\n]+)?\n([\s\S]*?)```/g;
     let match;
-    
+
     while ((match = codeBlockRegex.exec(content)) !== null) {
       const language = match[1];
       const filepath = match[2] || "";
       const code = match[3];
-      
+
       // 如果找到了文件路径和代码内容
       if (filepath && code) {
         // 清理文件路径
-        const cleanPath = filepath.replace(/^filepath:/, '').trim();
-        
+        const cleanPath = filepath.replace(/^filepath:/, "").trim();
+
         files.push({
           path: cleanPath,
           content: code,
-          language
+          language,
         });
       }
     }
-    
+
     return files;
   }
 
@@ -233,57 +287,95 @@ export class AIService {
    * @param options 选项
    * @returns 图像生成结果
    */
-  public async generateImage(prompt: string, options: any = {}): Promise<ImageGenerationResult> {
+  public async generateImage(prompt: string, options: ImageGenerationOptions = {}): Promise<ImageGenerationResult> {
     if (!this.config) {
       return {
         success: false,
-        error: "服务未初始化"
+        error: "服务未初始化",
       };
     }
 
     try {
       this.status = AIServiceStatus.PROCESSING;
       this.abortController = new AbortController();
-      
+
       // 这里使用图像生成API，例如OpenAI的DALL-E API
       const response = await fetch(`${this.config.baseUrl}/v1/images/generations`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.config.apiKey}`,
         },
         body: JSON.stringify({
           prompt,
           n: options.count || 1,
           size: options.size || "1024x1024",
-          response_format: "url"
+          response_format: "url",
         }),
-        signal: this.abortController.signal
+        signal: this.abortController.signal,
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || `图像生成请求失败: ${response.status}`);
+        let errorMessage = `图像生成请求失败: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || errorMessage;
+        } catch (e) {
+          // 如果响应不是JSON格式，使用默认错误消息
+          console.error("Failed to parse error response:", e);
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json();
-      
+      let data;
+      try {
+        data = await response.json();
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "未知错误";
+        throw new Error(`解析图像响应失败: ${errorMessage}`);
+      }
+
       this.status = AIServiceStatus.READY;
-      return {
-        success: true,
-        images: data.data.map((img: any) => ({
+
+      // 处理不同模型的图像响应格式
+      let images = [];
+
+      if (data.data && Array.isArray(data.data)) {
+        // OpenAI 格式
+        images = data.data.map((img: { url: string }) => ({
           url: img.url,
           width: 1024, // 根据实际返回调整
-          height: 1024
-        }))
+          height: 1024,
+        }));
+      } else if (data.images && Array.isArray(data.images)) {
+        // 某些模型可能使用 images 字段
+        images = data.images.map((img: string | { url: string }) => {
+          if (typeof img === "string") {
+            return {
+              url: img,
+              width: 1024,
+              height: 1024,
+            };
+          }
+          return {
+            url: img.url,
+            width: 1024,
+            height: 1024,
+          };
+        });
+      }
+
+      return {
+        success: true,
+        images,
       };
     } catch (err) {
       this.status = AIServiceStatus.ERROR;
       this.error = err instanceof Error ? err.message : "图像生成失败";
-      
+
       return {
         success: false,
-        error: this.error
+        error: this.error,
       };
     } finally {
       this.abortController = null;
@@ -299,7 +391,7 @@ export class AIService {
     try {
       const response = await this.sendRequest({
         prompt: `请优化以下提示词，使其更清晰、更具体，以便AI能更好地理解和执行：\n\n${prompt}`,
-        systemPrompt: "你是一个专业的提示词优化助手。请帮助用户优化他们的提示词，使其更加清晰、具体和有效。只返回优化后的提示词，不要包含任何解释或其他内容。"
+        systemPrompt: "你是一个专业的提示词优化助手。请帮助用户优化他们的提示词，使其更加清晰、具体和有效。只返回优化后的提示词，不要包含任何解释或其他内容。",
       });
 
       if (!response.success || !response.content) {

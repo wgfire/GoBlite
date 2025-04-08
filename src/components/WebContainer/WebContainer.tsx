@@ -51,7 +51,7 @@ export const WebContainer: React.FC<WebContainerProps> = ({ isVisible }) => {
         {status === WebContainerStatus.INITIALIZING && (
           <div className="webcontainer-loading">
             <div className="loading-spinner"></div>
-            <p>正在初始化 WebContainer...</p>
+            <p>正在初始化项目...</p>
           </div>
         )}
 

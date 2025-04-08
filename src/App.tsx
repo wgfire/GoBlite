@@ -23,6 +23,7 @@ import useMemoizedFn from "@/hooks/useMemoizedFn"; // Import the custom hook
 const templateService = new TemplateService();
 
 export const App: React.FC = () => {
+  const [isChatCollapsed, setIsChatCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentView, setCurrentView] = useState<"editor" | "webcontainer" | "templateGallery">("templateGallery");
   const [templateLoaded, setTemplateLoaded] = useState(false);
@@ -341,16 +342,16 @@ export const App: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="chat-box basis-[25%]">
-              <Chat></Chat>
+            <div className={`chat-box-container ${isChatCollapsed ? "chat-collapsed-state" : ""}`}>
+              <Chat onCollapseChange={setIsChatCollapsed} />
             </div>
             <div className="file-explorer-container" style={{ display: currentView === "editor" ? "block" : "none" }}>
               <FileExplorer onFileOpen={handleFileOpen} />
             </div>
-            <div className="editor-box">
+            <div className={`editor-box ${isChatCollapsed ? "editor-expanded" : ""}`}>
               {currentView === "editor" && <FileTabs onTabSelect={handleTabSelect} />}
 
-              <div className="content-container" style={{ position: "relative", height: "calc(100% - 40px)" }}>
+              <div className="content-container flex-1" style={{ position: "relative", height: "calc(100% - 40px)" }}>
                 <div className="view-container" style={{ display: currentView === "editor" ? "block" : "none", height: "100%" }}>
                   <Editor initialCode={activeFileContent} onChange={handleCodeChange} />
                 </div>

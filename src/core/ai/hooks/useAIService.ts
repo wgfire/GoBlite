@@ -15,6 +15,7 @@ import {
   TemplateProcessOptions,
   TemplateProcessResult,
   AIGenerationType,
+  AIResponse,
 } from "../types";
 import { useFileSystem } from "@/core/fileSystem";
 import { useWebContainer } from "@/core/webContainer";
@@ -67,8 +68,9 @@ export const DEFAULT_MODEL_CONFIGS: Record<AIModelType, AIModelConfig> = {
   [AIModelType.DEEPSEEK]: {
     type: AIModelType.DEEPSEEK,
     name: "DeepSeek",
-    baseUrl: "https://api.deepseek.com",
+    baseUrl: "https://api.deepseek.com/chat/completions",
     needsProxy: true,
+    apiKey: "sk-58b58e33b4d64358836ff816fa918aa8", // 默认API密钥
   },
 };
 
@@ -102,7 +104,7 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
   const [status, setStatus] = useState<AIServiceStatus>(AIServiceStatus.UNINITIALIZED);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentModelType, setCurrentModelType] = useState<AIModelType>(options.modelType || AIModelType.GPT4O);
+  const [currentModelType, setCurrentModelType] = useState<AIModelType>(options.modelType || AIModelType.DEEPSEEK);
 
   // 获取其他钩子
   const fileSystem = useFileSystem();
@@ -172,7 +174,7 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
 
         // 初始化AI服务
         const success = await aiService.current.initialize({
-          apiKey: apiKey || options.apiKey || process.env.REACT_APP_AI_API_KEY || "",
+          apiKey: apiKey || options.apiKey || modelConfig.apiKey || "",
           baseUrl: baseUrl || modelConfig.baseUrl || options.baseUrl || "https://api.openai.com",
           modelName: modelName || currentModelType || options.modelName || "gpt-4o",
         });
@@ -233,6 +235,46 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
       } catch (err) {
         setIsProcessing(false);
         const errorMessage = err instanceof Error ? err.message : "代码生成失败";
+        setError(errorMessage);
+
+        return {
+          success: false,
+          error: errorMessage,
+        };
+      }
+    },
+    [status]
+  );
+
+  // 发送聊天请求
+  const sendChatRequest = useCallback(
+    async (prompt: string, options?: Partial<AIRequestOptions>): Promise<AIResponse> => {
+      try {
+        setIsProcessing(true);
+        setError(null);
+
+        // 检查服务状态
+        if (status !== AIServiceStatus.READY) {
+          throw new Error(`服务未就绪，当前状态: ${status}`);
+        }
+
+        // 发送聊天请求
+        const result = await aiService.current.sendRequest({
+          prompt,
+          systemPrompt: options?.systemPrompt || "你是一个智能助手，可以回答用户的问题并提供帮助。",
+          ...options,
+        });
+
+        setIsProcessing(false);
+
+        if (!result.success) {
+          setError(result.error || "聊天请求失败");
+        }
+
+        return result;
+      } catch (err) {
+        setIsProcessing(false);
+        const errorMessage = err instanceof Error ? err.message : "聊天请求失败";
         setError(errorMessage);
 
         return {
@@ -320,10 +362,12 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
           prompt = `请为我创建一个${template.name}，具有以下特点：\n\n`;
 
           // 添加表单数据
-          for (const field of template.fields) {
-            const value = formData[field.id];
-            if (value) {
-              prompt += `- ${field.name}: ${value}\n`;
+          if (template.fields && template.fields.length > 0) {
+            for (const field of template.fields) {
+              const value = formData[field.id];
+              if (value) {
+                prompt += `- ${field.name}: ${value}\n`;
+              }
             }
           }
 
@@ -511,6 +555,7 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
     initialize,
     generateCode,
     generateImage,
+    sendChatRequest,
     optimizePrompt,
     processTemplate,
     cancelRequest,

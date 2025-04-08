@@ -28,6 +28,28 @@ html {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+
+/* 聊天框容器 */
+.chat-box-container {
+  position: relative;
+  z-index: 50;
+  flex-basis: 25%;
+  transition: flex-basis 0.3s ease;
+}
+
+/* 聊天框折叠状态 */
+.chat-collapsed-state {
+  flex-basis: 60px;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+/* 编辑器在聊天框折叠时扩展 */
+.editor-expanded {
+  flex-grow: 1;
+  transition: flex-grow 0.3s ease;
 }
 
 /* 文件浏览器容器 */
