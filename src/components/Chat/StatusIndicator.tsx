@@ -1,5 +1,5 @@
 import React from "react";
-import { AIServiceStatus } from "@/core/ai/types";
+import { AIServiceStatus } from "@/core/ai/hooks/useLangChainService";
 import { FiAlertCircle, FiCheck, FiLoader, FiSettings } from "react-icons/fi";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -49,10 +49,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({ status, onOpen
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
-            onClick={onOpenAPIKeyConfig}
-            className={`flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-700 transition-colors ${statusClass}`}
-          >
+          <button onClick={onOpenAPIKeyConfig} className={`flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-700 transition-colors ${statusClass}`}>
             <span>{icon}</span>
             <span className="text-xs">{statusText}</span>
           </button>

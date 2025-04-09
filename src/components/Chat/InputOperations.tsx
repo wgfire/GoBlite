@@ -1,7 +1,14 @@
 import React, { useRef, ChangeEvent } from "react";
 import { FiUpload, FiZap, FiSettings } from "react-icons/fi";
-import { AIModelType, DEFAULT_MODEL_CONFIGS } from "@/core/ai/hooks/useAIService";
+import { AIModelType } from "@/core/ai/hooks/useLangChainService";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
+
+// 模型配置
+const MODEL_CONFIGS = {
+  [AIModelType.GPT4O]: { type: AIModelType.GPT4O, name: "OpenAI GPT-4o" },
+  [AIModelType.GEMINI_PRO]: { type: AIModelType.GEMINI_PRO, name: "Google Gemini 2.5 Pro" },
+  [AIModelType.DEEPSEEK]: { type: AIModelType.DEEPSEEK, name: "DeepSeek Chat" },
+};
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface InputOperationsProps {
@@ -74,7 +81,7 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(DEFAULT_MODEL_CONFIGS).map((config) => (
+            {Object.values(MODEL_CONFIGS).map((config) => (
               <SelectItem key={config.type} value={config.type}>
                 {config.name}
               </SelectItem>

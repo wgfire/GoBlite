@@ -9,10 +9,12 @@ import { HeaderTab, Message, UploadedFile } from "./types";
 import { Template } from "@/template/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
-import useAIService, { AIModelType } from "@/core/ai/hooks/useAIService";
+import { useLangChainService, AIModelType } from "@/core/ai/hooks/useLangChainService";
+import { processTemplate as processTemplateFunc } from "@/core/ai/integration/processTemplate";
 import { useFileSystem } from "@/core/fileSystem";
 import { useWebContainer } from "@/core/webContainer";
-import { AIGenerationType, AIMessageType, AIMessageContent, AIServiceStatus } from "@/core/ai/types";
+import { AIMessageType, AIMessageContent } from "@/core/ai/types";
+import { AIServiceStatus } from "@/core/ai/hooks/useLangChainService";
 import { FiChevronLeft, FiChevronRight, FiMessageSquare, FiSettings } from "react-icons/fi";
 import { FileItemType } from "@/core/fileSystem/types";
 import "./Chat.css";
@@ -41,18 +43,17 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
     status,
     isProcessing,
     generateCode,
-    sendChatRequest,
+    sendMessage: sendChatRequest,
     optimizePrompt: aiOptimizePrompt,
-    processTemplate,
     cancelRequest,
     currentModelType,
     switchModel,
-  } = useAIService({ autoInit: true });
+  } = useLangChainService({ autoInit: true });
 
   // 模型切换处理
   const handleModelChange = useCallback(
-    async (modelType: AIModelType) => {
-      await switchModel(modelType);
+    (modelType: AIModelType) => {
+      switchModel(modelType);
     },
     [switchModel]
   );
@@ -72,10 +73,16 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
     }
   }, [aiError]);
 
+  // 初始化服务实例
+  const { initialize: initializeService } = useLangChainService();
+
   const handleSaveAPIKey = useCallback(
     async (modelType: AIModelType, apiKey: string) => {
-      const success = await switchModel(modelType, apiKey);
+      // 初始化服务并切换模型
+      const success = await initializeService(apiKey);
       if (success) {
+        // 切换模型
+        switchModel(modelType);
         toast({
           title: "配置成功",
           description: `已成功配置${modelType}模型`,
@@ -83,7 +90,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       }
       return success;
     },
-    [switchModel]
+    [switchModel, initializeService]
   );
 
   // 解析AI响应中的代码和图像
@@ -189,9 +196,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             responseText += "\n文件已添加到文件系统，并已启动预览。";
           } else {
             // 生成失败或没有文件
-            responseText = result.error
-              ? `抱歉，生成代码时出错：${result.error}`
-              : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
+            responseText = result.error ? `抱歉，生成代码时出错：${result.error}` : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
           }
 
           // 创建AI响应消息
@@ -285,10 +290,9 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
 
     try {
       // 处理模板
-      const result = await processTemplate({
+      const result = await processTemplateFunc({
         template: selectedTemplate,
         formData: data,
-        generationType: AIGenerationType.MIXED,
         autoSync: true,
       });
 
@@ -394,11 +398,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       </motion.button>
 
       {/* Right border gradient */}
-      <div
-        className={`absolute right-0 h-full ${
-          isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"
-        }`}
-      ></div>
+      <div className={`absolute right-0 h-full ${isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"}`}></div>
 
       {/* Collapsed state icon */}
       <AnimatePresence>
@@ -441,25 +441,13 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader
-                onTemplateSelect={handleTemplateSelect}
-                selectedTemplate={selectedTemplate}
-                isMobile={false}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-              />
+              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || AIServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea
-              onSend={handleSend}
-              isSending={isSending || isProcessing}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-              onCancel={handleCancelRequest}
-            />
+            <InputArea onSend={handleSend} isSending={isSending || isProcessing} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
             <InputOperations
               onOptimizePrompt={() => handleOptimizePrompt("")}
               isOptimizing={false}
@@ -500,12 +488,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           </motion.div>
         )}
         {/* API密钥配置对话框 */}
-        <APIKeyConfig
-          isOpen={showAPIKeyConfig}
-          onClose={() => setShowAPIKeyConfig(false)}
-          onSave={handleSaveAPIKey}
-          currentModel={currentModelType}
-        />
+        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={currentModelType} />
       </AnimatePresence>
     </motion.div>
   );

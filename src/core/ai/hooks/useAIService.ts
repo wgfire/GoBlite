@@ -5,6 +5,9 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { AIService } from "../service";
+import { LangChainService } from "../langchain/service";
+import { ConversationInfo } from "../langchain/types";
+import { ModelSwitcher, ModelProvider, ModelConfig } from "../langchain/modelSwitcher";
 import { PromptManager } from "../prompts/promptManager";
 import {
   AIServiceStatus,
@@ -88,6 +91,10 @@ interface UseAIServiceOptions {
   modelName?: string;
   /** 模型类型 */
   modelType?: AIModelType;
+  /** 最大token数 */
+  maxTokens?: number;
+  /** 温度参数 */
+  temperature?: number;
 }
 
 /**
@@ -98,7 +105,17 @@ interface UseAIServiceOptions {
 export const useAIService = (options: UseAIServiceOptions = {}) => {
   // 获取服务实例
   const aiService = useRef(AIService.getInstance());
+  const langChainService = useRef(LangChainService.getInstance());
   const promptManager = useRef(PromptManager.getInstance());
+  const modelSwitcher = useRef<ModelSwitcher | null>(null);
+
+  // 对话状态
+  const [currentConversationId, setCurrentConversationId] = useState<string>("default");
+  const [conversations, setConversations] = useState<ConversationInfo[]>([]);
+
+  // 模型切换器状态
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [currentLangChainModel, setCurrentLangChainModel] = useState<string>("");
 
   // 状态
   const [status, setStatus] = useState<AIServiceStatus>(AIServiceStatus.UNINITIALIZED);
@@ -179,25 +196,91 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
           modelName: modelName || currentModelType || options.modelName || "gpt-4o",
         });
 
-        if (success) {
-          // 初始化提示词管理器
-          await promptManager.current.initialize();
-
-          setStatus(AIServiceStatus.READY);
-          setError(null);
-          return true;
-        } else {
+        if (!success) {
           setStatus(AIServiceStatus.ERROR);
           setError(aiService.current.getError() || "初始化失败");
           return false;
         }
+
+        // 初始化LangChain服务
+        const lcSuccess = await langChainService.current.initialize({
+          defaultModelName: modelName || currentModelType || options.modelName || "gpt-4o",
+          apiKey: apiKey || options.apiKey || modelConfig.apiKey || "",
+          baseUrl: baseUrl || modelConfig.baseUrl || options.baseUrl || "https://api.openai.com",
+          memoryType: "buffer",
+          persistenceProvider: "localStorage",
+          maxTokens: options.maxTokens || 2000,
+          temperature: options.temperature || 0.7,
+        });
+
+        if (!lcSuccess) {
+          setStatus(AIServiceStatus.ERROR);
+          setError("LangChain服务初始化失败");
+          return false;
+        }
+
+        // 初始化模型切换器
+        try {
+          // 创建模型配置
+          const modelConfigs: ModelConfig[] = [
+            {
+              provider: ModelProvider.DEEPSEEK,
+              modelName: "deepseek-chat",
+              temperature: options.temperature || 0.7,
+              apiKey: apiKey || options.apiKey || "",
+              maxTokens: options.maxTokens || 2000,
+            },
+            {
+              provider: ModelProvider.GEMINI,
+              modelName: "gemini-1.5-pro",
+              temperature: options.temperature || 0.7,
+              apiKey: apiKey || options.apiKey || "",
+              maxTokens: options.maxTokens || 2000,
+            },
+          ];
+
+          // 根据当前模型类型选择默认模型
+          let defaultModel = "";
+          if (currentModelType === AIModelType.DEEPSEEK) {
+            defaultModel = `${ModelProvider.DEEPSEEK}:deepseek-chat`;
+          } else if (currentModelType === AIModelType.GEMINI25) {
+            defaultModel = `${ModelProvider.GEMINI}:gemini-1.5-pro`;
+          } else {
+            // 默认使用Gemini
+            defaultModel = `${ModelProvider.GEMINI}:gemini-1.5-pro`;
+          }
+
+          // 创建模型切换器
+          modelSwitcher.current = new ModelSwitcher(modelConfigs, defaultModel);
+
+          // 更新状态
+          setAvailableModels(modelSwitcher.current.getAvailableModels());
+          setCurrentLangChainModel(modelSwitcher.current.getCurrentModelKey());
+        } catch (error) {
+          console.error("初始化模型切换器失败:", error);
+          // 不阻止继续初始化其他服务
+        }
+
+        // 初始化提示词管理器
+        await promptManager.current.initialize();
+
+        // 创建默认对话
+        await langChainService.current.createConversation("default");
+
+        // 加载对话列表
+        const convList = await langChainService.current.listConversations();
+        setConversations(convList);
+
+        setStatus(AIServiceStatus.READY);
+        setError(null);
+        return true;
       } catch (err) {
         setStatus(AIServiceStatus.ERROR);
         setError(err instanceof Error ? err.message : "初始化失败");
         return false;
       }
     },
-    [options.apiKey, options.baseUrl, options.modelName, currentModelType, getCurrentModelConfig]
+    [options.apiKey, options.baseUrl, options.modelName, options.maxTokens, options.temperature, currentModelType, getCurrentModelConfig]
   );
 
   // 自动初始化
@@ -258,20 +341,58 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
           throw new Error(`服务未就绪，当前状态: ${status}`);
         }
 
-        // 发送聊天请求
-        const result = await aiService.current.sendRequest({
-          prompt,
-          systemPrompt: options?.systemPrompt || "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。",
-          ...options,
-        });
+        // 尝试使用模型切换器
+        if (modelSwitcher.current) {
+          try {
+            // 准备消息
+            const messages: Array<[string, string]> = [
+              ["system", options?.systemPrompt || "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。"],
+              ["human", prompt],
+            ];
+
+            // 发送消息
+            const aiMessage = await modelSwitcher.current.sendMessage(messages);
+
+            setIsProcessing(false);
+
+            return {
+              success: true,
+              content: aiMessage.content as string,
+            };
+          } catch (error) {
+            console.warn("模型切换器请求失败，尝试其他方法", error);
+            // 如果模型切换器失败，尝试使用LangChain服务
+          }
+        }
+
+        // 使用LangChain发送请求
+        let response;
+        try {
+          response = await langChainService.current.sendMessage(currentConversationId, prompt);
+        } catch (error) {
+          // 如果LangChain失败，回退到原始的AI服务
+          console.warn("LangChain请求失败，回退到原始服务", error);
+          const result = await aiService.current.sendRequest({
+            prompt,
+            systemPrompt: options?.systemPrompt || "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。",
+            ...options,
+          });
+
+          setIsProcessing(false);
+
+          if (!result.success) {
+            setError(result.error || "聊天请求失败");
+          }
+
+          return result;
+        }
 
         setIsProcessing(false);
 
-        if (!result.success) {
-          setError(result.error || "聊天请求失败");
-        }
-
-        return result;
+        return {
+          success: true,
+          content: response,
+        };
       } catch (err) {
         setIsProcessing(false);
         const errorMessage = err instanceof Error ? err.message : "聊天请求失败";
@@ -283,8 +404,22 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
         };
       }
     },
-    [status]
+    [status, currentConversationId]
   );
+
+  // 切换LangChain模型
+  const switchLangChainModel = useCallback((modelKey: string): boolean => {
+    if (!modelSwitcher.current) {
+      console.error("模型切换器未初始化");
+      return false;
+    }
+
+    const success = modelSwitcher.current.switchModel(modelKey);
+    if (success) {
+      setCurrentLangChainModel(modelSwitcher.current.getCurrentModelKey());
+    }
+    return success;
+  }, []);
 
   // 生成图像
   const generateImage = useCallback(
@@ -400,8 +535,7 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
             const imageDescPrompt = `基于以下项目需求，请提供详细的图像描述，用于AI图像生成：\n\n${prompt}`;
             const imageDescResult = await aiService.current.sendRequest({
               prompt: imageDescPrompt,
-              systemPrompt:
-                "你是一个专业的图像描述生成器。请根据用户的项目需求，生成详细的图像描述，用于AI图像生成。只返回图像描述，不要包含任何解释或其他内容。",
+              systemPrompt: "你是一个专业的图像描述生成器。请根据用户的项目需求，生成详细的图像描述，用于AI图像生成。只返回图像描述，不要包含任何解释或其他内容。",
             });
 
             if (imageDescResult.success && imageDescResult.content) {
@@ -545,12 +679,63 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
     setIsProcessing(false);
   }, []);
 
+  // 创建新对话
+  const createConversation = useCallback(
+    async (name: string): Promise<string> => {
+      const id = `conv_${Date.now()}`;
+      await langChainService.current.createConversation(id, {
+        name,
+        modelName: currentModelType,
+      });
+
+      // 更新对话列表
+      const convList = await langChainService.current.listConversations();
+      setConversations(convList);
+
+      // 设置当前对话
+      setCurrentConversationId(id);
+
+      return id;
+    },
+    [currentModelType]
+  );
+
+  // 切换对话
+  const switchConversation = useCallback((conversationId: string) => {
+    setCurrentConversationId(conversationId);
+  }, []);
+
+  // 删除对话
+  const deleteConversation = useCallback(
+    async (conversationId: string): Promise<boolean> => {
+      const success = await langChainService.current.deleteConversation(conversationId);
+
+      if (success) {
+        // 更新对话列表
+        const convList = await langChainService.current.listConversations();
+        setConversations(convList);
+
+        // 如果删除的是当前对话，切换到默认对话
+        if (conversationId === currentConversationId) {
+          setCurrentConversationId("default");
+        }
+      }
+
+      return success;
+    },
+    [currentConversationId]
+  );
+
   return {
     // 状态
     status,
     error,
     isProcessing,
     currentModelType,
+    currentConversationId,
+    conversations,
+    availableModels,
+    currentLangChainModel,
 
     // 方法
     initialize,
@@ -563,6 +748,12 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
     reset,
     switchModel,
     getCurrentModelConfig,
+
+    // LangChain特定方法
+    createConversation,
+    switchConversation,
+    deleteConversation,
+    switchLangChainModel,
   };
 };
 

@@ -3,7 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AIModelType, DEFAULT_MODEL_CONFIGS } from "@/core/ai/hooks/useAIService";
+import { AIModelType } from "@/core/ai/hooks/useLangChainService";
+
+// 模型配置
+const MODEL_CONFIGS = {
+  [AIModelType.GPT4O]: { type: AIModelType.GPT4O, name: "OpenAI GPT-4o" },
+  [AIModelType.GEMINI_PRO]: { type: AIModelType.GEMINI_PRO, name: "Google Gemini 1.5 Pro" },
+  [AIModelType.DEEPSEEK]: { type: AIModelType.DEEPSEEK, name: "DeepSeek Chat" },
+};
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FiCheck, FiKey, FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
@@ -64,7 +71,7 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
                   <SelectValue placeholder="选择AI模型" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-gray-200">
-                  {Object.values(DEFAULT_MODEL_CONFIGS).map((config) => (
+                  {Object.values(MODEL_CONFIGS).map((config) => (
                     <SelectItem key={config.type} value={config.type} className="hover:bg-slate-700 focus:bg-slate-700 text-gray-200">
                       {config.name}
                     </SelectItem>
