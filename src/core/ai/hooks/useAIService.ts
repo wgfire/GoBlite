@@ -261,7 +261,7 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
         // 发送聊天请求
         const result = await aiService.current.sendRequest({
           prompt,
-          systemPrompt: options?.systemPrompt || "你是一个智能助手，可以回答用户的问题并提供帮助。",
+          systemPrompt: options?.systemPrompt || "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。",
           ...options,
         });
 
@@ -400,7 +400,8 @@ export const useAIService = (options: UseAIServiceOptions = {}) => {
             const imageDescPrompt = `基于以下项目需求，请提供详细的图像描述，用于AI图像生成：\n\n${prompt}`;
             const imageDescResult = await aiService.current.sendRequest({
               prompt: imageDescPrompt,
-              systemPrompt: "你是一个专业的图像描述生成器。请根据用户的项目需求，生成详细的图像描述，用于AI图像生成。只返回图像描述，不要包含任何解释或其他内容。",
+              systemPrompt:
+                "你是一个专业的图像描述生成器。请根据用户的项目需求，生成详细的图像描述，用于AI图像生成。只返回图像描述，不要包含任何解释或其他内容。",
             });
 
             if (imageDescResult.success && imageDescResult.content) {

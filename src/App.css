@@ -216,3 +216,23 @@ html {
 *::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, rgba(6, 182, 212, 0.7), rgba(168, 85, 247, 0.7));
 }
+
+/* 模板画廊动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 模糊搜索高亮 */
+.search-highlight {
+  color: #06b6d4;
+  font-weight: 500;
+}

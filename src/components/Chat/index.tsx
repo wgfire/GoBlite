@@ -189,7 +189,9 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             responseText += "\n文件已添加到文件系统，并已启动预览。";
           } else {
             // 生成失败或没有文件
-            responseText = result.error ? `抱歉，生成代码时出错：${result.error}` : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
+            responseText = result.error
+              ? `抱歉，生成代码时出错：${result.error}`
+              : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
           }
 
           // 创建AI响应消息
@@ -205,7 +207,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           // 普通对话请求
           // 使用sendChatRequest发送请求
           const response = await sendChatRequest(prompt, {
-            systemPrompt: "你是一个智能助手，可以回答用户的问题并提供帮助。",
+            systemPrompt: "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。",
             temperature: 0.7,
           });
 
@@ -392,7 +394,11 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       </motion.button>
 
       {/* Right border gradient */}
-      <div className={`absolute right-0 h-full ${isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"}`}></div>
+      <div
+        className={`absolute right-0 h-full ${
+          isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"
+        }`}
+      ></div>
 
       {/* Collapsed state icon */}
       <AnimatePresence>
@@ -435,13 +441,25 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
-              <div className="absolute right-4 top-4 flex items-center space-x-2">
+              <ChatHeader
+                onTemplateSelect={handleTemplateSelect}
+                selectedTemplate={selectedTemplate}
+                isMobile={false}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              />
+              <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || AIServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea onSend={handleSend} isSending={isSending || isProcessing} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
+            <InputArea
+              onSend={handleSend}
+              isSending={isSending || isProcessing}
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+              onCancel={handleCancelRequest}
+            />
             <InputOperations
               onOptimizePrompt={() => handleOptimizePrompt("")}
               isOptimizing={false}
@@ -461,8 +479,6 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
               onModelChange={handleModelChange}
               onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)}
             />
-
-           
           </motion.div>
         )}
       </AnimatePresence>
@@ -483,8 +499,13 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             <TemplateForm template={selectedTemplate} onSubmit={handleTemplateFormSubmit} onClose={handleTemplateFormClose} />
           </motion.div>
         )}
-         {/* API密钥配置对话框 */}
-         <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={currentModelType} />
+        {/* API密钥配置对话框 */}
+        <APIKeyConfig
+          isOpen={showAPIKeyConfig}
+          onClose={() => setShowAPIKeyConfig(false)}
+          onSave={handleSaveAPIKey}
+          currentModel={currentModelType}
+        />
       </AnimatePresence>
     </motion.div>
   );

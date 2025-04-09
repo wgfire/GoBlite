@@ -13,8 +13,6 @@ export const WebContainer: React.FC<WebContainerProps> = ({ isVisible }) => {
   // 使用WebContainer hook获取状态和方法
   const { status, previewUrl, error, initialize, start, isTerminalExpanded, toggleTerminal, setIsVisible } = useWebContainer();
 
-
-
   // 处理可见性变化
   useEffect(() => {
     // 更新全局状态中的可见性
@@ -25,7 +23,25 @@ export const WebContainer: React.FC<WebContainerProps> = ({ isVisible }) => {
       console.log("WebContainer变为可见，检查服务状态...");
       start();
     }
-  }, [isVisible, setIsVisible, status]);
+  }, [isVisible, setIsVisible, status, start]);
+
+  // 添加事件监听器，处理WebContainer刷新请求
+  useEffect(() => {
+    // 处理刷新事件
+    const handleRefreshNeeded = () => {
+      console.log("收到WebContainer刷新请求，重新获取服务URL");
+      // 重新启动WebContainer服务，获取新的URL
+      start();
+    };
+
+    // 添加事件监听器
+    window.addEventListener("webcontainer-refresh-needed", handleRefreshNeeded);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener("webcontainer-refresh-needed", handleRefreshNeeded);
+    };
+  }, [start]);
 
   // 处理启动服务
   const handleStart = () => {

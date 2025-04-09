@@ -5,3 +5,4 @@ export * from "./hooks/usePreview";
 export * from "./atoms";
 export * from "./types";
 export * from "./services/WebContainerService";
+export * from "./services/WebContainerProxyService";
