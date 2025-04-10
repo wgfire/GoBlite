@@ -1,5 +1,5 @@
 import React from "react";
-import { AIServiceStatus } from "@/core/ai/hooks/useLangChainService";
+import { AIServiceStatus } from "@/core/ai";
 import { FiAlertCircle, FiCheck, FiLoader, FiSettings } from "react-icons/fi";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 

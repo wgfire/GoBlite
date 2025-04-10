@@ -677,6 +677,81 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     [files, findItem, openFiles, setActiveFile]
   );
 
+  // 创建目录结构
+  const createDirectory = useCallback(
+    async (path: string) => {
+      if (!path || path === "/" || path === ".") return true;
+
+      // 检查目录是否存在
+      const existingDir = findItem(files, path);
+      if (existingDir) return true;
+
+      // 获取父目录路径
+      const parentPath = getParentPath(path);
+
+      // 递归创建父目录
+      await createDirectory(parentPath);
+
+      // 创建当前目录
+      const dirName = path.split("/").pop() || "";
+      createFolder(parentPath, {
+        name: dirName,
+        path: path,
+        type: FileItemType.FOLDER,
+        children: [],
+      });
+
+      return true;
+    },
+    [files, findItem, getParentPath, createFolder]
+  );
+
+  // 写入文件（创建或更新）
+  const writeFile = useCallback(
+    async (path: string, content: string) => {
+      // 检查文件是否存在
+      const existingFile = findItem(files, path);
+
+      if (existingFile) {
+        // 如果文件存在，更新内容
+        updateFileContent(path, content);
+        return true;
+      } else {
+        // 如果文件不存在，创建目录和文件
+        try {
+          // 获取父目录路径
+          const parentPath = getParentPath(path);
+
+          // 创建目录结构
+          await createDirectory(parentPath);
+
+          // 创建文件
+          const fileName = path.split("/").pop() || "";
+          createFile(parentPath, {
+            name: fileName,
+            path: path,
+            type: FileItemType.FILE,
+            content: content,
+          });
+
+          return true;
+        } catch (error) {
+          console.error(`写入文件失败: ${path}`, error);
+          return false;
+        }
+      }
+    },
+    [files, findItem, updateFileContent, getParentPath, createFile, createDirectory]
+  );
+
+  // 检查文件是否存在
+  const fileExists = useCallback(
+    (path: string) => {
+      return !!findItem(files, path);
+    },
+    [files, findItem]
+  );
+
   return {
     files,
     operations,
@@ -697,6 +772,9 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
     setActiveTab,
     resetFileSystem,
     findFirstFile,
-    updateFileCache, // 导出缓存更新方法
+    updateFileCache,
+    writeFile,
+    createDirectory,
+    fileExists,
   };
 };

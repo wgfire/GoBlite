@@ -3,7 +3,7 @@
  * Manages conversations and messages
  */
 
-import { Conversation, ConversationInfo, Message } from '../types';
+import { Conversation, ConversationInfo, Message } from '@core/ai/types';
 import { ModelManager } from '../models/modelManager';
 import { MemoryManager } from '../memory/memoryManager';
 import { ToolManager } from '../tools/toolManager';

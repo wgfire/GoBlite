@@ -1,6 +1,6 @@
 import React, { useRef, ChangeEvent } from "react";
 import { FiUpload, FiZap, FiSettings } from "react-icons/fi";
-import { AIModelType } from "@/core/ai/hooks/useLangChainService";
+import { AIModelType } from "@/core/ai";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
 
 // 模型配置

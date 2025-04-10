@@ -9,12 +9,11 @@ import { HeaderTab, Message, UploadedFile } from "./types";
 import { Template } from "@/template/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
-import { useLangChainService, AIModelType } from "@/core/ai/hooks/useLangChainService";
-import { processTemplate as processTemplateFunc } from "@/core/ai/integration/processTemplate";
+import { useLangChainAI, AIModelType, AIServiceStatus } from "@/core/ai";
+// 使用 useLangChainAI 中的 processTemplate 方法
 import { useFileSystem } from "@/core/fileSystem";
 import { useWebContainer } from "@/core/webContainer";
-import { AIMessageType, AIMessageContent } from "@/core/ai/types";
-import { AIServiceStatus } from "@/core/ai/hooks/useLangChainService";
+import { AIMessageType, AIMessageContent } from "@/core/ai";
 import { FiChevronLeft, FiChevronRight, FiMessageSquare, FiSettings } from "react-icons/fi";
 import { FileItemType } from "@/core/fileSystem/types";
 import "./Chat.css";
@@ -48,7 +47,8 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
     cancelRequest,
     currentModelType,
     switchModel,
-  } = useLangChainService({ autoInit: true });
+    processTemplate,
+  } = useLangChainAI({ autoInit: true });
 
   // 模型切换处理
   const handleModelChange = useCallback(
@@ -74,7 +74,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
   }, [aiError]);
 
   // 初始化服务实例
-  const { initialize: initializeService } = useLangChainService();
+  const { initialize: initializeService } = useLangChainAI();
 
   const handleSaveAPIKey = useCallback(
     async (modelType: AIModelType, apiKey: string) => {
@@ -290,10 +290,15 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
 
     try {
       // 处理模板
-      const result = await processTemplateFunc({
-        template: selectedTemplate,
-        formData: data,
-        autoSync: true,
+      const result = await processTemplate({
+        templateId: selectedTemplate.id,
+        templateData: data,
+        businessContext: {
+          industry: data.industry || "通用",
+          businessGoal: data.businessGoal || "展示产品或服务",
+          targetAudience: data.targetAudience || "潜在客户",
+          designStyle: data.designStyle || "现代简约",
+        },
       });
 
       if (result.success && result.files && result.files.length > 0) {
@@ -307,6 +312,14 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
 
         // 添加预览信息
         responseText += "\n文件已添加到文件系统，并已启动预览。";
+
+        // 同步到文件系统
+        for (const file of result.files) {
+          await fileSystem.writeFile(file.path, file.content);
+        }
+
+        // 启动预览
+        await webContainer.startApp(fileSystem.files);
 
         // 创建AI响应消息
         const aiResponse: Message = {

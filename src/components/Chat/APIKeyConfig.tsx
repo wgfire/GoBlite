@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AIModelType } from "@/core/ai/hooks/useLangChainService";
+import { AIModelType } from "@/core/ai";
 
 // 模型配置
 const MODEL_CONFIGS = {
