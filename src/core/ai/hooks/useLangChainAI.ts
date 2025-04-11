@@ -3,7 +3,8 @@
  * 提供基于LangChain的AI功能，支持多模型切换、对话管理、代理功能等
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import useMemoizedFn from "@/hooks/useMemoizedFn";
 import { useModelManager } from "../langchain/hooks/useModelManager";
 import { useConversationManager } from "../langchain/hooks/useConversationManager";
 import { useMessageHandler } from "../langchain/hooks/useMessageHandler";
@@ -12,12 +13,7 @@ import { useImageGenerator } from "../langchain/hooks/useImageGenerator";
 import { useTemplateProcessor } from "../langchain/hooks/useTemplateProcessor";
 import { usePromptOptimizer } from "../langchain/hooks/usePromptOptimizer";
 import { useAIAgent } from "../langchain/hooks/useAIAgent";
-import {
-  AIServiceStatus,
-  AIModelType,
-  MemoryType,
-  StorageProvider,
-} from "../types";
+import { AIServiceStatus, AIModelType, MemoryType, StorageProvider } from "../types";
 import { DEFAULT_SYSTEM_PROMPT } from "../constants";
 
 /**
@@ -107,36 +103,49 @@ export const useLangChainAI = (options: UseLangChainAIOptions = {}) => {
    * @param apiKey API密钥（可选，如果不提供则使用选项中的密钥）
    * @returns 是否初始化成功
    */
-  const initialize = useCallback(
-    async (apiKey?: string): Promise<boolean> => {
-      try {
-        // 初始化模型管理器
-        const modelInitSuccess = await modelManager.initialize(apiKey);
-        if (!modelInitSuccess) {
-          throw new Error("初始化模型管理器失败");
-        }
-
-        // 初始化对话管理器
-        const conversationInitSuccess = conversationManager.initialize();
-        if (!conversationInitSuccess) {
-          throw new Error("初始化对话管理器失败");
-        }
-
-        setError(null);
-        return true;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "初始化失败";
-        setError(errorMessage);
-        return false;
+  const initialize = useMemoizedFn(async (apiKey?: string): Promise<boolean> => {
+    try {
+      // 初始化模型管理器
+      const modelInitSuccess = await modelManager.initialize(apiKey);
+      if (!modelInitSuccess) {
+        console.warn("初始化模型管理器失败，将使用有限功能模式。");
+        // 即使模型初始化失败，也继续尝试初始化对话管理器
       }
-    },
-    [modelManager, conversationManager]
-  );
+
+      // 初始化对话管理器
+      const conversationInitSuccess = conversationManager.initialize();
+      if (!conversationInitSuccess) {
+        console.warn("初始化对话管理器失败，将使用有限功能模式。");
+        setError("初始化对话管理器失败。请在设置中配置API密钥。");
+        // 即使对话管理器初始化失败，也返回成功，允许应用继续运行
+        return true;
+      }
+
+      // 如果有错误信息，但初始化仍然成功，显示警告但不阻止应用运行
+      if (modelManager.error) {
+        setError(modelManager.error);
+        console.warn(`模型管理器警告: ${modelManager.error}`);
+      } else if (conversationManager.error) {
+        setError(conversationManager.error);
+        console.warn(`对话管理器警告: ${conversationManager.error}`);
+      } else {
+        setError(null);
+      }
+
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "初始化失败";
+      console.error("初始化失败:", errorMessage);
+      setError(`初始化失败: ${errorMessage}\n请在设置中配置API密钥。`);
+      // 即使有错误，也返回成功，允许应用继续运行
+      return true;
+    }
+  });
 
   /**
    * 重置服务
    */
-  const reset = useCallback(() => {
+  const reset = useMemoizedFn(() => {
     try {
       modelManager.reset();
       conversationManager.reset();
@@ -145,14 +154,21 @@ export const useLangChainAI = (options: UseLangChainAIOptions = {}) => {
       const errorMessage = err instanceof Error ? err.message : "重置失败";
       setError(errorMessage);
     }
-  }, [modelManager, conversationManager]);
+  });
+
+  // 防止重复初始化的标志
+  const hasInitialized = useRef(false);
 
   // 自动初始化
   useEffect(() => {
-    if (options.autoInit) {
-      initialize();
+    if (options.autoInit && !hasInitialized.current) {
+      hasInitialized.current = true;
+      initialize().catch((err) => {
+        console.error("自动初始化失败:", err);
+      });
     }
-  }, [options.autoInit, initialize]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options.autoInit]); // 有意移除initialize依赖，防止循环
 
   return {
     // 状态

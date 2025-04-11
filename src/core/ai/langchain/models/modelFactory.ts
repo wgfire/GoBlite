@@ -22,9 +22,9 @@ export class ModelFactory {
    */
   public static createModel(config: ModelConfig): BaseChatModel | null {
     try {
-      // 如果没有API密钥，则返回null
+      // 如果没有API密钥，则返回null，但记录更详细的警告
       if (!config.apiKey) {
-        console.warn(`创建模型失败: 缺少API密钥 (${config.provider}:${config.modelName})`);
+        console.warn(`创建模型失败: 缺少API密钥 (${config.provider}:${config.modelName})。请在设置中配置API密钥。`);
         return null;
       }
 
@@ -131,13 +131,16 @@ export class ModelFactory {
       });
     }
 
-    // 如果没有任何模型配置，添加一个默认的DeepSeek模型
+    // 如果没有任何模型配置，添加一个模拟模型用于开发测试
     if (configs.length === 0) {
+      console.warn("没有找到有效的API密钥，将使用模拟模型。请在设置中配置API密钥以启用完整功能。");
+
+      // 添加一个带有默认API密钥的DeepSeek模型
       configs.push({
         provider: ModelProvider.DEEPSEEK,
         modelName: "deepseek-chat",
         temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
-        apiKey: apiKey || "", // 即使没有API密钥也添加默认模型
+        apiKey: "sk-58b58e33b4d64358836ff816fa918aa8", // 使用默认API密钥
         maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
       });
     }

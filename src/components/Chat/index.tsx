@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import useMemoizedFn from "@/hooks/useMemoizedFn";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
@@ -10,7 +11,6 @@ import { Template } from "@/template/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
 import { useLangChainAI, AIModelType, AIServiceStatus } from "@/core/ai";
-// 使用 useLangChainAI 中的 processTemplate 方法
 import { useFileSystem } from "@/core/fileSystem";
 import { useWebContainer } from "@/core/webContainer";
 import { AIMessageType, AIMessageContent } from "@/core/ai";
@@ -48,50 +48,77 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
     currentModelType,
     switchModel,
     processTemplate,
-  } = useLangChainAI({ autoInit: true });
+  } = useLangChainAI({
+    autoInit: true,
+    apiKey: "",
+    defaultModelType: AIModelType.DEEPSEEK,
+  });
 
   // 模型切换处理
-  const handleModelChange = useCallback(
-    (modelType: AIModelType) => {
-      switchModel(modelType);
-    },
-    [switchModel]
-  );
+  const handleModelChange = useMemoizedFn((modelType: AIModelType) => {
+    switchModel(modelType);
+  });
 
   // 获取文件系统和WebContainer钩子
   const fileSystem = useFileSystem();
   const webContainer = useWebContainer();
+  // 防止重复显示API密钥配置对话框的标志
+  const [apiKeyErrorShown, setApiKeyErrorShown] = useState(false);
+
   // 监听AI错误
   useEffect(() => {
-    if (aiError) {
+    if (aiError && !apiKeyErrorShown) {
       console.error("AI服务错误:", aiError);
-      toast({
-        title: "AI服务错误",
-        description: aiError,
-        variant: "error",
-      });
+
+      // 检查错误消息是否与初始化或API密钥相关
+      const isApiKeyError =
+        aiError.includes("API密钥") || aiError.includes("初始化") || aiError.includes("模型管理器") || aiError.includes("对话管理器");
+
+      // 如果是API密钥相关错误，显示警告并提示配置
+      if (isApiKeyError) {
+        toast({
+          title: "AI服务需要配置",
+          description: "请点击设置图标配置API密钥以启用完整功能。",
+          variant: "warning",
+        });
+
+        // 标记已经显示过API密钥错误，防止重复显示
+        setApiKeyErrorShown(true);
+
+        // 使用setTimeout避免在渲染周期内设置状态导致的循环
+        setTimeout(() => {
+          setShowAPIKeyConfig(true);
+        }, 100);
+      } else {
+        // 其他错误正常显示
+        toast({
+          title: "AI服务错误",
+          description: aiError,
+          variant: "error",
+        });
+      }
     }
-  }, [aiError]);
+  }, [aiError, apiKeyErrorShown]);
 
   // 初始化服务实例
   const { initialize: initializeService } = useLangChainAI();
 
-  const handleSaveAPIKey = useCallback(
-    async (modelType: AIModelType, apiKey: string) => {
-      // 初始化服务并切换模型
-      const success = await initializeService(apiKey);
-      if (success) {
-        // 切换模型
-        switchModel(modelType);
-        toast({
-          title: "配置成功",
-          description: `已成功配置${modelType}模型`,
-        });
-      }
-      return success;
-    },
-    [switchModel, initializeService]
-  );
+  const handleSaveAPIKey = useMemoizedFn(async (modelType: AIModelType, apiKey: string) => {
+    // 初始化服务并切换模型
+    const success = await initializeService(apiKey);
+    if (success) {
+      // 切换模型
+      switchModel(modelType);
+      toast({
+        title: "配置成功",
+        description: `已成功配置${modelType}模型`,
+      });
+
+      // 重置错误标志，允许再次显示错误
+      setApiKeyErrorShown(false);
+    }
+    return success;
+  });
 
   // 解析AI响应中的代码和图像
   const parseAIResponse = useCallback((text: string): AIMessageContent[] => {
@@ -196,7 +223,9 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             responseText += "\n文件已添加到文件系统，并已启动预览。";
           } else {
             // 生成失败或没有文件
-            responseText = result.error ? `抱歉，生成代码时出错：${result.error}` : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
+            responseText = result.error
+              ? `抱歉，生成代码时出错：${result.error}`
+              : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
           }
 
           // 创建AI响应消息
@@ -411,7 +440,11 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       </motion.button>
 
       {/* Right border gradient */}
-      <div className={`absolute right-0 h-full ${isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"}`}></div>
+      <div
+        className={`absolute right-0 h-full ${
+          isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"
+        }`}
+      ></div>
 
       {/* Collapsed state icon */}
       <AnimatePresence>
@@ -454,13 +487,25 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
+              <ChatHeader
+                onTemplateSelect={handleTemplateSelect}
+                selectedTemplate={selectedTemplate}
+                isMobile={false}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || AIServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea onSend={handleSend} isSending={isSending || isProcessing} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
+            <InputArea
+              onSend={handleSend}
+              isSending={isSending || isProcessing}
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+              onCancel={handleCancelRequest}
+            />
             <InputOperations
               onOptimizePrompt={() => handleOptimizePrompt("")}
               isOptimizing={false}
@@ -501,7 +546,12 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           </motion.div>
         )}
         {/* API密钥配置对话框 */}
-        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={currentModelType} />
+        <APIKeyConfig
+          isOpen={showAPIKeyConfig}
+          onClose={() => setShowAPIKeyConfig(false)}
+          onSave={handleSaveAPIKey}
+          currentModel={currentModelType}
+        />
       </AnimatePresence>
     </motion.div>
   );

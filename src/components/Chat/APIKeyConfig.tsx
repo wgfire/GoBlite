@@ -38,13 +38,22 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
     setError(null);
 
     try {
-      const success = await onSave(selectedModel, apiKey);
+      // 使用try-catch包裹onSave调用，防止未捕获的异常
+      let success = false;
+      try {
+        success = await onSave(selectedModel, apiKey);
+      } catch (saveError) {
+        console.error("保存API密钥时出错:", saveError);
+        throw saveError;
+      }
+
       if (success) {
         onClose();
       } else {
         setError("保存失败，请检查API密钥是否正确");
       }
     } catch (err) {
+      console.error("保存API密钥时出错:", err);
       setError(err instanceof Error ? err.message : "保存失败");
     } finally {
       setIsSaving(false);
@@ -61,6 +70,49 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-5 py-4">
+          <div className="p-3 bg-cyan-900/20 border border-cyan-800/30 rounded-md mb-2">
+            <p className="text-sm text-cyan-300">请配置一个AI模型的API密钥以启用完整功能。您可以选择以下任一模型：</p>
+            <ul className="mt-2 space-y-1 text-sm text-gray-300">
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                <span>
+                  OpenAI GPT-4o -{" "}
+                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
+                    https://platform.openai.com/api-keys
+                  </a>
+                </span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                <span>
+                  Google Gemini -{" "}
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:underline"
+                  >
+                    https://aistudio.google.com/app/apikey
+                  </a>
+                </span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
+                <span>
+                  DeepSeek -{" "}
+                  <a
+                    href="https://platform.deepseek.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:underline"
+                  >
+                    https://platform.deepseek.com/api-keys
+                  </a>
+                </span>
+              </li>
+            </ul>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="model" className="text-gray-300 font-medium">
               选择AI模型
@@ -107,10 +159,20 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
         </div>
 
         <DialogFooter className="gap-3">
-          <Button type="button" variant="outline" onClick={onClose} className="bg-transparent border-slate-700 text-gray-300 hover:bg-slate-800 hover:text-gray-200">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="bg-transparent border-slate-700 text-gray-300 hover:bg-slate-800 hover:text-gray-200"
+          >
             取消
           </Button>
-          <Button type="button" onClick={handleSave} disabled={isSaving} className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white">
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white"
+          >
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

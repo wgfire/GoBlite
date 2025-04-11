@@ -52,19 +52,36 @@ export class ModelManager {
       this.currentModel = null;
       this.currentModelKey = "";
 
+      // 记录初始化的模型数量
+      let initializedModels = 0;
+      let totalModels = configs.length;
+
       // 初始化所有配置的模型
       for (const config of configs) {
         const modelKey = `${config.provider}:${config.modelName}`;
-        const model = ModelFactory.createModel(config);
-        if (model) {
-          this.models.set(modelKey, model);
+        try {
+          const model = ModelFactory.createModel(config);
+          if (model) {
+            this.models.set(modelKey, model);
+            initializedModels++;
 
-          // 如果是默认模型或第一个模型，设置为当前模型
-          if ((defaultModel && modelKey === defaultModel) || (!defaultModel && !this.currentModel)) {
-            this.currentModel = model;
-            this.currentModelKey = modelKey;
+            // 如果是默认模型或第一个模型，设置为当前模型
+            if ((defaultModel && modelKey === defaultModel) || (!defaultModel && !this.currentModel)) {
+              this.currentModel = model;
+              this.currentModelKey = modelKey;
+            }
           }
+        } catch (modelError) {
+          // 单个模型初始化失败，记录错误但继续处理其他模型
+          console.error(`初始化模型 ${modelKey} 失败:`, modelError);
         }
+      }
+
+      // 记录初始化结果
+      if (initializedModels === 0) {
+        console.error(`所有模型初始化失败。共尝试了 ${totalModels} 个模型。`);
+      } else if (initializedModels < totalModels) {
+        console.warn(`部分模型初始化失败。成功: ${initializedModels}/${totalModels}。`);
       }
 
       return this.models.size > 0;
