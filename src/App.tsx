@@ -36,8 +36,7 @@ export const App: React.FC = () => {
   const { selectedTemplate, loading: templateLoading, error: templateError, loadTemplateContent } = useTemplate(templateService);
 
   // 使用文件系统钩子
-  const { updateFileContent, activeFileContent, activeFile, openFile, files, findItem, openFiles, setActiveTab, resetFileSystem, findFirstFile } =
-    useFileSystem();
+  const { updateFileContent, activeFileContent, activeFile, openFile, files, findItem, openFiles, setActiveTab, resetFileSystem, findFirstFile } = useFileSystem();
 
   // 使用WebContainer钩子
   const { previewUrl, error: webContainerError, startApp } = useWebContainer();
@@ -367,10 +366,7 @@ export const App: React.FC = () => {
 
         {/* 模板表单弹窗 */}
         {showTemplateForm && selectedTemplateForForm && (
-          <div
-            className="fixed inset-0 flex items-center justify-center p-4 z-[100]"
-            style={{ backgroundColor: "rgba(15, 23, 42, 0.8)", backdropFilter: "blur(8px)" }}
-          >
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-[100]" style={{ backgroundColor: "rgba(15, 23, 42, 0.8)", backdropFilter: "blur(8px)" }}>
             <TemplateForm template={selectedTemplateForForm} onSubmit={handleTemplateFormSubmit} onClose={handleTemplateFormClose} />
           </div>
         )}

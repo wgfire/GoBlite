@@ -3,7 +3,7 @@
  * 解析AI响应内容
  */
 
-import { AIMessageContent, AIMessageType, GeneratedFile } from "../types";
+import { AIMessageContent, AIMessageType, GeneratedFile, CodeFile } from "../types";
 
 /**
  * 解析代码块
@@ -230,8 +230,27 @@ export function parseAIResponse(text: string): AIMessageContent[] {
   return contents;
 }
 
+/**
+ * 将生成的文件转换为代码文件格式
+ * @param files 生成的文件数组
+ * @returns 代码文件数组
+ */
+export function mapToCodeFiles(files: GeneratedFile[]): CodeFile[] {
+  return files.map((file) => ({
+    path: file.path,
+    content: file.content,
+    language: file.language,
+  }));
+}
+
+export function parseCodeResponse(text: string): GeneratedFile[] {
+  return parseCodeFromResponse(text);
+}
+
 export default {
   parseCodeBlocks,
   parseCodeFromResponse,
   parseAIResponse,
+  mapToCodeFiles,
+  parseCodeResponse,
 };

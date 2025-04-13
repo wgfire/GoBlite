@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from "react";
-import { useLangChainAI, AIModelType } from "@/core/ai";
+import { useLangChainAI, ModelType } from "@/core/ai";
 
 const LangChainTest: React.FC = () => {
   const [apiKey, setApiKey] = useState("");
@@ -12,8 +12,8 @@ const LangChainTest: React.FC = () => {
   const [response, setResponse] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const { initialize, sendMessage, currentModelType, switchModel } = useLangChainAI({
-    defaultModelType: AIModelType.DEEPSEEK,
+  const { initialize, sendMessage, selectedModelType, switchModelType } = useLangChainAI({
+    defaultModelType: ModelType.DEEPSEEK,
   });
 
   const handleInitialize = async () => {
@@ -30,19 +30,19 @@ const LangChainTest: React.FC = () => {
   const handleSendMessage = async () => {
     if (!prompt.trim()) return;
 
-    setIsLoading(true);
-    const result = await sendMessage(prompt);
-    setIsLoading(false);
-
-    if (result.success) {
-      setResponse(result.content || "");
-    } else {
-      setResponse(`错误: ${result.error}`);
+    try {
+      setIsLoading(true);
+      const result = await sendMessage(prompt);
+      setIsLoading(false);
+      setResponse(result || "");
+    } catch (error) {
+      setIsLoading(false);
+      setResponse(`错误: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
-  const handleSwitchModel = (model: AIModelType) => {
-    switchModel(model);
+  const handleSwitchModel = (model: ModelType) => {
+    switchModelType(model);
     setResponse(`已切换到模型: ${model}`);
   };
 
@@ -64,14 +64,14 @@ const LangChainTest: React.FC = () => {
         <h2 className="text-lg font-semibold mb-2">模型切换</h2>
         <div className="flex gap-2">
           <button
-            onClick={() => handleSwitchModel(AIModelType.DEEPSEEK)}
-            className={`px-4 py-2 rounded ${currentModelType === AIModelType.DEEPSEEK ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+            onClick={() => handleSwitchModel(ModelType.DEEPSEEK)}
+            className={`px-4 py-2 rounded ${selectedModelType === ModelType.DEEPSEEK ? "bg-blue-500 text-white" : "bg-gray-200"}`}
           >
             DeepSeek
           </button>
           <button
-            onClick={() => handleSwitchModel(AIModelType.GEMINI_PRO)}
-            className={`px-4 py-2 rounded ${currentModelType === AIModelType.GEMINI_PRO ? "bg-blue-500 text-white" : "bg-gray-200"}`}
+            onClick={() => handleSwitchModel(ModelType.GEMINI_PRO)}
+            className={`px-4 py-2 rounded ${selectedModelType === ModelType.GEMINI_PRO ? "bg-blue-500 text-white" : "bg-gray-200"}`}
           >
             Gemini
           </button>

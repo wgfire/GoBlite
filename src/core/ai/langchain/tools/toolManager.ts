@@ -3,7 +3,8 @@
  * Manages tools that can be used by the AI agent
  */
 
-import { FileItem } from '@/core/fileSystem/types';
+import { FileItem, FileItemType } from "@/core/fileSystem/types";
+import { WebContainerStatus } from "@/core/webContainer/types";
 
 /**
  * Tool interface
@@ -15,21 +16,44 @@ export interface Tool {
 }
 
 /**
+ * 文件系统接口
+ * 定义文件系统工具所需的最小方法集
+ */
+export interface FileSystemInterface {
+  files: FileItem[];
+  findItem: (files: FileItem[], path: string) => FileItem | null;
+  updateFileContent: (path: string, content: string) => void;
+  createFile: (parentPath: string, file: Partial<FileItem>) => void;
+  createFolder: (parentPath: string, folder: Partial<FileItem>) => void;
+}
+
+/**
+ * WebContainer接口
+ * 定义WebContainer工具所需的最小方法集
+ */
+export interface WebContainerInterface {
+  startApp: (files?: FileItem[]) => Promise<boolean>;
+  status: WebContainerStatus;
+  installDependency?: (packageName: string) => Promise<boolean>;
+  buildApp?: () => Promise<boolean>;
+}
+
+/**
  * File system tool
  */
 export class FileSystemTool implements Tool {
   name: string;
   description: string;
-  fileSystem: any;
-  
-  constructor(name: string, description: string, fileSystem: any) {
+  fileSystem: FileSystemInterface;
+
+  constructor(name: string, description: string, fileSystem: FileSystemInterface) {
     this.name = name;
     this.description = description;
     this.fileSystem = fileSystem;
   }
-  
-  async execute(args: any): Promise<any> {
-    throw new Error('Not implemented');
+
+  async execute(_args: any): Promise<any> {
+    throw new Error("Not implemented");
   }
 }
 
@@ -38,21 +62,21 @@ export class FileSystemTool implements Tool {
  */
 export class ReadFileTool extends FileSystemTool {
   constructor(fileSystem: any) {
-    super(
-      'readFile',
-      'Read the content of a file',
-      fileSystem
-    );
+    super("readFile", "Read the content of a file", fileSystem);
   }
-  
+
   async execute(args: { path: string }): Promise<string> {
     const file = this.fileSystem.findItem(this.fileSystem.files, args.path);
-    
+
     if (!file) {
       throw new Error(`File not found: ${args.path}`);
     }
-    
-    return file.content || '';
+
+    if (file.type !== FileItemType.FILE) {
+      throw new Error(`Not a file: ${args.path}`);
+    }
+
+    return file.content || "";
   }
 }
 
@@ -61,31 +85,27 @@ export class ReadFileTool extends FileSystemTool {
  */
 export class WriteFileTool extends FileSystemTool {
   constructor(fileSystem: any) {
-    super(
-      'writeFile',
-      'Write content to a file',
-      fileSystem
-    );
+    super("writeFile", "Write content to a file", fileSystem);
   }
-  
-  async execute(args: { path: string, content: string }): Promise<boolean> {
+
+  async execute(args: { path: string; content: string }): Promise<boolean> {
     const file = this.fileSystem.findItem(this.fileSystem.files, args.path);
-    
+
     if (file) {
       this.fileSystem.updateFileContent(args.path, args.content);
     } else {
-      const pathParts = args.path.split('/');
-      const fileName = pathParts.pop() || '';
-      const parentPath = pathParts.join('/') || '/';
-      
+      const pathParts = args.path.split("/");
+      const fileName = pathParts.pop() || "";
+      const parentPath = pathParts.join("/") || "/";
+
       this.fileSystem.createFile(parentPath, {
         name: fileName,
         path: args.path,
-        type: 'file',
+        type: FileItemType.FILE,
         content: args.content,
       });
     }
-    
+
     return true;
   }
 }
@@ -95,24 +115,20 @@ export class WriteFileTool extends FileSystemTool {
  */
 export class ListFilesTool extends FileSystemTool {
   constructor(fileSystem: any) {
-    super(
-      'listFiles',
-      'List files in a directory',
-      fileSystem
-    );
+    super("listFiles", "List files in a directory", fileSystem);
   }
-  
+
   async execute(args: { path: string }): Promise<FileItem[]> {
     const directory = this.fileSystem.findItem(this.fileSystem.files, args.path);
-    
+
     if (!directory) {
       throw new Error(`Directory not found: ${args.path}`);
     }
-    
-    if (directory.type !== 'directory') {
+
+    if (directory.type !== FileItemType.FOLDER) {
       throw new Error(`Not a directory: ${args.path}`);
     }
-    
+
     return directory.children || [];
   }
 }
@@ -121,21 +137,21 @@ export class ListFilesTool extends FileSystemTool {
  * WebContainer tool interface
  */
 export interface WebContainerTool extends Tool {
-  webContainer: any;
+  webContainer: WebContainerInterface;
 }
 
 /**
  * Start app tool
  */
 export class StartAppTool implements WebContainerTool {
-  name: string = 'startApp';
-  description: string = 'Start the application in WebContainer';
-  webContainer: any;
-  
-  constructor(webContainer: any) {
+  name: string = "startApp";
+  description: string = "Start the application in WebContainer";
+  webContainer: WebContainerInterface;
+
+  constructor(webContainer: WebContainerInterface) {
     this.webContainer = webContainer;
   }
-  
+
   async execute(args: { files?: FileItem[] }): Promise<boolean> {
     return await this.webContainer.startApp(args.files);
   }
@@ -147,9 +163,9 @@ export class StartAppTool implements WebContainerTool {
  */
 export class ToolManager {
   private tools: Map<string, Tool> = new Map();
-  private fileSystem: any = null;
-  private webContainer: any = null;
-  
+  private fileSystem: FileSystemInterface | null = null;
+  private webContainer: WebContainerInterface | null = null;
+
   /**
    * Initialize the tool manager
    * @returns Promise<boolean> Whether initialization was successful
@@ -159,18 +175,18 @@ export class ToolManager {
       // Tools will be initialized when fileSystem and webContainer are set
       return true;
     } catch (error) {
-      console.error('Failed to initialize tool manager:', error);
+      console.error("Failed to initialize tool manager:", error);
       return false;
     }
   }
-  
+
   /**
    * Set the file system
    * @param fileSystem File system
    */
-  public setFileSystem(fileSystem: any): void {
+  public setFileSystem(fileSystem: FileSystemInterface): void {
     this.fileSystem = fileSystem;
-    
+
     // Initialize file system tools
     if (this.fileSystem) {
       this.registerTool(new ReadFileTool(this.fileSystem));
@@ -178,20 +194,20 @@ export class ToolManager {
       this.registerTool(new ListFilesTool(this.fileSystem));
     }
   }
-  
+
   /**
    * Set the WebContainer
    * @param webContainer WebContainer
    */
-  public setWebContainer(webContainer: any): void {
+  public setWebContainer(webContainer: WebContainerInterface): void {
     this.webContainer = webContainer;
-    
+
     // Initialize WebContainer tools
     if (this.webContainer) {
       this.registerTool(new StartAppTool(this.webContainer));
     }
   }
-  
+
   /**
    * Register a tool
    * @param tool Tool
@@ -199,7 +215,7 @@ export class ToolManager {
   public registerTool(tool: Tool): void {
     this.tools.set(tool.name, tool);
   }
-  
+
   /**
    * Get a tool by name
    * @param name Tool name
@@ -207,14 +223,14 @@ export class ToolManager {
    */
   public getTool(name: string): Tool {
     const tool = this.tools.get(name);
-    
+
     if (!tool) {
       throw new Error(`Tool not found: ${name}`);
     }
-    
+
     return tool;
   }
-  
+
   /**
    * Get all tools
    * @returns Array of tools
@@ -222,7 +238,7 @@ export class ToolManager {
   public getTools(): Tool[] {
     return Array.from(this.tools.values());
   }
-  
+
   /**
    * Execute a tool
    * @param name Tool name

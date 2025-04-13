@@ -7,8 +7,9 @@ import { ChatDeepSeek } from "@langchain/deepseek";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ModelConfig, ModelProvider } from "@core/ai/types";
+import { ModelConfig, ModelProvider, ModelType } from "@core/ai/types";
 import { DEFAULT_MODEL_PARAMS } from "../../constants";
+import { getEnvVar } from "../../utils/getEnv";
 
 /**
  * 模型工厂类
@@ -24,7 +25,7 @@ export class ModelFactory {
     try {
       // 如果没有API密钥，则返回null，但记录更详细的警告
       if (!config.apiKey) {
-        console.warn(`创建模型失败: 缺少API密钥 (${config.provider}:${config.modelName})。请在设置中配置API密钥。`);
+        console.warn(`创建模型失败: 缺少API密钥 (${config.provider}:${config.modelType})。请在设置中配置API密钥。`);
         return null;
       }
 
@@ -38,27 +39,27 @@ export class ModelFactory {
       switch (config.provider) {
         case ModelProvider.DEEPSEEK:
           return new ChatDeepSeek({
-            model: config.modelName,
+            model: config.modelType,
             apiKey: config.apiKey,
             ...(config.baseUrl && { baseUrl: config.baseUrl }),
             ...commonOptions,
-          }) as unknown as BaseChatModel;
+          });
 
         case ModelProvider.GEMINI:
           return new ChatGoogleGenerativeAI({
-            model: config.modelName,
+            model: config.modelType,
             apiKey: config.apiKey,
             ...commonOptions,
-          }) as unknown as BaseChatModel;
+          });
 
         case ModelProvider.OPENAI:
           return new ChatOpenAI({
-            modelName: config.modelName,
+            modelName: config.modelType,
             openAIApiKey: config.apiKey,
             ...(config.baseUrl && { configuration: { baseURL: config.baseUrl } }),
             temperature: config.temperature,
             maxTokens: config.maxTokens,
-          }) as unknown as BaseChatModel;
+          });
 
         default:
           console.error(`不支持的模型提供商: ${config.provider}`);
@@ -81,26 +82,12 @@ export class ModelFactory {
   public static createModelConfigs(apiKey?: string, temperature?: number, maxTokens?: number): ModelConfig[] {
     const configs: ModelConfig[] = [];
 
-    // 获取环境变量（如果可用）
-    const getEnvVar = (key: string): string => {
-      // 检查是否在Node.js环境中（有process对象）
-      if (typeof window === "undefined" && typeof process !== "undefined" && process.env) {
-        return process.env[key] || "";
-      }
-      // 检查Vite环境变量
-      if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env[`VITE_${key}`]) {
-        return import.meta.env[`VITE_${key}`];
-      }
-      // 浏览器环境中没有process.env
-      return "";
-    };
-
     // 首先添加DeepSeek模型（默认模型）
     const deepseekApiKey = apiKey || getEnvVar("DEEPSEEK_API_KEY") || "";
     if (deepseekApiKey) {
       configs.push({
         provider: ModelProvider.DEEPSEEK,
-        modelName: "deepseek-chat",
+        modelType:ModelType.DEEPSEEK,
         temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
         apiKey: deepseekApiKey,
         maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
@@ -112,7 +99,7 @@ export class ModelFactory {
     if (geminiApiKey) {
       configs.push({
         provider: ModelProvider.GEMINI,
-        modelName: "gemini-1.5-pro",
+        modelType:ModelType.GEMINI_PRO, // AIModelType.GEMINI_PRO
         temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
         apiKey: geminiApiKey,
         maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
@@ -124,7 +111,7 @@ export class ModelFactory {
     if (openaiApiKey) {
       configs.push({
         provider: ModelProvider.OPENAI,
-        modelName: "gpt-4o",
+        modelType:ModelType.GPT4O,
         temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
         apiKey: openaiApiKey,
         maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
@@ -136,13 +123,13 @@ export class ModelFactory {
       console.warn("没有找到有效的API密钥，将使用模拟模型。请在设置中配置API密钥以启用完整功能。");
 
       // 添加一个带有默认API密钥的DeepSeek模型
-      configs.push({
-        provider: ModelProvider.DEEPSEEK,
-        modelName: "deepseek-chat",
-        temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
-        apiKey: "sk-58b58e33b4d64358836ff816fa918aa8", // 使用默认API密钥
-        maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
-      });
+      // configs.push({
+      //   provider: ModelProvider.DEEPSEEK,
+      //   modelName: "deepseek-chat",
+      //   temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
+      //   apiKey: "sk-58b58e33b4d64358836ff816fa918aa8", // 使用默认API密钥
+      //   maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
+      // });
     }
 
     return configs;

@@ -60,9 +60,9 @@ export const useConversationManager = (options: UseConversationManagerOptions = 
    * @returns 对话ID
    */
   const createConversation = useCallback(
-    (createOptions: CreateConversationOptions): string => {
+    async (createOptions: CreateConversationOptions): Promise<string> => {
       try {
-        const id = memoryManager.createConversation({
+        const id = await memoryManager.createConversation({
           ...createOptions,
           systemPrompt: createOptions.systemPrompt || options.defaultSystemPrompt,
         });
@@ -84,9 +84,9 @@ export const useConversationManager = (options: UseConversationManagerOptions = 
    * @returns 是否切换成功
    */
   const switchConversation = useCallback(
-    (conversationId: string): boolean => {
+    async (conversationId: string): Promise<boolean> => {
       try {
-        const success = memoryManager.switchConversation(conversationId);
+        const success = await memoryManager.switchConversation(conversationId);
         if (success) {
           setCurrentConversationId(conversationId);
           return true;
@@ -107,9 +107,9 @@ export const useConversationManager = (options: UseConversationManagerOptions = 
    * @returns 是否删除成功
    */
   const deleteConversation = useCallback(
-    (conversationId: string): boolean => {
+    async (conversationId: string): Promise<boolean> => {
       try {
-        const success = memoryManager.deleteConversation(conversationId);
+        const success = await memoryManager.deleteConversation(conversationId);
         if (success) {
           setCurrentConversationId(memoryManager.getCurrentConversationId());
           setConversations(memoryManager.getConversations());
@@ -132,9 +132,9 @@ export const useConversationManager = (options: UseConversationManagerOptions = 
    * @returns 消息ID
    */
   const addMessage = useCallback(
-    (role: "user" | "assistant" | "system", content: string): string => {
+    async (role: "user" | "assistant" | "system", content: string): Promise<string> => {
       try {
-        const messageId = memoryManager.addMessage(currentConversationId, role, content);
+        const messageId = await memoryManager.addMessage(currentConversationId, role, content);
         setConversations(memoryManager.getConversations());
         return messageId;
       } catch (err) {
@@ -189,9 +189,9 @@ export const useConversationManager = (options: UseConversationManagerOptions = 
    * @returns 是否设置成功
    */
   const setSystemPrompt = useCallback(
-    (systemPrompt: string, conversationId?: string): boolean => {
+    async (systemPrompt: string, conversationId?: string): Promise<boolean> => {
       try {
-        const success = memoryManager.setSystemPrompt(conversationId || currentConversationId, systemPrompt);
+        const success = await memoryManager.setSystemPrompt(conversationId || currentConversationId, systemPrompt);
         if (success) {
           setConversations(memoryManager.getConversations());
           return true;
@@ -212,9 +212,9 @@ export const useConversationManager = (options: UseConversationManagerOptions = 
    * @returns 是否清空成功
    */
   const clearMessages = useCallback(
-    (conversationId?: string): boolean => {
+    async (conversationId?: string): Promise<boolean> => {
       try {
-        const success = memoryManager.clearMessages(conversationId || currentConversationId);
+        const success = await memoryManager.clearMessages(conversationId || currentConversationId);
         if (success) {
           setConversations(memoryManager.getConversations());
           return true;

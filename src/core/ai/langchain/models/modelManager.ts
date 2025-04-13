@@ -6,8 +6,8 @@
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ModelFactory } from "./modelFactory";
-import { ModelConfig, MessageRole, UsageMetadata, AIModelType, ModelProvider } from "../../types";
-import { MODEL_PROVIDER_MAP } from "../../constants";
+import { ModelConfig, UsageMetadata, ModelType } from "../../types";
+import { AI_MODELS } from "../../constants";
 
 /**
  * 模型管理器类
@@ -54,11 +54,11 @@ export class ModelManager {
 
       // 记录初始化的模型数量
       let initializedModels = 0;
-      let totalModels = configs.length;
+      const totalModels = configs.length;
 
       // 初始化所有配置的模型
       for (const config of configs) {
-        const modelKey = `${config.provider}:${config.modelName}`;
+        const modelKey = `${config.provider}:${config.modelType}`;
         try {
           const model = ModelFactory.createModel(config);
           if (model) {
@@ -106,9 +106,20 @@ export class ModelManager {
    */
   public switchModel(modelKey: string): boolean {
     // 如果是模型类型，转换为模型键
-    if (Object.values(AIModelType).includes(modelKey as AIModelType)) {
-      const provider = MODEL_PROVIDER_MAP[modelKey as AIModelType];
-      modelKey = `${provider}:${modelKey}`;
+    // 检查是否是有效的模型类型
+    const modelTypes = Object.values(ModelType);
+    const isModelType = modelTypes.includes(modelKey as ModelType);
+
+    if (isModelType) {
+      // 安全地访问 AI_MODELS
+      // 将 AIModelType 转换为字符串索引
+      const modelType = modelKey;
+      // 使用类型断言来安全地访问 AI_MODELS
+      const modelInfo = (AI_MODELS as any)[modelType];
+
+      if (modelInfo && modelInfo.provider) {
+        modelKey = `${modelInfo.provider}:${modelKey}`;
+      }
     }
 
     const model = this.models.get(modelKey);
@@ -138,6 +149,14 @@ export class ModelManager {
   }
 
   /**
+   * 获取当前模型
+   * @returns 当前模型实例
+   */
+  public getCurrentModel(): BaseChatModel | null {
+    return this.currentModel;
+  }
+
+  /**
    * 检查模型是否可用
    * @param modelKey 模型键
    * @returns 是否可用
@@ -153,13 +172,18 @@ export class ModelManager {
    * @returns 模型响应
    */
   public async sendMessage(
-    messages: Array<[MessageRole, string]>,
+    messages: Array<[string, string]>,
     options?: {
       streaming?: boolean;
       onStreamingUpdate?: (content: string) => void;
     }
   ): Promise<AIMessage & { usage_metadata?: UsageMetadata }> {
     if (!this.currentModel) {
+      console.error("没有设置当前模型", {
+        currentModelKey: this.currentModelKey,
+        modelsCount: this.models.size,
+        availableModels: Array.from(this.models.keys()),
+      });
       throw new Error("没有设置当前模型");
     }
 
@@ -203,17 +227,60 @@ export class ModelManager {
       // 尝试获取使用情况
       let usage_metadata: UsageMetadata | undefined;
 
-      // @ts-expect-error - 不同模型可能有不同的属性
-      if (response.usage || response.usage_metadata || response.tokenUsage) {
-        // @ts-expect-error - 不同模型可能有不同的属性
-        const usage = response.usage || response.usage_metadata || response.tokenUsage;
+      // 定义模型响应类型
+      type OpenAIUsage = {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        total_tokens?: number;
+      };
 
-        usage_metadata = {
-          // 尝试不同的属性名称
-          inputTokens: usage.prompt_tokens || usage.inputTokens || usage.input_tokens,
-          outputTokens: usage.completion_tokens || usage.outputTokens || usage.output_tokens,
-          totalTokens: usage.total_tokens || usage.totalTokens,
-        };
+      type GeminiUsage = {
+        inputTokens?: number;
+        outputTokens?: number;
+        totalTokens?: number;
+      };
+
+      type DeepSeekUsage = {
+        input_tokens?: number;
+        output_tokens?: number;
+        total_tokens?: number;
+      };
+
+      // 将响应转换为包含可能的使用情况属性的类型
+      const responseWithMetadata = response as AIMessage & {
+        usage?: OpenAIUsage;
+        usage_metadata?: GeminiUsage;
+        tokenUsage?: DeepSeekUsage;
+      };
+
+      if (responseWithMetadata.usage || responseWithMetadata.usage_metadata || responseWithMetadata.tokenUsage) {
+        // 处理 OpenAI 的使用情况
+        if (responseWithMetadata.usage) {
+          const usage = responseWithMetadata.usage;
+          usage_metadata = {
+            inputTokens: usage.prompt_tokens || 0,
+            outputTokens: usage.completion_tokens || 0,
+            totalTokens: usage.total_tokens || 0,
+          };
+        }
+        // 处理 Gemini 的使用情况
+        else if (responseWithMetadata.usage_metadata) {
+          const usage = responseWithMetadata.usage_metadata;
+          usage_metadata = {
+            inputTokens: usage.inputTokens || 0,
+            outputTokens: usage.outputTokens || 0,
+            totalTokens: usage.totalTokens || 0,
+          };
+        }
+        // 处理 DeepSeek 的使用情况
+        else if (responseWithMetadata.tokenUsage) {
+          const usage = responseWithMetadata.tokenUsage;
+          usage_metadata = {
+            inputTokens: usage.input_tokens || 0,
+            outputTokens: usage.output_tokens || 0,
+            totalTokens: usage.total_tokens || 0,
+          };
+        }
       }
 
       // 添加使用情况元数据
@@ -224,13 +291,7 @@ export class ModelManager {
     }
   }
 
-  /**
-   * 获取当前模型实例
-   * @returns 当前模型实例
-   */
-  public getCurrentModel(): BaseChatModel | null {
-    return this.currentModel;
-  }
+  // 已在上面定义了getCurrentModel方法
 
   /**
    * 重置模型管理器
@@ -239,6 +300,17 @@ export class ModelManager {
     this.models.clear();
     this.currentModel = null;
     this.currentModelKey = "";
+  }
+
+  /**
+   * 获取当前模型
+   * @returns 当前模型实例
+   */
+  public getModel(): BaseChatModel {
+    if (!this.currentModel) {
+      throw new Error("模型未初始化");
+    }
+    return this.currentModel;
   }
 }
 

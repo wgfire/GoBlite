@@ -15,25 +15,25 @@ export interface StorageAdapter {
    * @param key 键
    * @returns 值
    */
-  get<T>(key: string): T | null;
+  get<T>(key: string): Promise<T | null>;
 
   /**
    * 设置数据
    * @param key 键
    * @param value 值
    */
-  set<T>(key: string, value: T): void;
+  set<T>(key: string, value: T): Promise<void>;
 
   /**
    * 删除数据
    * @param key 键
    */
-  remove(key: string): void;
+  remove(key: string): Promise<void>;
 
   /**
    * 清空所有数据
    */
-  clear(): void;
+  clear(): Promise<void>;
 }
 
 /**
@@ -46,7 +46,7 @@ export class LocalStorageAdapter implements StorageAdapter {
    * @param key 键
    * @returns 值
    */
-  public get<T>(key: string): T | null {
+  public async get<T>(key: string): Promise<T | null> {
     try {
       const value = localStorage.getItem(key);
       return value ? JSON.parse(value) : null;
@@ -61,7 +61,7 @@ export class LocalStorageAdapter implements StorageAdapter {
    * @param key 键
    * @param value 值
    */
-  public set<T>(key: string, value: T): void {
+  public async set<T>(key: string, value: T): Promise<void> {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
@@ -73,7 +73,7 @@ export class LocalStorageAdapter implements StorageAdapter {
    * 删除数据
    * @param key 键
    */
-  public remove(key: string): void {
+  public async remove(key: string): Promise<void> {
     try {
       localStorage.removeItem(key);
     } catch (error) {
@@ -84,7 +84,7 @@ export class LocalStorageAdapter implements StorageAdapter {
   /**
    * 清空所有数据
    */
-  public clear(): void {
+  public async clear(): Promise<void> {
     try {
       // 只清除AI相关的数据
       Object.values(STORAGE_KEYS).forEach((key) => {
@@ -277,7 +277,7 @@ export class CustomStorageAdapter implements StorageAdapter {
    * @param key 键
    * @returns 值
    */
-  public get<T>(key: string): T | null {
+  public async get<T>(key: string): Promise<T | null> {
     return this.storage.has(key) ? this.storage.get(key) : null;
   }
 
@@ -286,7 +286,7 @@ export class CustomStorageAdapter implements StorageAdapter {
    * @param key 键
    * @param value 值
    */
-  public set<T>(key: string, value: T): void {
+  public async set<T>(key: string, value: T): Promise<void> {
     this.storage.set(key, value);
   }
 
@@ -294,14 +294,14 @@ export class CustomStorageAdapter implements StorageAdapter {
    * 删除数据
    * @param key 键
    */
-  public remove(key: string): void {
+  public async remove(key: string): Promise<void> {
     this.storage.delete(key);
   }
 
   /**
    * 清空所有数据
    */
-  public clear(): void {
+  public async clear(): Promise<void> {
     this.storage.clear();
   }
 }

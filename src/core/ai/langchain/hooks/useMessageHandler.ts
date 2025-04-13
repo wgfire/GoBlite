@@ -3,13 +3,12 @@
  * 提供消息发送、解析和处理功能
  */
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
-import { AIMessage } from "@langchain/core/messages";
 import { useModelManager } from "./useModelManager";
 import { useConversationManager } from "./useConversationManager";
-import { parseAIResponse, parseCodeFromResponse } from "../../utils/responseParser";
-import { AIRequestOptions, AIResponse, AIMessageContent, AIServiceStatus, UsageMetadata, CodeGenerationResult, GeneratedFile } from "../../types";
+import { parseAIResponse } from "../../utils/responseParser";
+import { AIRequestOptions, AIResponse, AIMessageContent, ServiceStatus, UsageMetadata, AIMessageType } from "../../types";
 import { ERROR_MESSAGES } from "../../constants";
 
 /**
@@ -41,7 +40,7 @@ export const useMessageHandler = (options: UseMessageHandlerOptions) => {
   const sendMessage = useMemoizedFn(async (prompt: string, requestOptions?: AIRequestOptions): Promise<AIResponse> => {
     try {
       // 检查服务状态
-      if (options.modelManager.status !== AIServiceStatus.READY) {
+      if (options.modelManager.status !== ServiceStatus.READY) {
         throw new Error(ERROR_MESSAGES.SERVICE_NOT_READY);
       }
 
@@ -70,7 +69,9 @@ export const useMessageHandler = (options: UseMessageHandlerOptions) => {
       // 准备消息数组
       const messages: Array<[string, string]> = [
         ["system", systemPrompt],
-        ...options.conversationManager.getMessages(conversationId).map((msg) => [msg.role, msg.content] as [string, string]),
+        ...options.conversationManager.getMessages(conversationId).map((msg) => {
+          return [msg.role, msg.content] as [string, string];
+        }),
       ];
 
       // 发送消息到模型
@@ -84,7 +85,22 @@ export const useMessageHandler = (options: UseMessageHandlerOptions) => {
       });
 
       // 提取内容
-      content = content || response.content;
+      if (!content) {
+        if (typeof response.content === "string") {
+          content = response.content;
+        } else if (Array.isArray(response.content)) {
+          // 处理复杂消息内容
+          content = response.content
+            .map((item) => {
+              if (typeof item === "string") return item;
+              if (typeof item === "object" && "type" in item && item.type === "text") {
+                return item.text || "";
+              }
+              return "";
+            })
+            .join("");
+        }
+      }
 
       // 添加助手消息到对话
       options.conversationManager.addMessage("assistant", content);
@@ -133,7 +149,7 @@ export const useMessageHandler = (options: UseMessageHandlerOptions) => {
       setError(errorMessage);
       return [
         {
-          type: "text",
+          type: AIMessageType.TEXT,
           content: text,
         },
       ];

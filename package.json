@@ -1,7 +1,8 @@
 {
-  "name": "vite-editor-webcontainer",
+  "name": "nano",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "AI-powered low-code platform with real-time code editing, template-based generation, and WebContainer preview for building web applications",
   "type": "module",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -29,7 +30,7 @@
     "@codemirror/state": "^6.5.1",
     "@codemirror/view": "^6.36.2",
     "@hookform/resolvers": "^5.0.1",
-    "@langchain/community": "^0.2.10",
+    "@langchain/community": "^0.2.33",
     "@langchain/core": "^0.3.44",
     "@langchain/deepseek": "^0.0.1",
     "@langchain/google-genai": "^0.2.3",
@@ -50,7 +51,8 @@
     "react-hook-form": "^7.55.0",
     "react-icons": "^5.5.0",
     "tailwind-merge": "^3.1.0",
-    "tw-animate-css": "^1.2.5"
+    "tw-animate-css": "^1.2.5",
+    "uuid": "^11.1.0"
   },
   "peerDependencies": {
     "react": "19.0.0",
