@@ -7,9 +7,8 @@ import { ChatDeepSeek } from "@langchain/deepseek";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatOpenAI } from "@langchain/openai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ModelConfig, ModelProvider, ModelType } from "@core/ai/types";
-import { DEFAULT_MODEL_PARAMS } from "../../constants";
-import { getEnvVar } from "../../utils/getEnv";
+import { ModelConfig, ModelProvider, ModelType } from "../../types";
+import { DEFAULT_MODEL_PARAMS, DEFAULT_MODEL_CONFIG, AI_MODELS } from "../../constants";
 
 /**
  * 模型工厂类
@@ -73,63 +72,57 @@ export class ModelFactory {
 
   /**
    * 创建模型配置数组
-   * 根据环境和设置创建模型配置
-   * @param apiKey API密钥
-   * @param temperature 温度参数
-   * @param maxTokens 最大token数
+   * 根据可用的API密钥创建模型配置
+   * @param options 配置选项
    * @returns 模型配置数组
    */
-  public static createModelConfigs(apiKey?: string, temperature?: number, maxTokens?: number): ModelConfig[] {
+  public static createModelConfigs(options: {
+    apiKeys: Record<ModelProvider, string>;
+    temperature?: number;
+    maxTokens?: number;
+    useDefaultConfig?: boolean;
+  }): ModelConfig[] {
     const configs: ModelConfig[] = [];
+    const { apiKeys, temperature, maxTokens, useDefaultConfig = true } = options;
 
-    // 首先添加DeepSeek模型（默认模型）
-    const deepseekApiKey = apiKey || getEnvVar("DEEPSEEK_API_KEY") || "";
-    if (deepseekApiKey) {
+    // 遍历AI_MODELS中的所有模型
+    Object.values(ModelType).forEach((modelType) => {
+      // 获取模型信息
+      const modelInfo = AI_MODELS[modelType];
+      if (!modelInfo) return;
+
+      const provider = modelInfo.provider;
+      let apiKey = apiKeys[provider];
+
+      // 如果没有API密钥但需要使用默认配置，并且当前模型是默认模型
+      if (!apiKey && useDefaultConfig && provider === DEFAULT_MODEL_CONFIG.provider && modelType === DEFAULT_MODEL_CONFIG.modelType) {
+        apiKey = DEFAULT_MODEL_CONFIG.apiKey!;
+      }
+
+      // 如果有API密钥，创建配置
+      if (apiKey) {
+        configs.push({
+          provider,
+          modelType,
+          apiKey,
+          temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
+          maxTokens: maxTokens ?? DEFAULT_MODEL_PARAMS.maxTokens,
+        });
+      }
+    });
+
+    // 如果没有任何模型配置但需要使用默认配置
+    if (configs.length === 0 && useDefaultConfig) {
+      console.warn("没有找到有效的API密钥，将使用默认模型。请在设置中配置API密钥以启用完整功能。");
+
+      // 添加默认模型配置
       configs.push({
-        provider: ModelProvider.DEEPSEEK,
-        modelType:ModelType.DEEPSEEK,
-        temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
-        apiKey: deepseekApiKey,
-        maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
+        provider: DEFAULT_MODEL_CONFIG.provider,
+        modelType: DEFAULT_MODEL_CONFIG.modelType,
+        apiKey: DEFAULT_MODEL_CONFIG.apiKey,
+        temperature: temperature ?? DEFAULT_MODEL_CONFIG.temperature,
+        maxTokens: maxTokens ?? DEFAULT_MODEL_CONFIG.maxTokens,
       });
-    }
-
-    // 如果有API密钥，添加Gemini模型
-    const geminiApiKey = apiKey || getEnvVar("GOOGLE_API_KEY") || "";
-    if (geminiApiKey) {
-      configs.push({
-        provider: ModelProvider.GEMINI,
-        modelType:ModelType.GEMINI_PRO, // AIModelType.GEMINI_PRO
-        temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
-        apiKey: geminiApiKey,
-        maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
-      });
-    }
-
-    // 如果有API密钥，添加OpenAI模型
-    const openaiApiKey = apiKey || getEnvVar("OPENAI_API_KEY") || "";
-    if (openaiApiKey) {
-      configs.push({
-        provider: ModelProvider.OPENAI,
-        modelType:ModelType.GPT4O,
-        temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
-        apiKey: openaiApiKey,
-        maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
-      });
-    }
-
-    // 如果没有任何模型配置，添加一个模拟模型用于开发测试
-    if (configs.length === 0) {
-      console.warn("没有找到有效的API密钥，将使用模拟模型。请在设置中配置API密钥以启用完整功能。");
-
-      // 添加一个带有默认API密钥的DeepSeek模型
-      // configs.push({
-      //   provider: ModelProvider.DEEPSEEK,
-      //   modelName: "deepseek-chat",
-      //   temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
-      //   apiKey: "sk-58b58e33b4d64358836ff816fa918aa8", // 使用默认API密钥
-      //   maxTokens: maxTokens || DEFAULT_MODEL_PARAMS.maxTokens,
-      // });
     }
 
     return configs;

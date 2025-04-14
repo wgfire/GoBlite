@@ -96,6 +96,11 @@ export interface ModelInfo {
   maxTokens?: number;
 }
 
+// AI模型映射接口
+export interface AIModelsMap {
+  [key: string]: ModelConfig;
+}
+
 // 模型配置接口
 export interface ModelConfig {
   /** 模型类型 */

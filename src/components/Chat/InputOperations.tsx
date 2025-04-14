@@ -1,7 +1,10 @@
 import React, { useRef, ChangeEvent } from "react";
 import { FiUpload, FiZap, FiSettings } from "react-icons/fi";
-import { AIModelType, AI_MODELS } from "@/core/ai";
+import { ModelType, AI_MODELS } from "@/core/ai";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
+import { useAtom } from "jotai";
+import { availableModelsAtom } from "@/core/ai/atoms/modelAtoms";
+import { toast } from "@/components/ui/use-toast";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -11,8 +14,8 @@ interface InputOperationsProps {
   isSending: boolean;
   hasPrompt: boolean;
   onFileUpload: (e: ChangeEvent<HTMLInputElement>) => void;
-  currentModel: AIModelType;
-  onModelChange: (model: AIModelType) => void;
+  currentModel: ModelType;
+  onModelChange: (model: ModelType) => void;
   onOpenAPIKeyConfig?: () => void;
 }
 
@@ -27,6 +30,27 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
   onOpenAPIKeyConfig,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [availableModels] = useAtom(availableModelsAtom);
+
+  // 处理模型切换，如果模型不可用则显示提示
+  const handleModelChange = (modelType: ModelType) => {
+    if (availableModels.includes(modelType)) {
+      onModelChange(modelType);
+    } else {
+      // 获取模型提供商
+      const provider = AI_MODELS[modelType]?.provider;
+      toast({
+        title: "模型不可用",
+        description: `请先配置${provider}的API密钥`,
+        variant: "default",
+      });
+
+      // 打开API密钥配置对话框
+      if (onOpenAPIKeyConfig) {
+        onOpenAPIKeyConfig();
+      }
+    }
+  };
 
   return (
     <div className="flex justify-between items-center px-4 py-3 border-t border-gray-700 bg-gray-800">
@@ -70,16 +94,24 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
       </div>
 
       <div className="flex items-center space-x-2">
-        <Select value={currentModel} onValueChange={(value) => onModelChange(value as AIModelType)} disabled={isSending}>
+        <Select value={currentModel} onValueChange={(value) => handleModelChange(value as ModelType)} disabled={isSending}>
           <SelectTrigger className="h-8 bg-gray-700 border-gray-600 text-sm min-w-[120px]">
             <SelectValue placeholder="选择模型" />
           </SelectTrigger>
           <SelectContent>
-            {Object.values(AI_MODELS).map((config) => (
-              <SelectItem key={config.type} value={config.type}>
-                {config.name}
-              </SelectItem>
-            ))}
+            {Object.values(AI_MODELS).map((config) => {
+              const isAvailable = availableModels.includes(config.modelType);
+              return (
+                <SelectItem
+                  key={config.modelType}
+                  value={config.modelType}
+                  disabled={!isAvailable}
+                  className={!isAvailable ? "opacity-50 cursor-not-allowed" : ""}
+                >
+                  {config.modelType} {!isAvailable && "(需配置API密钥)"}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
 
@@ -87,7 +119,10 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button onClick={onOpenAPIKeyConfig} className="text-cyan-400 hover:text-cyan-300 p-2 rounded-full hover:bg-gray-700 transition-colors">
+                <button
+                  onClick={onOpenAPIKeyConfig}
+                  className="text-cyan-400 hover:text-cyan-300 p-2 rounded-full hover:bg-gray-700 transition-colors"
+                >
                   <FiSettings size={18} />
                 </button>
               </TooltipTrigger>

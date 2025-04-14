@@ -2,7 +2,7 @@
  * LangChain AI服务常量定义
  */
 
-import { ModelType, ModelProvider } from "./types/index";
+import { ModelType, ModelProvider, AIModelsMap, ModelConfig } from "./types/index";
 
 /**
  * 默认系统提示词
@@ -46,21 +46,19 @@ export const DEFAULT_MODEL_PARAMS = {
  * AI模型配置
  * 统一的模型配置，包含模型类型、名称和提供商信息
  */
-export const AI_MODELS = {
+export const AI_MODELS: AIModelsMap = {
   [ModelType.GPT4O]: {
-    type: ModelType.GPT4O,
-    name: "OpenAI GPT-4o",
-    provider: "openai",
+    modelType: ModelType.GPT4O,
+    provider: ModelProvider.OPENAI,
   },
   [ModelType.GEMINI_PRO]: {
-    type: ModelType.GEMINI_PRO,
-    name: "Gemini 2.0 Flash",
-    provider: "gemini",
+    modelType: ModelType.GEMINI_PRO,
+    provider: ModelProvider.GEMINI,
+    apiKey: "AIzaSyA3CN1Yj65hiDuH0onPeR5Q5hcly7s-5vI",
   },
   [ModelType.DEEPSEEK]: {
-    type: ModelType.DEEPSEEK,
-    name: "DeepSeek Chat",
-    provider: "deepseek",
+    modelType: ModelType.DEEPSEEK,
+    provider: ModelProvider.DEEPSEEK,
   },
 };
 
@@ -91,7 +89,7 @@ export const STORAGE_KEYS = {
 /**
  * 默认模型配置
  */
-export const DEFAULT_MODEL_CONFIG = {
+export const DEFAULT_MODEL_CONFIG: ModelConfig = {
   provider: ModelProvider.GEMINI,
   modelType: ModelType.GEMINI_PRO,
   apiKey: "AIzaSyA3CN1Yj65hiDuH0onPeR5Q5hcly7s-5vI",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { ModelType, AI_MODELS } from "@/core/ai";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FiCheck, FiKey, FiAlertCircle } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { useAtom } from "jotai";
+import { apiKeysAtom } from "@/core/ai/atoms/modelAtoms";
 
 interface APIKeyConfigProps {
   isOpen: boolean;
@@ -20,6 +22,19 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
   const [selectedModel, setSelectedModel] = useState<ModelType>(currentModel);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiKeys] = useAtom(apiKeysAtom);
+
+  // 当选择模型变化时，尝试加载已保存的API密钥
+  useEffect(() => {
+    if (selectedModel) {
+      const provider = AI_MODELS[selectedModel]?.provider;
+      if (provider && apiKeys[provider]) {
+        setApiKey(apiKeys[provider]);
+      } else {
+        setApiKey("");
+      }
+    }
+  }, [selectedModel, apiKeys]);
 
   const handleSave = async () => {
     if (!apiKey.trim()) {
@@ -31,6 +46,12 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
     setError(null);
 
     try {
+      // 获取模型提供商
+      const provider = AI_MODELS[selectedModel]?.provider;
+      if (!provider) {
+        throw new Error(`不支持的模型类型: ${selectedModel}`);
+      }
+
       // 使用try-catch包裹onSave调用，防止未捕获的异常
       let success = false;
       try {
@@ -79,7 +100,12 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
                 <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
                 <span>
                   Google Gemini -{" "}
-                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
+                  <a
+                    href="https://aistudio.google.com/app/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:underline"
+                  >
                     https://aistudio.google.com/app/apikey
                   </a>
                 </span>
@@ -88,7 +114,12 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
                 <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
                 <span>
                   DeepSeek -{" "}
-                  <a href="https://platform.deepseek.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
+                  <a
+                    href="https://platform.deepseek.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:underline"
+                  >
                     https://platform.deepseek.com/api-keys
                   </a>
                 </span>
@@ -107,8 +138,8 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-gray-200">
                   {Object.values(AI_MODELS).map((config) => (
-                    <SelectItem key={config.type} value={config.type} className="hover:bg-slate-700 focus:bg-slate-700 text-gray-200">
-                      {config.name}
+                    <SelectItem key={config.modelType} value={config.modelType} className="hover:bg-slate-700 focus:bg-slate-700 text-gray-200">
+                      {config.modelType}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -142,10 +173,20 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
         </div>
 
         <DialogFooter className="gap-3">
-          <Button type="button" variant="outline" onClick={onClose} className="bg-transparent border-slate-700 text-gray-300 hover:bg-slate-800 hover:text-gray-200">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            className="bg-transparent border-slate-700 text-gray-300 hover:bg-slate-800 hover:text-gray-200"
+          >
             取消
           </Button>
-          <Button type="button" onClick={handleSave} disabled={isSaving} className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white">
+          <Button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white"
+          >
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

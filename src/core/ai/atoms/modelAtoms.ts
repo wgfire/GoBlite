@@ -4,6 +4,7 @@
 import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { ModelType, ModelProvider, ServiceStatus } from "../types";
+import { AI_MODELS } from "../constants";
 
 // 默认模型配置
 const DEFAULT_TEMPERATURE = 0.7;
@@ -29,6 +30,19 @@ export const apiKeysAtom = atomWithStorage<Record<ModelProvider, string>>("ai_ap
 export const modelSettingsAtom = atomWithStorage("ai_model_settings", {
   temperature: DEFAULT_TEMPERATURE,
   maxTokens: DEFAULT_MAX_TOKENS,
+});
+
+// 可用模型列表 - 根据API密钥动态计算
+export const availableModelsAtom = atom<ModelType[]>((get) => {
+  const apiKeys = get(apiKeysAtom);
+
+  // 过滤出有API密钥的模型
+  return Object.entries(AI_MODELS)
+    .filter(([modelType, config]) => {
+      // 如果模型有默认API密钥，或者用户配置了API密钥，则可用
+      return (config.apiKey && config.apiKey.trim() !== "") || (apiKeys[config.provider] && apiKeys[config.provider].trim() !== "");
+    })
+    .map(([modelType]) => modelType as ModelType);
 });
 
 // 是否正在发送消息

@@ -1,12 +1,13 @@
 /**
  * LangChain模型管理钩子
  */
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useAtom } from "jotai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { serviceStatusAtom, errorMessageAtom, selectedModelTypeAtom, apiKeysAtom, modelSettingsAtom } from "../atoms/modelAtoms";
-import { ModelType, ModelProvider, ServiceStatus, ModelConfig } from "../types";
-import { createModel, getModelProvider } from "../langchain/models";
+import { ModelType, ModelProvider, ServiceStatus } from "../types";
+import { ModelManager, ModelFactory } from "../langchain/models";
+import { DEFAULT_MODEL_CONFIG, AI_MODELS } from "../constants";
 
 /**
  * LangChain模型管理钩子
@@ -23,11 +24,19 @@ export function useLangChainModel() {
   // 本地状态
   const [model, setModel] = useState<BaseChatModel | null>(null);
 
+  // 模型管理器实例
+  const modelManagerRef = useRef<ModelManager | null>(null);
+
+  // 初始化模型管理器
+  useEffect(() => {
+    modelManagerRef.current = ModelManager.getInstance();
+  }, []);
+
   /**
    * 获取当前模型的API密钥
    */
   const getCurrentApiKey = useCallback(() => {
-    const provider = getModelProvider(selectedModelType);
+    const provider = modelManagerRef.current?.getModelProvider(selectedModelType) as ModelProvider;
     return apiKeys[provider] || "";
   }, [selectedModelType, apiKeys]);
 
@@ -61,26 +70,6 @@ export function useLangChainModel() {
   );
 
   /**
-   * 切换模型类型
-   * @param modelType 新的模型类型
-   */
-  const switchModelType = useCallback(
-    async (modelType: ModelType) => {
-      try {
-        setSelectedModelType(modelType);
-
-        // 如果需要立即初始化新模型，可以在这里调用initializeModel
-        return true;
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : "切换模型失败";
-        setErrorMessage(errorMsg);
-        return false;
-      }
-    },
-    [setSelectedModelType, setErrorMessage]
-  );
-
-  /**
    * 初始化模型
    */
   const initializeModel = useCallback(async () => {
@@ -93,33 +82,80 @@ export function useLangChainModel() {
         throw new Error("未选择模型类型");
       }
 
-      const provider = getModelProvider(selectedModelType);
-      const apiKey = apiKeys[provider];
-
-      if (!apiKey) {
-        throw new Error(`未配置${provider}的API密钥`);
+      // 首次加载时，如果没有任何API密钥配置，确保默认模型的API密钥被设置
+      const hasAnyApiKey = Object.values(apiKeys).some((key) => key && key.trim() !== "");
+      if (!hasAnyApiKey) {
+        // 设置默认模型的API密钥
+        setApiKey(DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey!);
+        console.log("已设置默认API密钥到浏览器缓存", DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey);
       }
 
-      const modelConfig: ModelConfig = {
-        modelType: selectedModelType,
-        provider,
-        apiKey,
+      // 使用ModelFactory创建模型配置
+      const configs = ModelFactory.createModelConfigs({
+        apiKeys,
         temperature: modelSettings.temperature,
         maxTokens: modelSettings.maxTokens,
-      };
+        useDefaultConfig: true,
+      });
 
-      const newModel = await createModel(modelConfig);
-      setModel(newModel);
-      setServiceStatus(ServiceStatus.READY);
+      // 如果没有可用的模型配置，抛出错误
+      if (configs.length === 0) {
+        throw new Error("没有可用的模型配置，请配置API密钥");
+      }
 
-      return newModel;
+      // 检查是否使用了默认配置
+      const defaultConfigUsed = configs.some(
+        (config) => config.provider === DEFAULT_MODEL_CONFIG.provider && config.apiKey === DEFAULT_MODEL_CONFIG.apiKey
+      );
+
+      // 如果使用了默认配置，确保API密钥已更新到持久化存储
+      if (defaultConfigUsed && !apiKeys[DEFAULT_MODEL_CONFIG.provider]) {
+        setApiKey(DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey!);
+      }
+
+      // 使用模型管理器初始化模型
+      if (modelManagerRef.current) {
+        // 找到选中模型类型的配置
+        const selectedConfig = configs.find((config) => config.modelType === selectedModelType);
+        const defaultModelKey = selectedConfig
+          ? `${selectedConfig.provider}:${selectedConfig.modelType}`
+          : `${configs[0].provider}:${configs[0].modelType}`;
+
+        // 初始化模型管理器
+        const success = modelManagerRef.current.initialize(configs, defaultModelKey);
+
+        if (success) {
+          // 获取初始化后的模型
+          const newModel = modelManagerRef.current.getCurrentModel();
+          if (newModel) {
+            setModel(newModel);
+            setServiceStatus(ServiceStatus.READY);
+            return newModel;
+          }
+        }
+
+        throw new Error("模型初始化失败");
+      } else {
+        // 如果模型管理器未初始化，使用ModelFactory直接创建模型
+        // 选择选中的模型类型或默认第一个
+        const selectedConfig = configs.find((config) => config.modelType === selectedModelType) || configs[0];
+        const newModel = ModelFactory.createModel(selectedConfig);
+
+        if (newModel) {
+          setModel(newModel);
+          setServiceStatus(ServiceStatus.READY);
+          return newModel;
+        }
+
+        throw new Error("模型初始化失败");
+      }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "初始化模型失败";
       setErrorMessage(errorMsg);
       setServiceStatus(ServiceStatus.ERROR);
       return null;
     }
-  }, [selectedModelType, apiKeys, modelSettings, setServiceStatus, setErrorMessage]);
+  }, [selectedModelType, apiKeys, modelSettings, setServiceStatus, setErrorMessage, setApiKey]);
 
   /**
    * 重置模型
@@ -128,7 +164,67 @@ export function useLangChainModel() {
     setModel(null);
     setServiceStatus(ServiceStatus.UNINITIALIZED);
     setErrorMessage(null);
+
+    // 重置模型管理器
+    if (modelManagerRef.current) {
+      modelManagerRef.current.reset();
+    }
   }, [setServiceStatus, setErrorMessage]);
+
+  /**
+   * 切换模型类型
+   * @param modelType 新的模型类型
+   */
+  const switchModelType = useCallback(
+    async (modelType: ModelType) => {
+      try {
+        // 检查是否有对应的API密钥
+        const provider = AI_MODELS[modelType]?.provider;
+        if (!provider) {
+          throw new Error(`不支持的模型类型: ${modelType}`);
+        }
+
+        const apiKey = apiKeys[provider];
+        const isDefaultModel = provider === DEFAULT_MODEL_CONFIG.provider && modelType === DEFAULT_MODEL_CONFIG.modelType;
+
+        // 如果没有API密钥且不是默认模型，则无法切换
+        if (!apiKey && !isDefaultModel) {
+          throw new Error(`无法切换到${modelType}，请先配置${provider}的API密钥`);
+        }
+
+        // 更新选中的模型类型
+        setSelectedModelType(modelType);
+
+        // 如果是默认模型且没有API密钥，使用默认API密钥
+        if (isDefaultModel && !apiKey) {
+          setApiKey(provider, DEFAULT_MODEL_CONFIG.apiKey!);
+        }
+
+        // 如果模型管理器实例已初始化，尝试切换模型
+        if (modelManagerRef.current && model) {
+          const success = modelManagerRef.current.switchModel(modelType);
+
+          if (success) {
+            // 获取新的模型实例
+            const newModel = modelManagerRef.current.getCurrentModel();
+            if (newModel) {
+              setModel(newModel);
+            }
+          } else {
+            // 如果切换失败，可能需要重新初始化
+            await initializeModel();
+          }
+        }
+
+        return true;
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : "切换模型失败";
+        setErrorMessage(errorMsg);
+        return false;
+      }
+    },
+    [setSelectedModelType, setErrorMessage, model, apiKeys, setApiKey, initializeModel]
+  );
 
   return {
     // 状态

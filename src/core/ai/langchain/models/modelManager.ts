@@ -6,7 +6,7 @@
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { AIMessage, HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ModelFactory } from "./modelFactory";
-import { ModelConfig, UsageMetadata, ModelType } from "../../types";
+import { ModelConfig, UsageMetadata, ModelType, ModelProvider } from "../../types";
 import { AI_MODELS } from "../../constants";
 
 /**
@@ -105,17 +105,12 @@ export class ModelManager {
    * @returns 是否切换成功
    */
   public switchModel(modelKey: string): boolean {
-    // 如果是模型类型，转换为模型键
-    // 检查是否是有效的模型类型
     const modelTypes = Object.values(ModelType);
     const isModelType = modelTypes.includes(modelKey as ModelType);
 
     if (isModelType) {
-      // 安全地访问 AI_MODELS
-      // 将 AIModelType 转换为字符串索引
-      const modelType = modelKey;
-      // 使用类型断言来安全地访问 AI_MODELS
-      const modelInfo = (AI_MODELS as any)[modelType];
+      const modelType = modelKey as ModelType;
+      const modelInfo = AI_MODELS[modelType];
 
       if (modelInfo && modelInfo.provider) {
         modelKey = `${modelInfo.provider}:${modelKey}`;
@@ -144,7 +139,7 @@ export class ModelManager {
    * @returns 当前模型类型
    */
   public getCurrentModelType(): string {
-    const [_, modelName] = this.currentModelKey.split(":");
+    const [, modelName] = this.currentModelKey.split(":");
     return modelName;
   }
 
@@ -311,6 +306,26 @@ export class ModelManager {
       throw new Error("模型未初始化");
     }
     return this.currentModel;
+  }
+
+  public getModelProvider(modelType: ModelType): ModelProvider {
+    // 从AI_MODELS映射中获取模型信息
+    const modelInfo = AI_MODELS[modelType];
+    if (modelInfo && modelInfo.provider) {
+      return modelInfo.provider;
+    }
+
+    // 如果没有找到映射，根据模型类型名称推断提供商
+    if (modelType.includes("gpt")) {
+      return ModelProvider.OPENAI;
+    } else if (modelType.includes("gemini")) {
+      return ModelProvider.GEMINI;
+    } else if (modelType.includes("deepseek")) {
+      return ModelProvider.DEEPSEEK;
+    }
+
+    // 默认返回Gemini作为提供商
+    return ModelProvider.GEMINI;
   }
 }
 
