@@ -17,27 +17,20 @@ export function useLangChainCode() {
    * @param model 语言模型
    * @param params 代码生成参数
    */
-  const generateCode = useCallback(async (
-    model: BaseChatModel,
-    params: CodeGenerationParams
-  ): Promise<CodeGenerationResult> => {
+  const generateCode = useCallback(async (model: BaseChatModel, params: CodeGenerationParams): Promise<CodeGenerationResult> => {
     try {
       // 创建代码生成链
-      const chain = createCodeGenerationChain(
-        model,
-        params.language,
-        params.framework,
-        params.includeTests,
-        params.includeComments
-      );
-      
-      // 调用链
-      const response = await chain.call({ input: params.prompt });
-      
-      // 解析响应
-      const files = parseCodeResponse(response.text);
+      const chain = createCodeGenerationChain(model, params.language, params.framework, params.includeTests, params.includeComments);
+
+      // 调用链 - 使用LCEL的invoke方法
+      const response = await chain.invoke(params.prompt);
+
+      // 解析响应 - 处理不同的响应格式
+      const responseText = typeof response === "string" ? response : (response as any)?.text || (response as any)?.content || JSON.stringify(response);
+
+      const files = parseCodeResponse(responseText);
       const codeFiles = mapToCodeFiles(files);
-      
+
       return {
         success: true,
         files: codeFiles,
@@ -50,7 +43,7 @@ export function useLangChainCode() {
       };
     }
   }, []);
-  
+
   return {
     generateCode,
   };

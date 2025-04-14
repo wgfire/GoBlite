@@ -34,11 +34,17 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
 
   // 处理模型切换，如果模型不可用则显示提示
   const handleModelChange = (modelType: ModelType) => {
+    console.log(`尝试切换到模型: ${modelType}`);
+    console.log(`可用模型列表:`, availableModels);
+    console.log(`AI_MODELS中的配置:`, AI_MODELS[modelType]);
+
     if (availableModels.includes(modelType)) {
+      console.log(`模型 ${modelType} 可用，开始切换`);
       onModelChange(modelType);
     } else {
       // 获取模型提供商
       const provider = AI_MODELS[modelType]?.provider;
+      console.log(`模型 ${modelType} 不可用，提供商: ${provider}`);
       toast({
         title: "模型不可用",
         description: `请先配置${provider}的API密钥`,
@@ -102,12 +108,7 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
             {Object.values(AI_MODELS).map((config) => {
               const isAvailable = availableModels.includes(config.modelType);
               return (
-                <SelectItem
-                  key={config.modelType}
-                  value={config.modelType}
-                  disabled={!isAvailable}
-                  className={!isAvailable ? "opacity-50 cursor-not-allowed" : ""}
-                >
+                <SelectItem key={config.modelType} value={config.modelType} disabled={!isAvailable} className={!isAvailable ? "opacity-50 cursor-not-allowed" : ""}>
                   {config.modelType} {!isAvailable && "(需配置API密钥)"}
                 </SelectItem>
               );
@@ -119,10 +120,7 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  onClick={onOpenAPIKeyConfig}
-                  className="text-cyan-400 hover:text-cyan-300 p-2 rounded-full hover:bg-gray-700 transition-colors"
-                >
+                <button onClick={onOpenAPIKeyConfig} className="text-cyan-400 hover:text-cyan-300 p-2 rounded-full hover:bg-gray-700 transition-colors">
                   <FiSettings size={18} />
                 </button>
               </TooltipTrigger>

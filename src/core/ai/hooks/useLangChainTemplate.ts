@@ -17,32 +17,31 @@ export function useLangChainTemplate() {
    * @param model 语言模型
    * @param params 模板处理参数
    */
-  const processTemplate = useCallback(async (
-    model: BaseChatModel,
-    params: TemplateProcessingParams
-  ): Promise<TemplateProcessingResult> => {
+  const processTemplate = useCallback(async (model: BaseChatModel, params: TemplateProcessingParams): Promise<TemplateProcessingResult> => {
     try {
       // 创建模板处理链
       const chain = createTemplateProcessingChain(model);
-      
+
       // 准备模板信息
       // 实际应用中，这里应该从模板系统获取模板信息
       const templateInfo = `模板ID: ${params.templateId}`;
-      
+
       // 准备表单数据
       const formData = JSON.stringify(params.formData, null, 2);
-      
-      // 调用链
-      const response = await chain.call({
+
+      // 调用链 - 使用LCEL的invoke方法
+      const response = await chain.invoke({
         templateInfo,
         formData,
         businessContext: params.businessContext || "",
       });
-      
-      // 解析响应
-      const files = parseCodeResponse(response.text);
+
+      // 解析响应 - 处理不同的响应格式
+      const responseText = typeof response === "string" ? response : (response as any)?.text || (response as any)?.content || JSON.stringify(response);
+
+      const files = parseCodeResponse(responseText);
       const codeFiles = mapToCodeFiles(files);
-      
+
       return {
         success: true,
         files: codeFiles,
@@ -55,7 +54,7 @@ export function useLangChainTemplate() {
       };
     }
   }, []);
-  
+
   return {
     processTemplate,
   };

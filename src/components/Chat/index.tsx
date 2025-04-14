@@ -84,8 +84,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       console.error("AI服务错误:", aiError);
 
       // 检查错误消息是否与初始化或API密钥相关
-      const isApiKeyError =
-        aiError.includes("API密钥") || aiError.includes("初始化") || aiError.includes("模型管理器") || aiError.includes("对话管理器");
+      const isApiKeyError = aiError.includes("API密钥") || aiError.includes("初始化") || aiError.includes("模型管理器") || aiError.includes("对话管理器");
 
       // 如果是API密钥相关错误，显示警告并提示配置
       if (isApiKeyError) {
@@ -121,33 +120,31 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
         throw new Error(`不支持的模型类型: ${modelType}`);
       }
 
-      // 设置API密钥
+      console.log(`开始为 ${modelType} (提供商: ${provider}) 配置API密钥`);
+
+      // 先在本地存储中设置API密钥
       if (setApiKey) {
         setApiKey(provider, apiKey);
-      } else {
-        // 如果没有setApiKey方法，使用initialize方法传入apiKey
-        const initSuccess = await initialize(apiKey);
-        if (!initSuccess) {
-          throw new Error("初始化模型失败");
-        }
+        console.log(`已将API密钥保存到本地存储中`);
       }
 
-      // 切换到该模型
+      // 直接使用新的API密钥初始化模型
+      // 这样可以确保使用最新的API密钥，而不是依赖于存储中的值
+      console.log(`使用新的API密钥初始化模型，指定模型类型: ${modelType}`);
+      // 将模型类型传递给initialize函数，确保API密钥被正确应用到指定模型
+      const initSuccess = await initialize(apiKey, modelType);
+      if (!initSuccess) {
+        throw new Error("使用新API密钥初始化模型失败");
+      }
+
+      // 切换到指定模型
+      console.log(`尝试切换到模型: ${modelType}`);
       if (switchModelType) {
         const switchSuccess = await switchModelType(modelType);
         if (!switchSuccess) {
-          // 如果切换失败，尝试重新初始化
-          const initSuccess = await initialize();
-          if (!initSuccess) {
-            throw new Error("初始化模型失败");
-          }
+          throw new Error(`切换到${modelType}模型失败`);
         }
-      } else {
-        // 如果没有switchModelType方法，直接初始化
-        const success = await initialize();
-        if (!success) {
-          throw new Error("初始化模型失败");
-        }
+        console.log(`成功切换到模型: ${modelType}`);
       }
 
       toast({
@@ -220,6 +217,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
         text: prompt,
         timestamp: Date.now(),
         files: files.length > 0 ? files : undefined,
+        
       };
 
       setMessages((prev) => [...prev, userMessage]);
@@ -278,9 +276,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             responseText += "\n文件已添加到文件系统，并已启动预览。";
           } else {
             // 生成失败或没有文件
-            responseText = result.error
-              ? `抱歉，生成代码时出错：${result.error}`
-              : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
+            responseText = result.error ? `抱歉，生成代码时出错：${result.error}` : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
           }
 
           // 创建AI响应消息
@@ -298,6 +294,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           const response = await sendChatRequest(prompt, {
             systemPrompt: "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。",
             temperature: 0.7,
+            streaming: true,
           });
 
           if (!response.success) {
@@ -493,11 +490,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       </motion.button>
 
       {/* Right border gradient */}
-      <div
-        className={`absolute right-0 h-full ${
-          isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"
-        }`}
-      ></div>
+      <div className={`absolute right-0 h-full ${isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"}`}></div>
 
       {/* Collapsed state icon */}
       <AnimatePresence>
@@ -540,25 +533,13 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader
-                onTemplateSelect={handleTemplateSelect}
-                selectedTemplate={selectedTemplate}
-                isMobile={false}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-              />
+              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || ServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea
-              onSend={handleSend}
-              isSending={isSending || aiIsSending}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-              onCancel={handleCancelRequest}
-            />
+            <InputArea onSend={handleSend} isSending={isSending || aiIsSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
             <InputOperations
               onOptimizePrompt={() => handleOptimizePrompt("")}
               isOptimizing={false}
@@ -599,12 +580,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           </motion.div>
         )}
         {/* API密钥配置对话框 */}
-        <APIKeyConfig
-          isOpen={showAPIKeyConfig}
-          onClose={() => setShowAPIKeyConfig(false)}
-          onSave={handleSaveAPIKey}
-          currentModel={selectedModelType}
-        />
+        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={selectedModelType} />
       </AnimatePresence>
     </motion.div>
   );

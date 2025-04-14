@@ -1,8 +1,9 @@
 /**
  * LangChain记忆集成
  */
-import { BaseChatMemory } from "@langchain/core/memory";
+import { BaseMemory } from "@langchain/core/memory";
 import { BufferMemory, ConversationSummaryMemory } from "langchain/memory";
+import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { MemoryType, MemoryConfig } from "../../types";
 
 /**
@@ -11,30 +12,37 @@ import { MemoryType, MemoryConfig } from "../../types";
  * @param llm 语言模型（用于摘要记忆）
  * @returns LangChain记忆实例
  */
-export function createMemory(config: MemoryConfig, llm?: any): BaseChatMemory {
+export function createMemory(config: MemoryConfig, llm?: BaseChatModel): BaseMemory {
   const commonOptions = {
     returnMessages: true,
     memoryKey: "history",
     inputKey: "input",
-    outputKey: "output",
+    outputKey: "response", // 与链中的outputKey保持一致
   };
+
+  // 添加日志以帮助诊断问题
+  console.log("创建记忆实例配置:", { ...config, commonOptions });
 
   try {
     switch (config.type) {
       case MemoryType.BUFFER:
         return new BufferMemory({
           ...commonOptions,
-          k: config.maxMessages || 10,
+          // k 已经被替换为 memoryKey
+          memoryKey: "history",
+          returnMessages: true,
+          inputKey: "input",
+          outputKey: "response",
         });
 
       case MemoryType.SUMMARY:
         if (!llm) {
           throw new Error("摘要记忆需要提供语言模型");
         }
+        // 注意：由于类型定义问题，我们不再使用 maxTokens 参数
         return new ConversationSummaryMemory({
           ...commonOptions,
           llm,
-          maxTokenLimit: config.summarizeThreshold || 2000,
         });
 
       case MemoryType.CONVERSATION:
@@ -48,7 +56,6 @@ export function createMemory(config: MemoryConfig, llm?: any): BaseChatMemory {
         console.warn("向量记忆暂未实现，使用缓冲记忆代替");
         return new BufferMemory({
           ...commonOptions,
-          k: config.maxMessages || 10,
         });
 
       default:

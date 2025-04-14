@@ -2,9 +2,10 @@
  * LangChain链集成
  */
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ConversationChain, LLMChain } from "langchain/chains";
+import { ConversationChain } from "langchain/chains";
 import { PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate } from "@langchain/core/prompts";
 import { BaseChatMemory } from "langchain/memory";
+import { RunnableSequence } from "@langchain/core/runnables";
 
 /**
  * 创建对话链
@@ -20,11 +21,28 @@ export function createConversationChain(model: BaseChatModel, memory: BaseChatMe
     HumanMessagePromptTemplate.fromTemplate("{input}"),
   ]);
 
-  return new ConversationChain({
+  // 注意：我们现在统一使用 response 作为输出键，不再需要检测模型类型
+
+  // 创建基本配置
+  const config: {
+    llm: BaseChatModel;
+    memory: BaseChatMemory;
+    prompt: ChatPromptTemplate;
+    verbose: boolean;
+    outputKey: string;
+  } = {
     llm: model,
     memory: memory,
     prompt,
-  });
+    verbose: true, // 设置为 true 可以在控制台查看详细日志
+    outputKey: "response", // 统一使用response作为输出键
+  };
+
+  // 添加日志以帮助诊断问题
+  console.log("创建对话链配置:", config);
+  const chain = new ConversationChain(config);
+  console.log("对话链创建成功");
+  return chain;
 }
 
 /**
@@ -34,7 +52,7 @@ export function createConversationChain(model: BaseChatModel, memory: BaseChatMe
  * @param framework 框架
  * @param includeTests 是否包含测试
  * @param includeComments 是否包含注释
- * @returns LLM链实例
+ * @returns 可运行的链实例
  */
 export function createCodeGenerationChain(
   model: BaseChatModel,
@@ -42,7 +60,7 @@ export function createCodeGenerationChain(
   framework: string = "",
   includeTests: boolean = false,
   includeComments: boolean = true
-): LLMChain {
+): RunnableSequence {
   const template = `你是一个专业的软件开发者，擅长编写高质量的${language}代码。
 请根据用户的需求生成代码。
 
@@ -64,18 +82,22 @@ console.log('Hello');
 
   const promptTemplate = PromptTemplate.fromTemplate(template);
 
-  return new LLMChain({
-    llm: model,
-    prompt: promptTemplate,
-  });
+  // 使用 LCEL 创建链
+  return RunnableSequence.from([
+    {
+      input: (input: string) => input,
+    },
+    promptTemplate,
+    model,
+  ]);
 }
 
 /**
  * 创建模板处理链
  * @param model 语言模型
- * @returns LLM链实例
+ * @returns 可运行的链实例
  */
-export function createTemplateProcessingChain(model: BaseChatModel): LLMChain {
+export function createTemplateProcessingChain(model: BaseChatModel): RunnableSequence {
   const template = `你是一个专业的前端开发工程师，帮助用户根据模板创建落地页。
 请根据用户的需求和提供的模板信息，生成相应的代码。
 
@@ -98,8 +120,14 @@ console.log('Hello');
 
   const promptTemplate = PromptTemplate.fromTemplate(template);
 
-  return new LLMChain({
-    llm: model,
-    prompt: promptTemplate,
-  });
+  // 使用 LCEL 创建链
+  return RunnableSequence.from([
+    {
+      templateInfo: (input: Record<string, unknown>) => String(input.templateInfo || ""),
+      formData: (input: Record<string, unknown>) => String(input.formData || ""),
+      businessContext: (input: Record<string, unknown>) => String(input.businessContext || ""),
+    },
+    promptTemplate,
+    model,
+  ]);
 }

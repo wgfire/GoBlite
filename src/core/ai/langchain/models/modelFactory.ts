@@ -76,12 +76,7 @@ export class ModelFactory {
    * @param options 配置选项
    * @returns 模型配置数组
    */
-  public static createModelConfigs(options: {
-    apiKeys: Record<ModelProvider, string>;
-    temperature?: number;
-    maxTokens?: number;
-    useDefaultConfig?: boolean;
-  }): ModelConfig[] {
+  public static createModelConfigs(options: { apiKeys: Record<ModelProvider, string>; temperature?: number; maxTokens?: number; useDefaultConfig?: boolean }): ModelConfig[] {
     const configs: ModelConfig[] = [];
     const { apiKeys, temperature, maxTokens, useDefaultConfig = true } = options;
 
@@ -94,7 +89,13 @@ export class ModelFactory {
       const provider = modelInfo.provider;
       let apiKey = apiKeys[provider];
 
-      // 如果没有API密钥但需要使用默认配置，并且当前模型是默认模型
+      // 如果没有API密钥，检查AI_MODELS中是否有该模型的API密钥
+      if (!apiKey && modelInfo.apiKey && modelInfo.apiKey.trim() !== "") {
+        apiKey = modelInfo.apiKey;
+        console.log(`使用constants.ts中配置的${modelType}API密钥`, provider, apiKey);
+      }
+
+      // 如果还是没有API密钥但需要使用默认配置，并且当前模型是默认模型
       if (!apiKey && useDefaultConfig && provider === DEFAULT_MODEL_CONFIG.provider && modelType === DEFAULT_MODEL_CONFIG.modelType) {
         apiKey = DEFAULT_MODEL_CONFIG.apiKey!;
       }

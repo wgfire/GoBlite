@@ -90,6 +90,14 @@ export function useLangChainModel() {
         console.log("已设置默认API密钥到浏览器缓存", DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey);
       }
 
+      // 检查所有在AI_MODELS中配置了apiKey的模型，确保它们的API密钥被设置到本地存储中
+      Object.entries(AI_MODELS).forEach(([modelType, config]) => {
+        if (config.apiKey && config.apiKey.trim() !== "" && (!apiKeys[config.provider] || apiKeys[config.provider].trim() === "")) {
+          setApiKey(config.provider, config.apiKey);
+          console.log(`已将${modelType}的API密钥从constants.ts设置到浏览器缓存`, config.provider, config.apiKey);
+        }
+      });
+
       // 使用ModelFactory创建模型配置
       const configs = ModelFactory.createModelConfigs({
         apiKeys,
@@ -104,9 +112,7 @@ export function useLangChainModel() {
       }
 
       // 检查是否使用了默认配置
-      const defaultConfigUsed = configs.some(
-        (config) => config.provider === DEFAULT_MODEL_CONFIG.provider && config.apiKey === DEFAULT_MODEL_CONFIG.apiKey
-      );
+      const defaultConfigUsed = configs.some((config) => config.provider === DEFAULT_MODEL_CONFIG.provider && config.apiKey === DEFAULT_MODEL_CONFIG.apiKey);
 
       // 如果使用了默认配置，确保API密钥已更新到持久化存储
       if (defaultConfigUsed && !apiKeys[DEFAULT_MODEL_CONFIG.provider]) {
@@ -117,9 +123,7 @@ export function useLangChainModel() {
       if (modelManagerRef.current) {
         // 找到选中模型类型的配置
         const selectedConfig = configs.find((config) => config.modelType === selectedModelType);
-        const defaultModelKey = selectedConfig
-          ? `${selectedConfig.provider}:${selectedConfig.modelType}`
-          : `${configs[0].provider}:${configs[0].modelType}`;
+        const defaultModelKey = selectedConfig ? `${selectedConfig.provider}:${selectedConfig.modelType}` : `${configs[0].provider}:${configs[0].modelType}`;
 
         // 初始化模型管理器
         const success = modelManagerRef.current.initialize(configs, defaultModelKey);
@@ -184,8 +188,19 @@ export function useLangChainModel() {
           throw new Error(`不支持的模型类型: ${modelType}`);
         }
 
-        const apiKey = apiKeys[provider];
+        let apiKey = apiKeys[provider];
         const isDefaultModel = provider === DEFAULT_MODEL_CONFIG.provider && modelType === DEFAULT_MODEL_CONFIG.modelType;
+
+        // 检查AI_MODELS中是否有该模型的API密钥
+        const modelConfig = AI_MODELS[modelType];
+        const hasConfigApiKey = modelConfig && modelConfig.apiKey && modelConfig.apiKey.trim() !== "";
+
+        // 如果本地存储中没有API密钥，但constants.ts中有，则使用constants.ts中的密钥
+        if (!apiKey && hasConfigApiKey) {
+          apiKey = modelConfig.apiKey!;
+          setApiKey(provider, apiKey);
+          console.log(`已将${modelType}的API密钥从constants.ts设置到浏览器缓存`, provider, apiKey);
+        }
 
         // 如果没有API密钥且不是默认模型，则无法切换
         if (!apiKey && !isDefaultModel) {

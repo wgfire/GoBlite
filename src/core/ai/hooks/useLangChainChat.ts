@@ -9,6 +9,7 @@ import { isSendingAtom, isStreamingAtom, streamContentAtom } from "../atoms/mode
 import { MessageRole, SendMessageOptions } from "../types";
 import { createConversationChain } from "../langchain/chains";
 import { useLangChainConversation } from "./useLangChainConversation";
+// import { parseAIResponse } from "../utils/responseParser";
 
 /**
  * LangChain聊天功能钩子
@@ -24,46 +25,52 @@ export function useLangChainChat() {
   const conversation = useLangChainConversation();
 
   /**
-   * 发送消息
-   * @param model 语言模型
-   * @param memory 记忆实例
-   * @param content 消息内容
-   * @param options 发送选项
-   */
-  /**
    * 从链的响应中提取内容
    * @param response 链的响应
    * @returns 响应内容
    */
-  const getResponseContent = (response: Record<string, unknown>): string => {
-    // 如果有 response 属性，使用它
-    if ("response" in response && typeof response.response === "string") {
-      return response.response;
-    }
+  const getResponseContent = (response: Record<string, unknown> | unknown): string => {
+    try {
+      // 如果响应不是对象，直接转换为字符串
+      if (!response || typeof response !== "object") {
+        return String(response || "");
+      }
 
-    // 如果有 text 属性，使用它
-    if ("text" in response && typeof response.text === "string") {
-      return response.text;
-    }
+      // 将响应转换为记录类型
+      const responseObj = response as Record<string, unknown>;
 
-    // 如果有 output 属性，使用它
-    if ("output" in response && typeof response.output === "string") {
-      return response.output;
-    }
+      // 检查常见的输出键
+      const commonKeys = ["response", "text", "output", "content", "answer", "result", "message"];
+      for (const key of commonKeys) {
+        if (key in responseObj && responseObj[key] != null) {
+          return String(responseObj[key]);
+        }
+      }
 
-    // 如果只有一个键，使用它的值
-    const keys = Object.keys(response);
-    if (keys.length === 1) {
-      return String(response[keys[0]]);
-    }
+      // 如果只有一个键，使用它的值
+      const keys = Object.keys(responseObj);
+      if (keys.length === 1) {
+        return String(responseObj[keys[0]] || "");
+      }
 
-    // 如果没有可用的内容，返回空字符串
-    console.warn("无法从响应中提取内容，响应对象:", response);
-    return "";
+      // 如果有多个键，尝试找到一个包含字符串值的键
+      for (const key of keys) {
+        const value = responseObj[key];
+        if (typeof value === "string" && value.length > 0) {
+          return value;
+        }
+      }
+
+      // 如果没有找到字符串值，尝试将整个对象转换为 JSON
+      return JSON.stringify(responseObj);
+    } catch (error) {
+      console.warn("在提取响应内容时出错:", error);
+      // 尝试直接将响应转换为字符串
+      return String(response || "");
+    }
   };
-
   const sendMessage = useCallback(
-    async (model: BaseChatModel, memory: BaseChatMemory, content: string, options: SendMessageOptions = {}) => {
+    async (model: BaseChatModel, memory: BaseChatMemory, content: string, options: SendMessageOptions = { streaming: true }) => {
       try {
         if (!conversation.currentConversationId) {
           throw new Error("没有选中的对话");
@@ -94,22 +101,58 @@ export function useLangChainChat() {
           setIsStreaming(true);
 
           // 流式调用
-          const response = await chain.call(
-            { input: content },
-            {
-              callbacks: [
-                {
-                  handleLLMNewToken(token: string) {
-                    setStreamContent((prev) => prev + token);
-                    options.onStreamUpdate?.(token);
+          console.log("开始流式调用链...");
+          let response;
+          try {
+            // 尝试使用 invoke 方法，这是 LCEL 推荐的方式
+            response = await chain.invoke(
+              { input: content },
+              {
+                callbacks: [
+                  {
+                    handleLLMNewToken(token: string) {
+                      setStreamContent((prev) => prev + token);
+                      options.onStreamUpdate?.(token);
+                    },
                   },
-                },
-              ],
-            }
-          );
+                ],
+              }
+            );
+            console.log("链调用响应 (invoke):", response);
+          } catch (invokeError) {
+            console.error("使用 invoke 方法失败，尝试使用 call 方法:", invokeError);
+            // 如果 invoke 失败，回退到 call 方法
+            response = await chain.call(
+              { input: content },
+              {
+                callbacks: [
+                  {
+                    handleLLMNewToken(token: string) {
+                      setStreamContent((prev) => prev + token);
+                      options.onStreamUpdate?.(token);
+                    },
+                  },
+                ],
+              }
+            );
+            console.log("链调用响应 (call):", response);
+          }
 
           // 获取响应内容
-          const responseContent = getResponseContent(response) || streamContent;
+          let responseContent = "";
+
+          try {
+            responseContent = getResponseContent(response);
+
+            // 如果响应内容仍然为空，尝试将整个响应转换为字符串
+            if (!responseContent && response) {
+              responseContent = typeof response === "string" ? response : JSON.stringify(response);
+            }
+          } catch (error) {
+            console.error("解析流式响应内容时出错:", error);
+            // 尝试直接将响应转换为字符串作为后备方案
+            responseContent = String(response?.text || response?.output || response?.response || response?.content || JSON.stringify(response));
+          }
 
           // 添加助手消息
           conversation.addMessage(conversation.currentConversationId, {
@@ -121,10 +164,36 @@ export function useLangChainChat() {
           return responseContent;
         } else {
           // 非流式调用
-          const response = await chain.call({ input: content });
+          // 尝试使用 invoke 方法，这是 LCEL 推荐的方式
+          console.log("开始非流式调用链...");
+          let response;
+          try {
+            response = await chain.invoke({ input: content });
+            console.log("链调用响应 (invoke):", response);
+          } catch (invokeError) {
+            console.error("使用 invoke 方法失败，尝试使用 call 方法:", invokeError);
+            // 如果 invoke 失败，回退到 call 方法
+            response = await chain.call({ input: content });
+            console.log("链调用响应 (call):", response);
+          }
 
           // 获取响应内容
-          const responseContent = getResponseContent(response);
+          let responseContent = "";
+
+          try {
+            // 先检查是否有 response 键
+
+            responseContent = getResponseContent(response);
+
+            // 如果响应内容仍然为空，尝试将整个响应转换为字符串
+            if (!responseContent && response) {
+              responseContent = typeof response === "string" ? response : JSON.stringify(response);
+            }
+          } catch (error) {
+            console.error("解析响应内容时出错:", error);
+            // 尝试直接将响应转换为字符串作为后备方案
+            responseContent = String(response?.text || response?.output || response?.response || response?.content || JSON.stringify(response));
+          }
 
           // 添加助手消息
           conversation.addMessage(conversation.currentConversationId, {
@@ -136,13 +205,14 @@ export function useLangChainChat() {
         }
       } catch (error) {
         console.error("发送消息失败:", error);
+
         throw error;
       } finally {
         setIsSending(false);
         setIsStreaming(false);
       }
     },
-    [conversation, setIsSending, setIsStreaming, setStreamContent, streamContent]
+    [conversation, setIsSending, setIsStreaming, setStreamContent]
   );
 
   /**

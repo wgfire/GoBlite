@@ -36,13 +36,29 @@ export const modelSettingsAtom = atomWithStorage("ai_model_settings", {
 export const availableModelsAtom = atom<ModelType[]>((get) => {
   const apiKeys = get(apiKeysAtom);
 
+  console.log("当前存储的API密钥:", apiKeys);
+  console.log("AI_MODELS中的配置:", AI_MODELS);
+
   // 过滤出有API密钥的模型
-  return Object.entries(AI_MODELS)
+  const availableModels = Object.entries(AI_MODELS)
     .filter(([modelType, config]) => {
       // 如果模型有默认API密钥，或者用户配置了API密钥，则可用
-      return (config.apiKey && config.apiKey.trim() !== "") || (apiKeys[config.provider] && apiKeys[config.provider].trim() !== "");
+      const hasConfigApiKey = config.apiKey && config.apiKey.trim() !== "";
+      const hasStoredApiKey = apiKeys[config.provider] && apiKeys[config.provider].trim() !== "";
+      const isAvailable = hasConfigApiKey || hasStoredApiKey;
+
+      console.log(`模型 ${modelType} 可用性检查:`, {
+        hasConfigApiKey,
+        hasStoredApiKey,
+        isAvailable,
+      });
+
+      return isAvailable;
     })
     .map(([modelType]) => modelType as ModelType);
+
+  console.log("可用模型列表:", availableModels);
+  return availableModels;
 });
 
 // 是否正在发送消息

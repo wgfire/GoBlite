@@ -59,6 +59,7 @@ export const AI_MODELS: AIModelsMap = {
   [ModelType.DEEPSEEK]: {
     modelType: ModelType.DEEPSEEK,
     provider: ModelProvider.DEEPSEEK,
+    apiKey: "sk-58b58e33b4d64358836ff816fa918aa8",
   },
 };
 
