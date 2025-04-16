@@ -50,6 +50,8 @@ export const AI_MODELS: AIModelsMap = {
   [ModelType.GPT4O]: {
     modelType: ModelType.GPT4O,
     provider: ModelProvider.OPENAI,
+    apiKey: "sk-52d91eff7864416faa1aa7683963f223",
+    baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
   },
   [ModelType.GEMINI_PRO]: {
     modelType: ModelType.GEMINI_PRO,

@@ -20,6 +20,7 @@ export class TemplateService {
           id: "react-template",
           name: "React模板",
           description: "基础的React项目模板",
+          fields: [],
           files: {},
         },
       ];

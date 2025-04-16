@@ -1,10 +1,10 @@
 // src/components/Chat/types.ts
 
-export type Tab = 'landing' | 'campaign';
+export type Tab = "landing" | "campaign";
 
 export interface Message {
   id: string;
-  sender: 'user' | 'ai';
+  sender: "user" | "ai" | "system";
   text: string;
   timestamp: number;
   files?: UploadedFile[];

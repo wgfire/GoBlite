@@ -25,8 +25,6 @@ export * from "./langchain/retrievers";
 // 导出新钩子
 export * from "./hooks";
 
-// 导出记忆相关
-export { default as MemoryManager } from "./langchain/memory/memoryManager";
 export { default as createStorageAdapter } from "./langchain/memory/storageAdapter";
 
 // 导出提示词相关

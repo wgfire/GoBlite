@@ -14,8 +14,8 @@ export enum ModelProvider {
 
 // 模型类型枚举
 export enum ModelType {
-  /** OpenAI GPT-4o */
-  GPT4O = "gpt-4o",
+  /** OpenAI GPT-4o 使用deepseek-v3 兼容gpt4o */
+  GPT4O = "deepseek-v3",
   /** Google Gemini 2.0 flash */
   GEMINI_PRO = "gemini-2.0-flash",
   /** DeepSeek Chat */
@@ -209,6 +209,8 @@ export interface SendMessageOptions {
   streaming?: boolean;
   /** 流式更新回调 */
   onStreamUpdate?: (content: string) => void;
+  /** 模板信息 */
+  templateInfo?: string;
 }
 
 // AI消息内容接口
@@ -378,6 +380,26 @@ export interface TemplateProcessingResult {
 export interface TemplateProcessResult extends CodeGenerationResult {
   /** 模板ID */
   templateId?: string;
+}
+
+// 模板优化参数接口
+export interface TemplateOptimizationParams {
+  /** 优化请求 */
+  optimizationRequest: string;
+  /** 需求说明 */
+  requirements?: string;
+}
+
+// 模板优化结果接口
+export interface TemplateOptimizationResult {
+  /** 是否成功 */
+  success: boolean;
+  /** 生成的文件 */
+  files?: CodeFile[];
+  /** 模板信息 */
+  template?: any;
+  /** 错误信息 */
+  error?: string;
 }
 
 // 文档加载结果接口

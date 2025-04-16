@@ -7,10 +7,9 @@ import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { BaseChatMemory } from "langchain/memory";
 import { isSendingAtom, isStreamingAtom, streamContentAtom } from "../atoms/modelAtoms";
 import { MessageRole, SendMessageOptions } from "../types";
-import { createConversationChain } from "../langchain/chains";
+import { createUnifiedResponseChain, createStrictUnifiedResponseChain } from "../langchain/chains/unifiedResponseChain";
 import { useLangChainConversation } from "./useLangChainConversation";
-// import { parseAIResponse } from "../utils/responseParser";
-
+import { validateUnifiedResponse, createDefaultUnifiedResponse, UnifiedResponse } from "../utils/responseValidator";
 /**
  * LangChain聊天功能钩子
  * 提供消息发送和流式接收功能
@@ -70,7 +69,7 @@ export function useLangChainChat() {
     }
   };
   const sendMessage = useCallback(
-    async (model: BaseChatModel, memory: BaseChatMemory, content: string, options: SendMessageOptions = { streaming: true }) => {
+    async (model: BaseChatModel, _memory: BaseChatMemory, content: string, options: SendMessageOptions = { streaming: true }) => {
       try {
         if (!conversation.currentConversationId) {
           throw new Error("没有选中的对话");
@@ -81,7 +80,7 @@ export function useLangChainChat() {
         setStreamContent("");
 
         // 创建对话链
-        const chain = createConversationChain(model, memory, options.systemPrompt || conversation.currentConversation?.systemPrompt);
+        const chain = createUnifiedResponseChain(model);
 
         // 添加用户消息
         const userMessageId = conversation.addMessage(conversation.currentConversationId, {
@@ -104,9 +103,12 @@ export function useLangChainChat() {
           console.log("开始流式调用链...");
           let response;
           try {
-            // 尝试使用 invoke 方法，这是 LCEL 推荐的方式
+            // 尝试使用 invoke 方法
             response = await chain.invoke(
-              { input: content },
+              {
+                userInput: content,
+                templateInfo: options.templateInfo || "",
+              },
               {
                 callbacks: [
                   {
@@ -120,22 +122,7 @@ export function useLangChainChat() {
             );
             console.log("链调用响应 (invoke):", response);
           } catch (invokeError) {
-            console.error("使用 invoke 方法失败，尝试使用 call 方法:", invokeError);
-            // 如果 invoke 失败，回退到 call 方法
-            response = await chain.call(
-              { input: content },
-              {
-                callbacks: [
-                  {
-                    handleLLMNewToken(token: string) {
-                      setStreamContent((prev) => prev + token);
-                      options.onStreamUpdate?.(token);
-                    },
-                  },
-                ],
-              }
-            );
-            console.log("链调用响应 (call):", response);
+            console.error("使用 invoke 方法失败:", invokeError);
           }
 
           // 获取响应内容
@@ -151,7 +138,7 @@ export function useLangChainChat() {
           } catch (error) {
             console.error("解析流式响应内容时出错:", error);
             // 尝试直接将响应转换为字符串作为后备方案
-            responseContent = String(response?.text || response?.output || response?.response || response?.content || JSON.stringify(response));
+            responseContent = String(response?.response?.text || JSON.stringify(response));
           }
 
           // 添加助手消息
@@ -164,16 +151,29 @@ export function useLangChainChat() {
           return responseContent;
         } else {
           // 非流式调用
-          // 尝试使用 invoke 方法，这是 LCEL 推荐的方式
+          // 尝试使用 invoke 方法
           console.log("开始非流式调用链...");
           let response;
           try {
-            response = await chain.invoke({ input: content });
+            response = await chain.invoke(
+              {
+                userInput: content,
+                templateInfo: options.templateInfo || "",
+              },
+              {
+                configurable: {
+                  sessionId: "chat-" + conversation.currentConversationId,
+                },
+              }
+            );
             console.log("链调用响应 (invoke):", response);
           } catch (invokeError) {
             console.error("使用 invoke 方法失败，尝试使用 call 方法:", invokeError);
-            // 如果 invoke 失败，回退到 call 方法
-            response = await chain.call({ input: content });
+            // 如果 invoke 失败，再次尝试 invoke 方法
+            response = await chain.invoke({
+              userInput: content,
+              templateInfo: options.templateInfo || "",
+            });
             console.log("链调用响应 (call):", response);
           }
 
@@ -192,7 +192,7 @@ export function useLangChainChat() {
           } catch (error) {
             console.error("解析响应内容时出错:", error);
             // 尝试直接将响应转换为字符串作为后备方案
-            responseContent = String(response?.text || response?.output || response?.response || response?.content || JSON.stringify(response));
+            responseContent = String(response?.response?.text || JSON.stringify(response));
           }
 
           // 添加助手消息
@@ -227,6 +227,122 @@ export function useLangChainChat() {
     return true;
   }, [setIsSending, setIsStreaming]);
 
+  /**
+   * 发送统一请求
+   * @param userInput 用户输入
+   * @param model 语言模型
+   * @param memory 记忆实例 (不再使用)
+   * @param templateInfo 模板信息（可选）
+   * @returns 结构化响应
+   */
+  const sendUnifiedRequest = useCallback(
+    async (
+      userInput: string,
+      model?: BaseChatModel,
+      _memory?: BaseChatMemory,
+      templateInfo?: string
+    ): Promise<{
+      success: boolean;
+      data?: UnifiedResponse;
+      error?: string;
+      rawResponse?: string;
+    }> => {
+      const MAX_RETRIES = 3;
+      let retryCount = 0;
+
+      while (retryCount < MAX_RETRIES) {
+        try {
+          // 使用提供的模型
+          const activeModel = model;
+
+          if (!activeModel) {
+            throw new Error("模型未初始化");
+          }
+
+          // 创建统一响应链
+          let chain = createUnifiedResponseChain(activeModel);
+
+          // 准备上下文数据
+          const context = {
+            userInput,
+            templateInfo: templateInfo || "",
+          };
+
+          // 配置会话 ID
+          const config = {
+            configurable: {
+              sessionId: "chat-" + Date.now().toString(),
+            },
+          };
+
+          // 调用链
+          const parsedResponse = await chain.invoke(context, config);
+          console.log("原始响应:", parsedResponse, context);
+
+          // 解析JSON响应
+          try {
+            // 验证响应结构
+            if (parsedResponse && validateUnifiedResponse(parsedResponse)) {
+              // 消息历史已由 RunnableWithMessageHistory 自动管理
+              console.log("已将对话保存到记忆中");
+
+              return {
+                success: true,
+                data: parsedResponse as UnifiedResponse,
+              };
+            } else {
+              console.warn("响应结构验证失败，重试中...", parsedResponse);
+              retryCount++;
+
+              // 如果是最后一次重试，使用更严格的提示词
+              if (retryCount === MAX_RETRIES - 1) {
+                // 创建更严格的提示词，强调结构的重要性
+                chain = createStrictUnifiedResponseChain(activeModel);
+                // 重新调用链时使用相同的上下文
+                const parsedResponse = await chain.invoke(context, config);
+                try {
+                  // 验证响应结构
+                  if (parsedResponse && validateUnifiedResponse(parsedResponse)) {
+                    // 消息历史已由 RunnableWithMessageHistory 自动管理
+                    console.log("已将对话保存到记忆中(严格模式)");
+
+                    return {
+                      success: true,
+                      data: parsedResponse as UnifiedResponse,
+                    };
+                  }
+                } catch (parseError) {
+                  console.error("严格模式下解析响应失败:", parseError);
+                }
+              }
+
+              continue;
+            }
+          } catch (parseError) {
+            console.error("解析响应失败，重试中...", parseError);
+            retryCount++;
+            continue;
+          }
+        } catch (error) {
+          console.error("发送统一请求失败:", error);
+          return {
+            success: false,
+            error: error instanceof Error ? error.message : "发送请求失败",
+          };
+        }
+      }
+
+      // 所有重试都失败，返回默认响应
+      console.error(`在 ${MAX_RETRIES} 次尝试后仍未获得有效响应`);
+      return {
+        success: false,
+        error: "无法获取有效的结构化响应",
+        data: createDefaultUnifiedResponse("抱歉，我无法正确处理您的请求。请尝试重新表述您的问题或需求。"),
+      };
+    },
+    []
+  );
+
   return {
     // 状态
     isSending,
@@ -235,6 +351,7 @@ export function useLangChainChat() {
 
     // 方法
     sendMessage,
+    sendUnifiedRequest,
     cancelRequest,
   };
 }

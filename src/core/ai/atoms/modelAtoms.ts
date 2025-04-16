@@ -41,18 +41,11 @@ export const availableModelsAtom = atom<ModelType[]>((get) => {
 
   // 过滤出有API密钥的模型
   const availableModels = Object.entries(AI_MODELS)
-    .filter(([modelType, config]) => {
+    .filter(([, config]) => {
       // 如果模型有默认API密钥，或者用户配置了API密钥，则可用
       const hasConfigApiKey = config.apiKey && config.apiKey.trim() !== "";
       const hasStoredApiKey = apiKeys[config.provider] && apiKeys[config.provider].trim() !== "";
       const isAvailable = hasConfigApiKey || hasStoredApiKey;
-
-      console.log(`模型 ${modelType} 可用性检查:`, {
-        hasConfigApiKey,
-        hasStoredApiKey,
-        isAvailable,
-      });
-
       return isAvailable;
     })
     .map(([modelType]) => modelType as ModelType);

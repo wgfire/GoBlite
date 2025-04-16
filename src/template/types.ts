@@ -22,7 +22,7 @@ export interface Template {
   name: string;
   description?: string;
   icon?: string;
-  fields?: FieldItem[];
+  fields: FieldItem[];
   files?: Record<string, string>;
 }
 

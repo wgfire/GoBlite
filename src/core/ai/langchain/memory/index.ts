@@ -1,7 +1,7 @@
 /**
  * LangChain记忆集成
  */
-import { BaseMemory } from "@langchain/core/memory";
+import { BaseChatMemory } from "langchain/memory";
 import { BufferMemory, ConversationSummaryMemory } from "langchain/memory";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { MemoryType, MemoryConfig } from "../../types";
@@ -12,7 +12,7 @@ import { MemoryType, MemoryConfig } from "../../types";
  * @param llm 语言模型（用于摘要记忆）
  * @returns LangChain记忆实例
  */
-export function createMemory(config: MemoryConfig, llm?: BaseChatModel): BaseMemory {
+export function createMemory(config: MemoryConfig, llm?: BaseChatModel): BaseChatMemory {
   const commonOptions = {
     returnMessages: true,
     memoryKey: "history",

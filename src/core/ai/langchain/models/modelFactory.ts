@@ -27,6 +27,7 @@ export class ModelFactory {
         console.warn(`创建模型失败: 缺少API密钥 (${config.provider}:${config.modelType})。请在设置中配置API密钥。`);
         return null;
       }
+      console.log('创建模型:', config);
 
       // 通用选项
       const commonOptions = {
@@ -108,6 +109,7 @@ export class ModelFactory {
           apiKey,
           temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
           maxTokens: maxTokens ?? DEFAULT_MODEL_PARAMS.maxTokens,
+          ...(modelInfo.baseUrl && { baseUrl: modelInfo.baseUrl }),
         });
       }
     });

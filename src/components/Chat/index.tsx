@@ -1,460 +1,52 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
-import useMemoizedFn from "@/hooks/useMemoizedFn";
+import React, { useRef } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
 import { InputOperations } from "./InputOperations";
 import { APIKeyConfig } from "./APIKeyConfig";
 import { StatusIndicator } from "./StatusIndicator";
-import { HeaderTab, Message, UploadedFile } from "./types";
-import { Template } from "@/template/types";
 import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
-import { useLangChainAI, ModelType, ServiceStatus, AI_MODELS } from "@/core/ai";
-import { useFileSystem } from "@/core/fileSystem";
-import { useWebContainer } from "@/core/webContainer";
-import { AIMessageType, AIMessageContent } from "@/core/ai";
+import { ServiceStatus } from "@/core/ai";
 import { FiChevronLeft, FiChevronRight, FiMessageSquare, FiSettings } from "react-icons/fi";
-import { FileItemType } from "@/core/fileSystem/types";
 import "./Chat.css";
-import { toast } from "@/components/ui/use-toast";
+import { useChat } from "./useChat";
 
 interface ChatProps {
   onCollapseChange?: (collapsed: boolean) => void;
 }
 
 const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-  const [isSending, setIsSending] = useState(false);
-  const [activeTab, setActiveTab] = useState<HeaderTab>("templates");
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [showTemplateForm, setShowTemplateForm] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showAPIKeyConfig, setShowAPIKeyConfig] = useState(false);
+  // 使用自定义 hook 获取所有状态和方法
+  const {
+    messages,
+    uploadedFiles,
+    isSending,
+    activeTab,
+    selectedTemplate,
+    showTemplateForm,
+    isCollapsed,
+    showAPIKeyConfig,
+    status,
+    selectedModelType,
+    setActiveTab,
+    setUploadedFiles,
+    setShowAPIKeyConfig,
+    setIsCollapsed,
+    handleSend,
+    handleOptimizePrompt,
+    handleTemplateSelect,
+    handleTemplateFormSubmit,
+    handleTemplateFormClose,
+    handleCancelRequest,
+    handleModelChange,
+    handleSaveAPIKey,
+    toggleCollapse,
+    parseAIResponse,
+  } = useChat({ onCollapseChange });
 
   // Ref to store the current width before collapsing
   const chatRef = useRef<HTMLDivElement>(null);
-
-  // 获取AI服务钩子
-  const {
-    error: aiError,
-    status,
-    isSending: aiIsSending,
-    generateCode,
-    sendMessage: sendChatRequest,
-    cancelRequest,
-    selectedModelType,
-    switchModelType,
-    setApiKey,
-    initialize,
-    processTemplate,
-  } = useLangChainAI({
-    autoInit: true,
-  });
-  // 移除无限循环的日志
-  // console.log(selectedModelType, "当前模型");
-
-  // 模型切换处理
-  const handleModelChange = useMemoizedFn(async (modelType: ModelType) => {
-    console.log("切换模型到", modelType);
-
-    // 尝试切换模型
-    if (switchModelType) {
-      const success = await switchModelType(modelType);
-      if (!success) {
-        // 如果切换失败，重新初始化
-        initialize();
-      }
-    } else {
-      // 如果没有switchModelType方法，直接重新初始化
-      initialize();
-    }
-  });
-
-  // 获取文件系统和WebContainer钩子
-  const fileSystem = useFileSystem();
-  const webContainer = useWebContainer();
-  // 防止重复显示API密钥配置对话框的标志
-  const [apiKeyErrorShown, setApiKeyErrorShown] = useState(false);
-
-  // 监听AI错误
-  useEffect(() => {
-    if (aiError && !apiKeyErrorShown) {
-      console.error("AI服务错误:", aiError);
-
-      // 检查错误消息是否与初始化或API密钥相关
-      const isApiKeyError = aiError.includes("API密钥") || aiError.includes("初始化") || aiError.includes("模型管理器") || aiError.includes("对话管理器");
-
-      // 如果是API密钥相关错误，显示警告并提示配置
-      if (isApiKeyError) {
-        toast({
-          title: "AI服务需要配置",
-          description: "请点击设置图标配置API密钥以启用完整功能。",
-          variant: "warning",
-        });
-
-        // 标记已经显示过API密钥错误，防止重复显示
-        setApiKeyErrorShown(true);
-
-        // 使用setTimeout避免在渲染周期内设置状态导致的循环
-        setTimeout(() => {
-          setShowAPIKeyConfig(true);
-        }, 100);
-      } else {
-        // 其他错误正常显示
-        toast({
-          title: "AI服务错误",
-          description: aiError,
-          variant: "error",
-        });
-      }
-    }
-  }, [aiError, apiKeyErrorShown]);
-
-  const handleSaveAPIKey = useMemoizedFn(async (modelType: ModelType, apiKey: string) => {
-    try {
-      // 获取模型提供商
-      const provider = AI_MODELS[modelType]?.provider;
-      if (!provider) {
-        throw new Error(`不支持的模型类型: ${modelType}`);
-      }
-
-      console.log(`开始为 ${modelType} (提供商: ${provider}) 配置API密钥`);
-
-      // 先在本地存储中设置API密钥
-      if (setApiKey) {
-        setApiKey(provider, apiKey);
-        console.log(`已将API密钥保存到本地存储中`);
-      }
-
-      // 直接使用新的API密钥初始化模型
-      // 这样可以确保使用最新的API密钥，而不是依赖于存储中的值
-      console.log(`使用新的API密钥初始化模型，指定模型类型: ${modelType}`);
-      // 将模型类型传递给initialize函数，确保API密钥被正确应用到指定模型
-      const initSuccess = await initialize(apiKey, modelType);
-      if (!initSuccess) {
-        throw new Error("使用新API密钥初始化模型失败");
-      }
-
-      // 切换到指定模型
-      console.log(`尝试切换到模型: ${modelType}`);
-      if (switchModelType) {
-        const switchSuccess = await switchModelType(modelType);
-        if (!switchSuccess) {
-          throw new Error(`切换到${modelType}模型失败`);
-        }
-        console.log(`成功切换到模型: ${modelType}`);
-      }
-
-      toast({
-        title: "配置成功",
-        description: `已成功配置${modelType}模型`,
-      });
-
-      // 重置错误标志，允许再次显示错误
-      setApiKeyErrorShown(false);
-      return true;
-    } catch (error) {
-      console.error("保存API密钥时出错:", error);
-      toast({
-        title: "配置失败",
-        description: error instanceof Error ? error.message : "初始化模型失败",
-        variant: "default",
-      });
-      return false;
-    }
-  });
-
-  // 解析AI响应中的代码和图像
-  const parseAIResponse = useCallback((text: string): AIMessageContent[] => {
-    const contents: AIMessageContent[] = [];
-
-    // 提取代码块
-    const codeBlockRegex = /```([\w-]+)?\s*([\s\S]*?)```/g;
-    let lastIndex = 0;
-    let match;
-
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-      // 添加代码块前的文本
-      if (match.index > lastIndex) {
-        contents.push({
-          type: AIMessageType.TEXT,
-          content: text.substring(lastIndex, match.index).trim(),
-        });
-      }
-
-      // 添加代码块
-      contents.push({
-        type: AIMessageType.CODE,
-        content: match[2],
-        language: match[1] || "plaintext",
-      });
-
-      lastIndex = match.index + match[0].length;
-    }
-
-    // 添加剩余文本
-    if (lastIndex < text.length) {
-      contents.push({
-        type: AIMessageType.TEXT,
-        content: text.substring(lastIndex).trim(),
-      });
-    }
-
-    return contents;
-  }, []);
-
-  // 发送消息
-  const handleSend = useCallback(
-    async (prompt: string, files: UploadedFile[]) => {
-      if (!prompt.trim() && files.length === 0) return;
-
-      setIsSending(true);
-      const userMessage: Message = {
-        id: crypto.randomUUID(),
-        sender: "user",
-        text: prompt,
-        timestamp: Date.now(),
-        files: files.length > 0 ? files : undefined,
-        
-      };
-
-      setMessages((prev) => [...prev, userMessage]);
-
-      try {
-        // 检测是否是代码生成请求
-        const isCodeRequest = /(生成|创建|写一个|实现).*(代码|组件|函数|类|HTML|CSS|JavaScript|React|Vue)/i.test(prompt);
-
-        if (isCodeRequest) {
-          // 生成代码
-          const result = await generateCode({
-            prompt,
-            language: "javascript",
-            framework: "react",
-            includeComments: true,
-            includeTests: false,
-          });
-
-          let responseText = "";
-          const filesList = [];
-
-          if (result.success && result.files && result.files.length > 0) {
-            // 成功生成代码
-            responseText = `我已根据您的要求生成了以下文件：\n\n`;
-
-            // 添加文件列表
-            for (const file of result.files) {
-              responseText += `- ${file.path}\n`;
-              filesList.push(file);
-
-              // 如果是代码文件，添加预览
-              if (file.content && file.content.length < 1000) {
-                responseText += `\n\`\`\`${file.language || "plaintext"}\n${file.content}\n\`\`\`\n\n`;
-              }
-            }
-
-            // 添加文件到文件系统
-            for (const file of result.files) {
-              const dirPath = file.path.split("/").slice(0, -1).join("/");
-              fileSystem.createFile(dirPath, {
-                name: file.path.split("/").pop() || "unnamed",
-                path: file.path,
-                type: FileItemType.FILE,
-                content: file.content,
-                metadata: {
-                  createdAt: Date.now(),
-                  updatedAt: Date.now(),
-                  size: new Blob([file.content]).size,
-                },
-              });
-            }
-
-            // 启动WebContainer预览
-            webContainer.startApp(fileSystem.files);
-
-            responseText += "\n文件已添加到文件系统，并已启动预览。";
-          } else {
-            // 生成失败或没有文件
-            responseText = result.error ? `抱歉，生成代码时出错：${result.error}` : `我理解了您的需求，但无法生成相应的代码文件。请提供更详细的信息。`;
-          }
-
-          // 创建AI响应消息
-          const aiResponse: Message = {
-            id: crypto.randomUUID(),
-            sender: "ai",
-            text: responseText,
-            timestamp: Date.now(),
-          };
-
-          setMessages((prev) => [...prev, aiResponse]);
-        } else {
-          // 普通对话请求
-          // 使用sendChatRequest发送请求
-          const response = await sendChatRequest(prompt, {
-            systemPrompt: "你是一个专业的前端开发工程师，帮助用户根据他的需求创建完美的落地页界面。",
-            temperature: 0.7,
-            streaming: true,
-          });
-
-          if (!response.success) {
-            throw new Error(response.error || "请求失败");
-          }
-
-          const responseText = response.content || "抱歉，无法获取响应";
-
-          // 创建AI响应消息
-          const aiResponse: Message = {
-            id: crypto.randomUUID(),
-            sender: "ai",
-            text: responseText,
-            timestamp: Date.now(),
-          };
-
-          setMessages((prev) => [...prev, aiResponse]);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        const errorMessage: Message = {
-          id: crypto.randomUUID(),
-          sender: "ai",
-          text: `抱歉，处理请求时出错: ${error instanceof Error ? error.message : "未知错误"}`,
-          timestamp: Date.now(),
-        };
-        setMessages((prev) => [...prev, errorMessage]);
-      } finally {
-        setIsSending(false);
-      }
-    },
-    [generateCode, sendChatRequest, fileSystem, webContainer]
-  );
-
-  // 优化提示词
-  const handleOptimizePrompt = useCallback(async (prompt: string) => {
-    try {
-      // 简单实现，返回原始提示词
-      return prompt;
-    } catch (error) {
-      console.error("优化提示词失败:", error);
-      return prompt; // 失败时返回原始提示词
-    }
-  }, []);
-  // 选择模板
-  const handleTemplateSelect = (template: Template) => {
-    setSelectedTemplate(template);
-    setShowTemplateForm(true);
-  };
-
-  // 提交模板表单
-  const handleTemplateFormSubmit = async (data: Record<string, string>) => {
-    if (!selectedTemplate) return;
-
-    setShowTemplateForm(false);
-    setIsSending(true);
-
-    // 创建用户消息
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      sender: "user",
-      text: `请使用${selectedTemplate.name}模板创建一个页面，参数如下：\n${Object.entries(data)
-        .map(([key, value]) => {
-          const field = selectedTemplate.fields?.find((f) => f.id === key);
-          return field ? `${field.name}: ${value}` : `${key}: ${value}`;
-        })
-        .join("\n")}`,
-      timestamp: Date.now(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-
-    try {
-      // 处理模板
-      const result = await processTemplate({
-        templateId: selectedTemplate.id,
-        formData: data,
-        businessContext: JSON.stringify({
-          industry: data.industry || "通用",
-          businessGoal: data.businessGoal || "展示产品或服务",
-          targetAudience: data.targetAudience || "潜在客户",
-          designStyle: data.designStyle || "现代简约",
-        }),
-      });
-
-      if (result.success && result.files && result.files.length > 0) {
-        // 成功处理模板
-        let responseText = `我已根据${selectedTemplate.name}模板生成了以下文件：\n\n`;
-
-        // 添加文件列表
-        for (const file of result.files) {
-          responseText += `- ${file.path}\n`;
-        }
-
-        // 添加预览信息
-        responseText += "\n文件已添加到文件系统，并已启动预览。";
-
-        // 同步到文件系统
-        for (const file of result.files) {
-          await fileSystem.writeFile(file.path, file.content);
-        }
-
-        // 启动预览
-        await webContainer.startApp(fileSystem.files);
-
-        // 创建AI响应消息
-        const aiResponse: Message = {
-          id: crypto.randomUUID(),
-          sender: "ai",
-          text: responseText,
-          timestamp: Date.now(),
-        };
-
-        setMessages((prev) => [...prev, aiResponse]);
-      } else {
-        // 处理失败
-        const errorMessage: Message = {
-          id: crypto.randomUUID(),
-          sender: "ai",
-          text: `处理模板时出错：${result.error || "未知错误"}`,
-          timestamp: Date.now(),
-        };
-
-        setMessages((prev) => [...prev, errorMessage]);
-      }
-    } catch (error) {
-      console.error("处理模板失败:", error);
-      const errorMessage: Message = {
-        id: crypto.randomUUID(),
-        sender: "ai",
-        text: "抱歉，处理模板时出错",
-        timestamp: Date.now(),
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsSending(false);
-      setSelectedTemplate(null);
-    }
-  };
-
-  // 关闭模板表单
-  const handleTemplateFormClose = () => {
-    setSelectedTemplate(null);
-    setShowTemplateForm(false);
-  };
-
-  // 取消AI请求
-  const handleCancelRequest = () => {
-    cancelRequest();
-    setIsSending(false);
-  };
-
-  const toggleCollapse = useCallback(() => {
-    const newCollapsedState = !isCollapsed;
-    setIsCollapsed(newCollapsedState);
-    if (onCollapseChange) {
-      onCollapseChange(newCollapsedState);
-    }
-  }, [isCollapsed, onCollapseChange]);
 
   return (
     <motion.div
@@ -490,7 +82,11 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       </motion.button>
 
       {/* Right border gradient */}
-      <div className={`absolute right-0 h-full ${isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"}`}></div>
+      <div
+        className={`absolute right-0 h-full ${
+          isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"
+        }`}
+      ></div>
 
       {/* Collapsed state icon */}
       <AnimatePresence>
@@ -533,17 +129,29 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
+              <ChatHeader
+                onTemplateSelect={handleTemplateSelect}
+                selectedTemplate={selectedTemplate}
+                isMobile={false}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || ServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea onSend={handleSend} isSending={isSending || aiIsSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
+            <InputArea
+              onSend={handleSend}
+              isSending={isSending}
+              uploadedFiles={uploadedFiles}
+              setUploadedFiles={setUploadedFiles}
+              onCancel={handleCancelRequest}
+            />
             <InputOperations
               onOptimizePrompt={() => handleOptimizePrompt("")}
               isOptimizing={false}
-              isSending={isSending || aiIsSending}
+              isSending={isSending}
               hasPrompt={true}
               onFileUpload={(e) => {
                 if (e.target.files) {
@@ -580,7 +188,12 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           </motion.div>
         )}
         {/* API密钥配置对话框 */}
-        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={selectedModelType} />
+        <APIKeyConfig
+          isOpen={showAPIKeyConfig}
+          onClose={() => setShowAPIKeyConfig(false)}
+          onSave={handleSaveAPIKey}
+          currentModel={selectedModelType}
+        />
       </AnimatePresence>
     </motion.div>
   );

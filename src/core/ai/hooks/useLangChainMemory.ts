@@ -3,7 +3,7 @@
  */
 import { useState, useCallback } from "react";
 import { useAtom } from "jotai";
-import { BaseChatMemory } from "@langchain/core/memory";
+import { BaseChatMemory } from "langchain/memory";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { memoryTypeAtom, memoryWindowSizeAtom, memorySummaryThresholdAtom } from "../atoms/memoryAtoms";
 import { MemoryType, MemoryConfig } from "../types";

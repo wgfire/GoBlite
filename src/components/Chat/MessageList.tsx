@@ -1,8 +1,7 @@
-import React, { useContext } from "react";
 import { Message } from "./types";
 import { FiImage, FiFile, FiX } from "react-icons/fi";
 import { AIResponseContent } from "./AIResponseHandler";
-import { AIMessageType, AIMessageContent } from "@/core/ai/types";
+import { AIMessageContent } from "@/core/ai/types";
 
 interface MessageListProps {
   messages: Message[];

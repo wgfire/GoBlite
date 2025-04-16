@@ -10,17 +10,17 @@ import { useLangChainChat } from "./useLangChainChat";
 import { useLangChainCode } from "./useLangChainCode";
 import { useLangChainTemplate } from "./useLangChainTemplate";
 import { useLangChainRetrieval } from "./useLangChainRetrieval";
+
 import {
   AIServiceConfig,
   ModelType,
   ModelProvider,
   ServiceStatus,
-  SendMessageOptions,
   CodeGenerationParams,
   TemplateProcessingParams,
+  TemplateOptimizationParams,
   MemoryType,
   StorageProvider,
-  AIResponse,
 } from "../types/index";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
 // 导入常量
@@ -77,7 +77,11 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
       if (apiKey) {
         // 确保 selectedModelType 不为空
         const modelType = modelManager.selectedModelType || ModelType.GPT4O;
-        const provider = modelType.includes("gpt") ? ModelProvider.OPENAI : modelType.includes("gemini") ? ModelProvider.GEMINI : ModelProvider.DEEPSEEK;
+        const provider = modelType.includes("gpt")
+          ? ModelProvider.OPENAI
+          : modelType.includes("gemini")
+          ? ModelProvider.GEMINI
+          : ModelProvider.DEEPSEEK;
         modelManager.setApiKey(provider, apiKey);
       }
 
@@ -144,38 +148,6 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
   }, [modelManager, memoryManager]);
 
   /**
-   * 发送消息
-   * @param content 消息内容
-   * @param options 发送选项
-   * @returns 消息响应
-   */
-  const sendMessage = useMemoizedFn(async (content: string, options: SendMessageOptions = {}): Promise<AIResponse> => {
-    try {
-      if (!isInitialized || !modelManager.model || modelManager.serviceStatus !== ServiceStatus.READY) {
-        throw new Error("服务未就绪");
-      }
-
-      if (!conversationManager.currentConversationId) {
-        throw new Error("没有选中的对话");
-      }
-
-      if (!memoryManager.memory) {
-        throw new Error("记忆未初始化");
-      }
-
-      const response = await chatManager.sendMessage(modelManager.model, memoryManager.memory, content, options);
-
-      return {
-        success: true,
-        content: response,
-      };
-    } catch (error) {
-      console.error("发送消息失败:", error);
-      throw error;
-    }
-  });
-
-  /**
    * 生成代码
    * @param params 代码生成参数
    * @returns 代码生成结果
@@ -207,6 +179,43 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
       return await templateManager.processTemplate(modelManager.model, params);
     } catch (error) {
       console.error("处理模板失败:", error);
+      throw error;
+    }
+  });
+
+  /**
+   * 优化模板
+   * @param params 模板优化参数
+   * @returns 模板优化结果
+   */
+  const optimizeTemplate = useMemoizedFn(async (params: TemplateOptimizationParams) => {
+    try {
+      if (!isInitialized || !modelManager.model || modelManager.serviceStatus !== ServiceStatus.READY) {
+        throw new Error("服务未就绪");
+      }
+
+      return await templateManager.optimizeTemplate(modelManager.model, params);
+    } catch (error) {
+      console.error("优化模板失败:", error);
+      throw error;
+    }
+  });
+
+  /**
+   * 加载模板文档
+   * @param template 模板对象
+   * @param files 模板文件
+   * @returns 文档加载结果
+   */
+  const loadTemplateDocuments = useMemoizedFn(async (template, files) => {
+    try {
+      if (!isInitialized || !modelManager.model || modelManager.serviceStatus !== ServiceStatus.READY) {
+        throw new Error("服务未就绪");
+      }
+
+      return await templateManager.loadTemplateDocuments(template, files);
+    } catch (error) {
+      console.error("加载模板文档失败:", error);
       throw error;
     }
   });
@@ -261,6 +270,7 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
     // 模型管理
     selectedModelType: modelManager.selectedModelType,
     modelSettings: modelManager.modelSettings,
+    model: modelManager.model,
 
     // 对话管理
     conversations: conversationManager.allConversations,
@@ -270,6 +280,7 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
     // 记忆管理
     memoryType: memoryManager.memoryType,
     memoryWindowSize: memoryManager.memoryWindowSize,
+    memory: memoryManager.memory,
 
     // 检索管理
     documents: retrievalManager.documents,
@@ -293,7 +304,7 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
     updateMemoryWindowSize: memoryManager.updateMemoryWindowSize,
 
     // 聊天方法
-    sendMessage,
+    sendMessage: chatManager.sendUnifiedRequest,
     cancelRequest: chatManager.cancelRequest,
 
     // 代码生成方法
@@ -301,6 +312,10 @@ export function useLangChainAI(options: UseLangChainAIOptions = {}) {
 
     // 模板处理方法
     processTemplate,
+    optimizeTemplate,
+    loadTemplateDocuments,
+    clearTemplateContext: templateManager.clearTemplateContext,
+    templateContext: templateManager.templateContext,
 
     // 检索方法
     loadDocument: retrievalManager.loadTextDocument,

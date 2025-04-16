@@ -2,48 +2,11 @@
  * LangChain链集成
  */
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { ConversationChain } from "langchain/chains";
-import { PromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate } from "@langchain/core/prompts";
-import { BaseChatMemory } from "langchain/memory";
+import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 
-/**
- * 创建对话链
- * @param model 语言模型
- * @param memory 记忆实例
- * @param systemPrompt 系统提示词
- * @returns 对话链实例
- */
-export function createConversationChain(model: BaseChatModel, memory: BaseChatMemory, systemPrompt?: string): ConversationChain {
-  // 创建提示词模板
-  const prompt = ChatPromptTemplate.fromMessages([
-    SystemMessagePromptTemplate.fromTemplate(systemPrompt || "你是一个有用的AI助手。"),
-    HumanMessagePromptTemplate.fromTemplate("{input}"),
-  ]);
-
-  // 注意：我们现在统一使用 response 作为输出键，不再需要检测模型类型
-
-  // 创建基本配置
-  const config: {
-    llm: BaseChatModel;
-    memory: BaseChatMemory;
-    prompt: ChatPromptTemplate;
-    verbose: boolean;
-    outputKey: string;
-  } = {
-    llm: model,
-    memory: memory,
-    prompt,
-    verbose: true, // 设置为 true 可以在控制台查看详细日志
-    outputKey: "response", // 统一使用response作为输出键
-  };
-
-  // 添加日志以帮助诊断问题
-  console.log("创建对话链配置:", config);
-  const chain = new ConversationChain(config);
-  console.log("对话链创建成功");
-  return chain;
-}
+// 导出统一响应链
+export { createUnifiedResponseChain, createStrictUnifiedResponseChain } from "./unifiedResponseChain";
 
 /**
  * 创建代码生成链
@@ -126,6 +89,52 @@ console.log('Hello');
       templateInfo: (input: Record<string, unknown>) => String(input.templateInfo || ""),
       formData: (input: Record<string, unknown>) => String(input.formData || ""),
       businessContext: (input: Record<string, unknown>) => String(input.businessContext || ""),
+    },
+    promptTemplate,
+    model,
+  ]);
+}
+
+/**
+ * 创建模板优化链
+ * @param model 语言模型
+ * @returns 可运行的链实例
+ */
+export function createTemplateOptimizationChain(model: BaseChatModel): RunnableSequence {
+  const template = `你是一个专业的前端开发工程师，擅长优化和生成高质量的前端代码。
+请根据用户的需求和提供的模板代码，生成优化后的代码。
+
+模板信息:
+{templateInfo}
+
+模板文件内容:
+{fileContexts}
+
+用户优化请求:
+{optimizationRequest}
+
+具体需求:
+{requirements}
+
+请根据用户的需求对模板代码进行优化和生成。你需要分析模板的结构和功能，然后生成符合用户需求的代码。
+
+返回格式应为markdown代码块，每个文件使用单独的代码块，并在代码块前注明文件路径。
+例如:
+\`\`\`filepath:src/index.js
+console.log('Hello');
+\`\`\`
+
+请确保生成的代码是高质量的、可维护的，并且符合用户的需求。`;
+
+  const promptTemplate = PromptTemplate.fromTemplate(template);
+
+  // 使用 LCEL 创建链
+  return RunnableSequence.from([
+    {
+      templateInfo: (input: Record<string, unknown>) => String(input.templateInfo || ""),
+      fileContexts: (input: Record<string, unknown>) => String(input.fileContexts || ""),
+      optimizationRequest: (input: Record<string, unknown>) => String(input.optimizationRequest || ""),
+      requirements: (input: Record<string, unknown>) => String(input.requirements || ""),
     },
     promptTemplate,
     model,
