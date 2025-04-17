@@ -69,7 +69,7 @@ export function useLangChainChat() {
     }
   };
   const sendMessage = useCallback(
-    async (model: BaseChatModel, _memory: BaseChatMemory, content: string, options: SendMessageOptions = { streaming: true }) => {
+    async (model: BaseChatModel, memory: BaseChatMemory, content: string, options: SendMessageOptions = { streaming: true }) => {
       try {
         if (!conversation.currentConversationId) {
           throw new Error("没有选中的对话");
@@ -80,7 +80,7 @@ export function useLangChainChat() {
         setStreamContent("");
 
         // 创建对话链
-        const chain = createUnifiedResponseChain(model);
+        const chain = createUnifiedResponseChain(model, memory);
 
         // 添加用户消息
         const userMessageId = conversation.addMessage(conversation.currentConversationId, {
@@ -103,7 +103,7 @@ export function useLangChainChat() {
           console.log("开始流式调用链...");
           let response;
           try {
-            // 尝试使用 invoke 方法
+            // 尝试使用 invoke 方法，这是 LCEL 推荐的方式
             response = await chain.invoke(
               {
                 userInput: content,
@@ -138,7 +138,7 @@ export function useLangChainChat() {
           } catch (error) {
             console.error("解析流式响应内容时出错:", error);
             // 尝试直接将响应转换为字符串作为后备方案
-            responseContent = String(response?.response?.text || JSON.stringify(response));
+            responseContent = String(response?.text || response?.output || response?.response || response?.content || JSON.stringify(response));
           }
 
           // 添加助手消息
@@ -151,21 +151,14 @@ export function useLangChainChat() {
           return responseContent;
         } else {
           // 非流式调用
-          // 尝试使用 invoke 方法
+          // 尝试使用 invoke 方法，这是 LCEL 推荐的方式
           console.log("开始非流式调用链...");
           let response;
           try {
-            response = await chain.invoke(
-              {
-                userInput: content,
-                templateInfo: options.templateInfo || "",
-              },
-              {
-                configurable: {
-                  sessionId: "chat-" + conversation.currentConversationId,
-                },
-              }
-            );
+            response = await chain.invoke({
+              userInput: content,
+              templateInfo: options.templateInfo || "",
+            });
             console.log("链调用响应 (invoke):", response);
           } catch (invokeError) {
             console.error("使用 invoke 方法失败，尝试使用 call 方法:", invokeError);
@@ -192,7 +185,7 @@ export function useLangChainChat() {
           } catch (error) {
             console.error("解析响应内容时出错:", error);
             // 尝试直接将响应转换为字符串作为后备方案
-            responseContent = String(response?.response?.text || JSON.stringify(response));
+            responseContent = String(response?.text || response?.output || response?.response || response?.content || JSON.stringify(response));
           }
 
           // 添加助手消息
@@ -231,7 +224,7 @@ export function useLangChainChat() {
    * 发送统一请求
    * @param userInput 用户输入
    * @param model 语言模型
-   * @param memory 记忆实例 (不再使用)
+   * @param memory 记忆实例
    * @param templateInfo 模板信息（可选）
    * @returns 结构化响应
    */
@@ -239,7 +232,7 @@ export function useLangChainChat() {
     async (
       userInput: string,
       model?: BaseChatModel,
-      _memory?: BaseChatMemory,
+      memory?: BaseChatMemory,
       templateInfo?: string
     ): Promise<{
       success: boolean;
@@ -252,15 +245,20 @@ export function useLangChainChat() {
 
       while (retryCount < MAX_RETRIES) {
         try {
-          // 使用提供的模型
+          // 使用提供的模型和记忆
           const activeModel = model;
+          const activeMemory = memory;
 
           if (!activeModel) {
             throw new Error("模型未初始化");
           }
 
+          if (!activeMemory) {
+            throw new Error("记忆未初始化");
+          }
+
           // 创建统一响应链
-          let chain = createUnifiedResponseChain(activeModel);
+          let chain = createUnifiedResponseChain(activeModel, activeMemory);
 
           // 准备上下文数据
           const context = {
@@ -268,23 +266,20 @@ export function useLangChainChat() {
             templateInfo: templateInfo || "",
           };
 
-          // 配置会话 ID
-          const config = {
-            configurable: {
-              sessionId: "chat-" + Date.now().toString(),
-            },
-          };
-
           // 调用链
-          const parsedResponse = await chain.invoke(context, config);
+          const parsedResponse = await chain.invoke(context);
           console.log("原始响应:", parsedResponse, context);
 
           // 解析JSON响应
           try {
             // 验证响应结构
             if (parsedResponse && validateUnifiedResponse(parsedResponse)) {
-              // 消息历史已由 RunnableWithMessageHistory 自动管理
-              console.log("已将对话保存到记忆中");
+              // 将对话添加到记忆中
+              if (activeMemory) {
+                // 使用 LangChain 的消息历史功能
+                await activeMemory.saveContext({ input: userInput }, { response: parsedResponse.response.text });
+                console.log("已将对话保存到记忆中");
+              }
 
               return {
                 success: true,
@@ -297,14 +292,18 @@ export function useLangChainChat() {
               // 如果是最后一次重试，使用更严格的提示词
               if (retryCount === MAX_RETRIES - 1) {
                 // 创建更严格的提示词，强调结构的重要性
-                chain = createStrictUnifiedResponseChain(activeModel);
+                chain = createStrictUnifiedResponseChain(activeModel, activeMemory);
                 // 重新调用链时使用相同的上下文
-                const parsedResponse = await chain.invoke(context, config);
+                const parsedResponse = await chain.invoke(context);
                 try {
                   // 验证响应结构
                   if (parsedResponse && validateUnifiedResponse(parsedResponse)) {
-                    // 消息历史已由 RunnableWithMessageHistory 自动管理
-                    console.log("已将对话保存到记忆中(严格模式)");
+                    // 将对话添加到记忆中
+                    if (activeMemory) {
+                      // 使用 LangChain 的消息历史功能
+                      await activeMemory.saveContext({ input: userInput }, { response: parsedResponse.response.text });
+                      console.log("已将对话保存到记忆中(严格模式)");
+                    }
 
                     return {
                       success: true,
