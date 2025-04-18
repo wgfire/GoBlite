@@ -34,6 +34,7 @@
     "@langchain/core": "^0.3.44",
     "@langchain/deepseek": "^0.0.1",
     "@langchain/google-genai": "^0.2.3",
+    "@langchain/langgraph": "^0.2.64",
     "@langchain/openai": "^0.5.5",
     "@lezer/highlight": "^1.2.1",
     "@radix-ui/react-label": "^2.1.2",
