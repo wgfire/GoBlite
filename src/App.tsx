@@ -19,6 +19,7 @@ import Chat from "./components/Chat";
 import { logDebug } from "./utils/logDebug";
 import useMemoizedFn from "@/hooks/useMemoizedFn"; // Import the custom hook
 import { useViewAtom } from "@/hooks/useViewAtom";
+import AgentChatExample from "./components/Chat/AgentChatExample";
 
 // 创建模板服务实例
 
@@ -339,7 +340,7 @@ export const App: React.FC = () => {
       />
       <div className="app-content">
         <div className={`chat-box-container ${isChatCollapsed ? "chat-collapsed-state" : ""}`}>
-          <Chat onCollapseChange={setIsChatCollapsed} />
+          <AgentChatExample  />
         </div>
 
         {currentView === "templateGallery" ? (

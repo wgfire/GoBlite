@@ -4,6 +4,9 @@
 
 // 导出所有钩子
 export { useLangChainModel } from "./useLangChainModel";
+// 导出新的简化模型钩子
+export { useModelConfig } from "./useModelConfig";
+export { useAIModel } from "./useAIModel";
 export { useLangChainMemory } from "./useLangChainMemory";
 export { useLangChainConversation } from "./useLangChainConversation";
 export { useLangChainChat } from "./useLangChainChat";

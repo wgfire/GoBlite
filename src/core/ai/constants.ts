@@ -87,6 +87,8 @@ export const STORAGE_KEYS = {
   CONVERSATIONS: "ai_conversations",
   CURRENT_CONVERSATION: "ai_current_conversation",
   MODEL_CONFIG: "ai_model_config",
+  AVAILABLE_MODELS: "ai_available_models",
+  CURRENT_MODEL: "ai_current_model",
 };
 
 /**

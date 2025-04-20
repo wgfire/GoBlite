@@ -1,0 +1,554 @@
+/**
+ * 对话管理钩子
+ * 提供对话创建、删除、加载和更新功能
+ */
+import { useState, useEffect, useCallback } from "react";
+import { useAtom } from "jotai";
+import { useAtomCallback } from "jotai/utils";
+import { useStore } from "jotai";
+import { agentConversationIdsAtom, agentCurrentConversationIdAtom, agentConversationsAtom, agentCurrentMessagesAtom } from "../atoms/conversationAtoms";
+import { Conversation, Message, MessageRole } from "../../types";
+
+// IndexedDB配置
+const DB_NAME = "agent_conversations_db";
+const STORE_NAME = "conversations";
+
+/**
+ * 对话管理钩子
+ * 提供对话创建、删除、加载和更新功能
+ */
+export function useConversation() {
+  // 状态
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Jotai原子状态
+  const [conversationIds, setConversationIds] = useAtom(agentConversationIdsAtom);
+  const [currentConversationId, setCurrentConversationId] = useAtom(agentCurrentConversationIdAtom);
+  const [conversations, setConversations] = useAtom(agentConversationsAtom);
+  const [currentMessages] = useAtom(agentCurrentMessagesAtom);
+
+  // IndexedDB实例
+  const [db, setDb] = useState<IDBDatabase | null>(null);
+  /**
+   * 初始化IndexedDB
+   */
+  const initDB = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log("开始初始化 IndexedDB");
+
+      const request = indexedDB.open(DB_NAME, 1);
+
+      request.onerror = (event) => {
+        console.error("初始化IndexedDB失败:", event);
+        setError("初始化数据库失败");
+        setIsLoading(false);
+      };
+
+      request.onsuccess = (event) => {
+        const database = (event.target as IDBOpenDBRequest).result;
+        setDb(database);
+        setIsInitialized(true);
+        setIsLoading(false);
+        console.log("IndexedDB 初始化成功");
+
+        // 从IndexedDB加载会话数据
+        // 在这里直接定义加载函数，避免循环依赖
+        try {
+          console.log("开始从 IndexedDB 加载会话数据");
+
+          const transaction = database.transaction([STORE_NAME], "readonly");
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.getAll();
+
+          request.onsuccess = () => {
+            const loadedConversations = request.result as Conversation[];
+            console.log(`从 IndexedDB 加载了 ${loadedConversations.length} 个会话`);
+
+            if (loadedConversations && loadedConversations.length > 0) {
+              // 构建会话映射
+              const conversationsMap: Record<string, Conversation> = {};
+              const ids: string[] = [];
+
+              loadedConversations.forEach((conversation) => {
+                // 确保消息数组存在
+                if (!conversation.messages) {
+                  conversation.messages = [];
+                }
+
+                conversationsMap[conversation.id] = conversation;
+                ids.push(conversation.id);
+                console.log(`加载会话: ${conversation.id}, 标题: ${conversation.title}, 消息数: ${conversation.messages.length}`);
+              });
+
+              // 更新状态
+              setConversations(conversationsMap);
+              setConversationIds(ids);
+
+              // 如果有当前会话ID，检查它是否存在于加载的会话中
+              if (currentConversationId) {
+                if (conversationsMap[currentConversationId]) {
+                  console.log(`恢复当前会话: ${currentConversationId}`);
+                } else {
+                  // 如果当前会话ID不存在于加载的会话中，设置为第一个会话
+                  if (ids.length > 0) {
+                    console.log(`当前会话 ${currentConversationId} 不存在，切换到第一个会话: ${ids[0]}`);
+                    setCurrentConversationId(ids[0]);
+                  } else {
+                    console.log("没有可用的会话，清除当前会话ID");
+                    setCurrentConversationId(null);
+                  }
+                }
+              } else if (ids.length > 0) {
+                // 如果没有当前会话ID，设置为第一个会话
+                console.log(`没有当前会话ID，设置为第一个会话: ${ids[0]}`);
+                setCurrentConversationId(ids[0]);
+              }
+            } else {
+              console.log("没有从 IndexedDB 加载到会话");
+            }
+          };
+
+          request.onerror = (event) => {
+            console.error("从IndexedDB加载会话失败:", event);
+            setError("加载会话失败");
+          };
+        } catch (err) {
+          console.error("加载会话时出错:", err);
+          setError(err instanceof Error ? err.message : "加载会话失败");
+        }
+      };
+
+      request.onupgradeneeded = (event) => {
+        const database = (event.target as IDBOpenDBRequest).result;
+        console.log("创建 IndexedDB 存储");
+
+        // 创建对象存储
+        if (!database.objectStoreNames.contains(STORE_NAME)) {
+          database.createObjectStore(STORE_NAME, { keyPath: "id" });
+          console.log(`创建了名为 ${STORE_NAME} 的对象存储`);
+        }
+      };
+    } catch (err) {
+      console.error("初始化IndexedDB时出错:", err);
+      setError(err instanceof Error ? err.message : "初始化失败");
+      setIsLoading(false);
+    }
+  }, [currentConversationId, setConversationIds, setConversations, setCurrentConversationId]);
+
+  /**
+   * 保存会话到IndexedDB
+   */
+  const saveConversationToDB = useCallback(
+    async (conversation: Conversation) => {
+      if (!db) {
+        console.error("数据库未初始化，无法保存会话");
+        return;
+      }
+
+      try {
+        console.log(`保存会话到 IndexedDB: ${conversation.id}, 标题: ${conversation.title}`);
+        const transaction = db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+
+        // 使用Promise包装IndexedDB操作
+        await new Promise<void>((resolve, reject) => {
+          const request = store.put(conversation);
+          request.onsuccess = () => {
+            console.log(`会话 ${conversation.id} 保存成功`);
+            resolve();
+          };
+          request.onerror = (event) => {
+            console.error(`会话 ${conversation.id} 保存失败:`, event);
+            reject(new Error(`保存会话失败: ${event}`));
+          };
+        });
+      } catch (err) {
+        console.error("保存会话到IndexedDB失败:", err);
+        setError(err instanceof Error ? err.message : "保存会话失败");
+      }
+    },
+    [db]
+  );
+
+  /**
+   * 从IndexedDB删除会话
+   */
+  const deleteConversationFromDB = useCallback(
+    async (id: string) => {
+      if (!db) {
+        console.error("数据库未初始化，无法删除会话");
+        return;
+      }
+
+      try {
+        console.log(`从 IndexedDB 删除会话: ${id}`);
+        const transaction = db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+
+        // 使用Promise包装IndexedDB操作
+        await new Promise<void>((resolve, reject) => {
+          const request = store.delete(id);
+          request.onsuccess = () => {
+            console.log(`会话 ${id} 删除成功`);
+            resolve();
+          };
+          request.onerror = (event) => {
+            console.error(`会话 ${id} 删除失败:`, event);
+            reject(new Error(`删除会话失败: ${event}`));
+          };
+        });
+      } catch (err) {
+        console.error("从IndexedDB删除会话失败:", err);
+        setError(err instanceof Error ? err.message : "删除会话失败");
+      }
+    },
+    [db]
+  );
+
+  /**
+   * 创建新会话
+   * @param title 会话标题
+   * @param systemPrompt 系统提示词
+   */
+  const createConversation = useCallback(
+    async (title: string = "新对话", systemPrompt?: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        const id = crypto.randomUUID();
+        const now = Date.now();
+
+        // 创建新会话
+        const newConversation: Conversation = {
+          id,
+          title,
+          systemPrompt,
+          messages: [],
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        // 如果有系统提示词，添加系统消息
+        if (systemPrompt) {
+          newConversation.messages.push({
+            id: crypto.randomUUID(),
+            role: MessageRole.SYSTEM,
+            content: systemPrompt,
+            timestamp: now,
+          });
+        }
+
+        // 更新状态
+        setConversations((prev) => ({
+          ...prev,
+          [id]: newConversation,
+        }));
+
+        setConversationIds((prev) => [...prev, id]);
+        setCurrentConversationId(id);
+
+        // 保存到IndexedDB
+        await saveConversationToDB(newConversation);
+
+        setIsLoading(false);
+        return id;
+      } catch (err) {
+        console.error("创建会话失败:", err);
+        setError(err instanceof Error ? err.message : "创建会话失败");
+        setIsLoading(false);
+        return null;
+      }
+    },
+    [saveConversationToDB, setConversations, setConversationIds, setCurrentConversationId]
+  );
+
+  /**
+   * 删除会话
+   * @param id 会话ID
+   */
+  const deleteConversation = useCallback(
+    async (id: string) => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // 检查会话是否存在
+        if (!conversations[id]) {
+          throw new Error(`会话不存在: ${id}`);
+        }
+
+        // 更新状态
+        const newConversations = { ...conversations };
+        delete newConversations[id];
+        setConversations(newConversations);
+
+        setConversationIds((prev) => prev.filter((convId) => convId !== id));
+
+        // 如果删除的是当前会话，切换到另一个会话
+        if (currentConversationId === id) {
+          const remainingIds = conversationIds.filter((convId) => convId !== id);
+          if (remainingIds.length > 0) {
+            setCurrentConversationId(remainingIds[0]);
+          } else {
+            setCurrentConversationId(null);
+          }
+        }
+
+        // 从IndexedDB删除
+        await deleteConversationFromDB(id);
+
+        setIsLoading(false);
+        return true;
+      } catch (err) {
+        console.error("删除会话失败:", err);
+        setError(err instanceof Error ? err.message : "删除会话失败");
+        setIsLoading(false);
+        return false;
+      }
+    },
+    [conversations, conversationIds, currentConversationId, deleteConversationFromDB, setConversations, setConversationIds, setCurrentConversationId]
+  );
+
+  /**
+   * 切换会话
+   * @param id 会话ID
+   */
+  const switchConversation = useAtomCallback(
+    useCallback(
+      async (get, set, id: string) => {
+        try {
+          // 获取最新的会话列表
+          const latestConversations = get(agentConversationsAtom);
+
+          // 检查会话是否存在
+          if (!latestConversations[id]) {
+            throw new Error(`会话不存在: ${id}`);
+          }
+
+          // 设置当前会话ID
+          set(agentCurrentConversationIdAtom, id);
+          return true;
+        } catch (err) {
+          console.error("切换会话失败:", err);
+          setError(err instanceof Error ? err.message : "切换会话失败");
+          return false;
+        }
+      },
+      [setError]
+    )
+  );
+
+  // 封装一个简单的接口，与原来的函数签名保持一致
+  const handleSwitchConversation = useCallback(
+    async (id: string) => {
+      return await switchConversation(id);
+    },
+    [switchConversation]
+  );
+
+  /**
+   * 添加消息到会话
+   * @param message 消息对象
+   * @param conversationId 可选的会话ID，如果不提供则使用当前会话ID
+   */
+  const addMessage = useAtomCallback(
+    useCallback(
+      async (get, set, params: { message: Omit<Message, "id" | "timestamp">; conversationId?: string | null }) => {
+        try {
+          const { message, conversationId } = params;
+
+          // 获取最新的原子值
+          const latestConversations = get(agentConversationsAtom);
+          const latestCurrentConversationId = get(agentCurrentConversationIdAtom);
+
+          // 使用提供的会话ID或当前会话ID
+          const targetConversationId = conversationId || latestCurrentConversationId;
+          if (!targetConversationId) {
+            throw new Error("没有指定会话ID，且没有当前选中的会话");
+          }
+
+          const conversation = latestConversations[targetConversationId];
+          if (!conversation) {
+            throw new Error(`会话不存在: ${targetConversationId}`);
+          }
+
+          const now = Date.now();
+
+          // 创建完整消息
+          const fullMessage: Message = {
+            id: crypto.randomUUID(),
+            ...message,
+            timestamp: now,
+          };
+
+          // 更新会话
+          const updatedConversation: Conversation = {
+            ...conversation,
+            messages: [...conversation.messages, fullMessage],
+            updatedAt: now,
+          };
+
+          // 使用 set 更新原子值
+          set(agentConversationsAtom, {
+            ...latestConversations,
+            [targetConversationId]: updatedConversation,
+          });
+
+          // 保存到IndexedDB
+          await saveConversationToDB(updatedConversation);
+
+          return fullMessage.id;
+        } catch (err) {
+          console.error("添加消息失败:", err);
+          setError(err instanceof Error ? err.message : "添加消息失败");
+          return null;
+        }
+      },
+      [saveConversationToDB, setError]
+    )
+  );
+
+  // 封装一个简单的接口，与原来的函数签名保持一致
+  const handleAddMessage = useCallback(
+    async (message: Omit<Message, "id" | "timestamp">, conversationId?: string | null) => {
+      return await addMessage({ message, conversationId });
+    },
+    [addMessage]
+  );
+
+  /**
+   * 更新会话标题
+   * @param id 会话ID
+   * @param title 新标题
+   */
+  const updateConversationTitle = useCallback(
+    async (id: string, title: string) => {
+      try {
+        // 检查会话是否存在
+        if (!conversations[id]) {
+          throw new Error(`会话不存在: ${id}`);
+        }
+
+        const now = Date.now();
+
+        // 更新会话
+        const updatedConversation: Conversation = {
+          ...conversations[id],
+          title,
+          updatedAt: now,
+        };
+
+        // 更新状态
+        setConversations((prev) => ({
+          ...prev,
+          [id]: updatedConversation,
+        }));
+
+        // 保存到IndexedDB
+        await saveConversationToDB(updatedConversation);
+
+        return true;
+      } catch (err) {
+        console.error("更新会话标题失败:", err);
+        setError(err instanceof Error ? err.message : "更新会话标题失败");
+        return false;
+      }
+    },
+    [conversations, saveConversationToDB, setConversations]
+  );
+
+  /**
+   * 清空所有会话
+   */
+  const clearAllConversations = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      console.log("开始清空所有会话");
+
+      // 清空IndexedDB
+      if (db) {
+        const transaction = db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+
+        await new Promise<void>((resolve, reject) => {
+          const request = store.clear();
+          request.onsuccess = () => {
+            console.log("数据库清空成功");
+            resolve();
+          };
+          request.onerror = (event) => {
+            console.error("清空数据库失败:", event);
+            reject(new Error(`清空数据库失败: ${event}`));
+          };
+        });
+      } else {
+        console.warn("数据库未初始化，无法清空数据库");
+      }
+
+      // 更新状态
+      setConversations({});
+      setConversationIds([]);
+      setCurrentConversationId(null);
+
+      console.log("所有会话已清空");
+      setIsLoading(false);
+      return true;
+    } catch (err) {
+      console.error("清空所有会话失败:", err);
+      setError(err instanceof Error ? err.message : "清空所有会话失败");
+      setIsLoading(false);
+      return false;
+    }
+  }, [db, setConversations, setConversationIds, setCurrentConversationId]);
+
+  /**
+   * 获取当前会话
+   */
+  const getCurrentConversation = useCallback(() => {
+    if (!currentConversationId) return null;
+    return conversations[currentConversationId] || null;
+  }, [currentConversationId, conversations]);
+
+  /**
+   * 获取所有会话
+   */
+  const getAllConversations = useCallback(() => {
+    return conversationIds.map((id) => conversations[id]).filter(Boolean);
+  }, [conversationIds, conversations]);
+
+  // 初始化
+  useEffect(() => {
+    if (!isInitialized && !isLoading) {
+      initDB();
+    }
+  }, [isInitialized, isLoading, initDB]);
+
+  return {
+    // 状态
+    isInitialized,
+    isLoading,
+    error,
+    conversationIds,
+    currentConversationId,
+    conversations,
+    currentConversation: getCurrentConversation(),
+    allConversations: getAllConversations(),
+    currentMessages,
+
+    // 方法
+    createConversation,
+    deleteConversation,
+    switchConversation: handleSwitchConversation,
+    addMessage: handleAddMessage,
+    updateConversationTitle,
+    clearAllConversations,
+  };
+}
+
+export default useConversation;

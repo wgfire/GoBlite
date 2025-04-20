@@ -27,7 +27,9 @@ export class ModelFactory {
         console.warn(`创建模型失败: 缺少API密钥 (${config.provider}:${config.modelType})。请在设置中配置API密钥。`);
         return null;
       }
-      console.log('创建模型:', config);
+
+      console.log("创建模型:", config);
+      console.log("模型类型:", config.modelType, "提供商:", config.provider);
 
       // 通用选项
       const commonOptions = {
@@ -77,7 +79,7 @@ export class ModelFactory {
    * @param options 配置选项
    * @returns 模型配置数组
    */
-  public static createModelConfigs(options: { apiKeys: Record<ModelProvider, string>; temperature?: number; maxTokens?: number; useDefaultConfig?: boolean }): ModelConfig[] {
+  public static createModelConfigs(options: { apiKeys?: Record<ModelProvider, string>; temperature?: number; maxTokens?: number; useDefaultConfig?: boolean }): ModelConfig[] {
     const configs: ModelConfig[] = [];
     const { apiKeys, temperature, maxTokens, useDefaultConfig = true } = options;
 
@@ -88,7 +90,7 @@ export class ModelFactory {
       if (!modelInfo) return;
 
       const provider = modelInfo.provider;
-      let apiKey = apiKeys[provider];
+      let apiKey = apiKeys?.[provider];
 
       // 如果没有API密钥，检查AI_MODELS中是否有该模型的API密钥
       if (!apiKey && modelInfo.apiKey && modelInfo.apiKey.trim() !== "") {
@@ -115,17 +117,15 @@ export class ModelFactory {
     });
 
     // 如果没有任何模型配置但需要使用默认配置
-    if (configs.length === 0 && useDefaultConfig) {
-      console.warn("没有找到有效的API密钥，将使用默认模型。请在设置中配置API密钥以启用完整功能。");
-
+    if (useDefaultConfig) {
       // 添加默认模型配置
-      configs.push({
-        provider: DEFAULT_MODEL_CONFIG.provider,
-        modelType: DEFAULT_MODEL_CONFIG.modelType,
-        apiKey: DEFAULT_MODEL_CONFIG.apiKey,
-        temperature: temperature ?? DEFAULT_MODEL_CONFIG.temperature,
-        maxTokens: maxTokens ?? DEFAULT_MODEL_CONFIG.maxTokens,
-      });
+      return [
+        {
+          ...DEFAULT_MODEL_CONFIG,
+          temperature: temperature ?? DEFAULT_MODEL_PARAMS.temperature,
+          maxTokens: maxTokens ?? DEFAULT_MODEL_PARAMS.maxTokens,
+        },
+      ];
     }
 
     return configs;

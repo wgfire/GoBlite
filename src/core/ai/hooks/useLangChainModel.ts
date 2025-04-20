@@ -4,7 +4,10 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useAtom } from "jotai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { serviceStatusAtom, errorMessageAtom, selectedModelTypeAtom, apiKeysAtom, modelSettingsAtom } from "../atoms/modelAtoms";
+import { serviceStatusAtom, errorMessageAtom, apiKeysAtom, modelSettingsAtom, currentModelConfigAtom } from "../atoms/modelAtoms";
+
+// 注意：以下原子已被移除，使用currentModelConfig替代
+// selectedModelTypeAtom, availableModelsAtom, computedAvailableModelsAtom
 import { ModelType, ModelProvider, ServiceStatus } from "../types";
 import { ModelManager, ModelFactory } from "../langchain/models";
 import { DEFAULT_MODEL_CONFIG, AI_MODELS } from "../constants";
@@ -17,9 +20,12 @@ export function useLangChainModel() {
   // 状态原子
   const [serviceStatus, setServiceStatus] = useAtom(serviceStatusAtom);
   const [errorMessage, setErrorMessage] = useAtom(errorMessageAtom);
-  const [selectedModelType, setSelectedModelType] = useAtom(selectedModelTypeAtom);
   const [apiKeys, setApiKeys] = useAtom(apiKeysAtom);
   const [modelSettings, setModelSettings] = useAtom(modelSettingsAtom);
+  const [currentModelConfig, setCurrentModelConfig] = useAtom(currentModelConfigAtom);
+
+  // 本地状态 - 替代原来的原子状态
+  const [selectedModelType, setSelectedModelType] = useState<ModelType>(currentModelConfig?.modelType || ModelType.GEMINI_PRO);
 
   // 本地状态
   const [model, setModel] = useState<BaseChatModel | null>(null);
@@ -30,7 +36,12 @@ export function useLangChainModel() {
   // 初始化模型管理器
   useEffect(() => {
     modelManagerRef.current = ModelManager.getInstance();
-  }, []);
+
+    // 如果有保存的当前模型配置，尝试使用它来设置选中的模型类型
+    if (currentModelConfig) {
+      setSelectedModelType(currentModelConfig.modelType);
+    }
+  }, [currentModelConfig, setSelectedModelType]);
 
   /**
    * 获取当前模型的API密钥
@@ -111,6 +122,10 @@ export function useLangChainModel() {
         throw new Error("没有可用的模型配置，请配置API密钥");
       }
 
+      // 记录可用模型列表（仅用于日志）
+      const availableModelTypes = configs.map((config) => config.modelType);
+      console.log("可用模型列表", availableModelTypes);
+
       // 检查是否使用了默认配置
       const defaultConfigUsed = configs.some((config) => config.provider === DEFAULT_MODEL_CONFIG.provider && config.apiKey === DEFAULT_MODEL_CONFIG.apiKey);
 
@@ -134,6 +149,14 @@ export function useLangChainModel() {
           if (newModel) {
             setModel(newModel);
             setServiceStatus(ServiceStatus.READY);
+
+            // 找到当前使用的模型配置
+            const currentConfig = configs.find((config) => config.modelType === selectedModelType) || configs[0];
+
+            // 更新当前模型配置到浏览器存储
+            setCurrentModelConfig(currentConfig);
+            console.log("已更新当前模型配置到浏览器存储", currentConfig);
+
             return newModel;
           }
         }
@@ -148,6 +171,11 @@ export function useLangChainModel() {
         if (newModel) {
           setModel(newModel);
           setServiceStatus(ServiceStatus.READY);
+
+          // 更新当前模型配置到浏览器存储
+          setCurrentModelConfig(selectedConfig);
+          console.log("已更新当前模型配置到浏览器存储", selectedConfig);
+
           return newModel;
         }
 
@@ -159,7 +187,7 @@ export function useLangChainModel() {
       setServiceStatus(ServiceStatus.ERROR);
       return null;
     }
-  }, [selectedModelType, apiKeys, modelSettings, setServiceStatus, setErrorMessage, setApiKey]);
+  }, [selectedModelType, apiKeys, modelSettings, setServiceStatus, setErrorMessage, setApiKey, setCurrentModelConfig]);
 
   /**
    * 重置模型
@@ -169,11 +197,14 @@ export function useLangChainModel() {
     setServiceStatus(ServiceStatus.UNINITIALIZED);
     setErrorMessage(null);
 
+    // 清除当前模型配置
+    setCurrentModelConfig(null);
+
     // 重置模型管理器
     if (modelManagerRef.current) {
       modelManagerRef.current.reset();
     }
-  }, [setServiceStatus, setErrorMessage]);
+  }, [setServiceStatus, setErrorMessage, setCurrentModelConfig]);
 
   /**
    * 切换模型类型
@@ -224,6 +255,20 @@ export function useLangChainModel() {
             const newModel = modelManagerRef.current.getCurrentModel();
             if (newModel) {
               setModel(newModel);
+
+              // 更新当前模型配置
+              const currentConfig = {
+                provider: AI_MODELS[modelType].provider,
+                modelType: modelType,
+                apiKey: apiKey,
+                temperature: modelSettings.temperature,
+                maxTokens: modelSettings.maxTokens,
+                ...(AI_MODELS[modelType].baseUrl && { baseUrl: AI_MODELS[modelType].baseUrl }),
+              };
+
+              // 保存到浏览器存储
+              setCurrentModelConfig(currentConfig);
+              console.log("已更新当前模型配置到浏览器存储", currentConfig);
             }
           } else {
             // 如果切换失败，可能需要重新初始化
@@ -238,7 +283,7 @@ export function useLangChainModel() {
         return false;
       }
     },
-    [setSelectedModelType, setErrorMessage, model, apiKeys, setApiKey, initializeModel]
+    [setSelectedModelType, setErrorMessage, model, apiKeys, setApiKey, initializeModel, modelSettings, setCurrentModelConfig]
   );
 
   return {

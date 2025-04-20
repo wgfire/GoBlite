@@ -4,6 +4,8 @@ import {
   START, // 表示图的开始节点
   StateGraph, // 状态图类，用于构建工作流
   Annotation, // 注解工具，用于定义状态结构和合并逻辑
+  messagesStateReducer,
+  MessageGraph
 } from "@langchain/langgraph/web";
 import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages"; // 导入消息类型
 import { type RunnableConfig, RunnableLambda } from "@langchain/core/runnables"; // 导入可运行配置和Lambda函数
@@ -16,7 +18,7 @@ const ChatAgentState = Annotation.Root({
   // 定义messages字段，类型为BaseMessage数组
   messages: Annotation<BaseMessage[]>({
     // 定义reducer函数，用于合并消息数组
-    reducer: (x, y) => x.concat(y), // 当有新消息时，将其追加到现有消息数组
+    reducer: messagesStateReducer
   }),
   // 定义模型配置
   modelConfig: Annotation<{
@@ -140,6 +142,7 @@ export function createChatAgent(
   
   // 编译工作流
   const app = workflow.compile();
+  // app.invoke({messages: [],modelConfig: initialState.modelConfig});
   
   // 返回应用和初始状态
   return {
@@ -225,16 +228,6 @@ async function example() {
     "你好，请介绍一下自己！"
   );
   
-  console.log("AI响应:", content);
-  
-  // 继续对话（使用更新后的状态）
-  const { newState: updatedState, content: secondResponse } = await sendMessage(
-    app,
-    newState,
-    "你能帮我解释一下什么是LangGraph吗？"
-  );
-  
-  console.log("AI第二次响应:", secondResponse);
 }
 
 // 如果需要运行示例，取消下面的注释
