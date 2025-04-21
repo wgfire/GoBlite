@@ -14,6 +14,12 @@ export const agentCurrentConversationIdAtom = atomWithStorage<string | null>("ag
 // 对话内容映射 - 使用内存存储，实际数据由useConversation通过IndexedDB管理
 export const agentConversationsAtom = atom<Record<string, Conversation>>({});
 
+// 数据库初始化状态 - 全局共享，确保只初始化一次
+export const dbInitializedAtom = atom<boolean>(false);
+
+// 数据库初始化中状态 - 全局共享，防止并发初始化
+export const dbInitializingAtom = atom<boolean>(false);
+
 // 当前会话的消息列表 - 派生原子
 export const agentCurrentMessagesAtom = atom((get) => {
   const currentId = get(agentCurrentConversationIdAtom);

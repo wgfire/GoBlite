@@ -6,7 +6,6 @@ import {
   Annotation, // 注解工具，用于定义状态结构和合并逻辑
   messagesStateReducer,
   MemorySaver,
-  CompiledStateGraph,
 } from "@langchain/langgraph/web";
 import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages"; // 导入消息类型
 import { type RunnableConfig } from "@langchain/core/runnables"; // 导入可运行配置和Lambda函数
@@ -113,7 +112,7 @@ const userInputNode = async (state: typeof ChatState.State) => {
  * 创建带有记忆功能的聊天代理
  * 使用MemorySaver自动保存状态
  */
-export function createChatWithMemoryAgent() {
+export function createChatAgent() {
   console.log("开始创建带有记忆功能的聊天代理");
 
   // 创建内置MemorySaver实例用于保存历史记录

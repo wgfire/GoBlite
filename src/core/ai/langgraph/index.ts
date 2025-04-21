@@ -5,7 +5,8 @@
 
 // 导出聊天代理
 export * from "./agents/chatWithLLM";
-export * from "./agents/chatWithMemory";
+export * from "./agents/chatAgent";
+export * from "./agents/routerAgent";
 
 // 导出钩子
 export * from "./hooks";

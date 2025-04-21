@@ -33,14 +33,16 @@ interface ChatHeaderProps {
 
 export const ChatHeader = ({ onTemplateSelect, selectedTemplate, activeTab, setActiveTab }: ChatHeaderProps) => {
   // 使用useConversation hook直接管理会话
-  const { allConversations, currentConversationId, createConversation, switchConversation, deleteConversation, clearAllConversations } = useConversation();
+  const { allConversations, currentConversationId, createConversation, switchConversation, deleteConversation, clearAllConversations } =
+    useConversation();
   const [searchTerm, setSearchTerm] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
 
   // Filter templates based on search term
   const filteredTemplates = TEMPLATES.filter(
-    (template) => template.name.toLowerCase().includes(searchTerm.toLowerCase()) || template.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    (template) =>
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) || template.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // 处理删除会话
@@ -146,7 +148,13 @@ export const ChatHeader = ({ onTemplateSelect, selectedTemplate, activeTab, setA
         {/* Content area based on active tab */}
         <AnimatePresence mode="wait">
           {activeTab === "templates" && (
-            <motion.div key="templates" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div
+              key="templates"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
               <div className="mb-3">
                 <input
                   type="text"
@@ -169,16 +177,27 @@ export const ChatHeader = ({ onTemplateSelect, selectedTemplate, activeTab, setA
                   </Button>
                 ))}
 
-                {filteredTemplates.length === 0 && <div className="w-full text-center py-4 text-slate-400">No templates found matching "{searchTerm}"</div>}
+                {filteredTemplates.length === 0 && (
+                  <div className="w-full text-center py-4 text-slate-400">No templates found matching "{searchTerm}"</div>
+                )}
               </div>
             </motion.div>
           )}
 
           {activeTab === "assets" && (
-            <motion.div key="assets" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div
+              key="assets"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
               <div className="grid grid-cols-4 gap-3 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                 {ASSETS.map((asset) => (
-                  <div key={asset.id} className="bg-slate-800 rounded-md overflow-hidden border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer group">
+                  <div
+                    key={asset.id}
+                    className="bg-slate-800 rounded-md overflow-hidden border border-slate-700 hover:border-slate-500 transition-colors cursor-pointer group"
+                  >
                     <div className="relative">
                       <img src={asset.thumbnail || "/placeholder.svg"} alt={asset.name} className="w-full h-16 object-cover" />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-1">
@@ -195,7 +214,13 @@ export const ChatHeader = ({ onTemplateSelect, selectedTemplate, activeTab, setA
           )}
 
           {activeTab === "conversations" && (
-            <motion.div key="conversations" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}>
+            <motion.div
+              key="conversations"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
               <div className="flex justify-between items-center mb-3">
                 <Button
                   onClick={() => createConversation("新对话")}
@@ -206,7 +231,10 @@ export const ChatHeader = ({ onTemplateSelect, selectedTemplate, activeTab, setA
                 </Button>
 
                 {allConversations.length > 0 && (
-                  <Button onClick={clearAllConversations} className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm px-3 py-2">
+                  <Button
+                    onClick={clearAllConversations}
+                    className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm px-3 py-2"
+                  >
                     <FiTrash2 size={16} />
                     <span>清空所有</span>
                   </Button>
@@ -214,27 +242,30 @@ export const ChatHeader = ({ onTemplateSelect, selectedTemplate, activeTab, setA
               </div>
 
               <div className="flex flex-col gap-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
-                {allConversations.length > 0 ? (
-                  allConversations.map((conv) => (
-                    <div
-                      key={conv.id}
-                      className={cn(
-                        "flex justify-between items-center p-2 rounded-md border",
-                        currentConversationId === conv.id ? "bg-slate-700 border-slate-600" : "bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-slate-600"
-                      )}
-                    >
-                      <div className="flex-1 cursor-pointer" onClick={() => switchConversation(conv.id)}>
-                        <p className="text-sm text-white truncate">{conv.title}</p>
-                        <p className="text-xs text-slate-400">{new Date(conv.updatedAt).toLocaleString()}</p>
-                      </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteConversation(conv.id)} className="text-slate-400 hover:text-red-500">
-                        <FiTrash2 size={16} />
-                      </Button>
+                {allConversations.map((conv) => (
+                  <div
+                    key={conv.id}
+                    className={cn(
+                      "flex justify-between items-center p-2 rounded-md border",
+                      currentConversationId === conv.id
+                        ? "bg-slate-700 border-slate-600"
+                        : "bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-slate-600"
+                    )}
+                  >
+                    <div className="flex-1 cursor-pointer" onClick={() => switchConversation(conv.id)}>
+                      <p className="text-sm text-white truncate">{conv.title}</p>
+                      <p className="text-xs text-slate-400">{new Date(conv.updatedAt).toLocaleString()}</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-4 text-slate-400">没有会话记录，点击“新建会话”开始聊天</div>
-                )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDeleteConversation(conv.id)}
+                      className="text-slate-400 hover:text-red-500"
+                    >
+                      <FiTrash2 size={16} />
+                    </Button>
+                  </div>
+                ))}
               </div>
             </motion.div>
           )}

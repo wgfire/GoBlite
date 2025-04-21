@@ -1,36 +1,29 @@
-import React, { useState } from 'react';
-import { useAgentChat } from '@/core/ai/langgraph/hooks/useAgentChat';
-import { ChatHeader } from './ChatHeader';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { HeaderTab } from './types';
+import React, { useState } from "react";
+import { useAgentChat } from "@/core/ai/langgraph/hooks/useChatAgent";
+import { ChatHeader } from "./ChatHeader";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { HeaderTab } from "./types";
 
 export const AgentChatExample = () => {
-  const [activeTab, setActiveTab] = useState<HeaderTab>('conversations');
-  const [userInput, setUserInput] = useState('');
+  const [activeTab, setActiveTab] = useState<HeaderTab>("conversations");
+  const [userInput, setUserInput] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   // 使用useAgentChat hook
-  const {
-    isInitialized,
-    isLoading,
-    error,
-    messages,
-    sendMessage,
-
-  } = useAgentChat();
+  const { isInitialized, isLoading, error, messages, sendMessage } = useAgentChat();
 
   // 处理发送消息
   const handleSendMessage = async () => {
     if (!userInput.trim() || isSending) return;
-    
+
     setIsSending(true);
     try {
       await sendMessage(userInput);
-      setUserInput('');
-      console.log('消息发送成功',messages);
+      setUserInput("");
+      console.log("消息发送成功", messages);
     } catch (error) {
-      console.error('发送消息失败:', error);
+      console.error("发送消息失败:", error);
     } finally {
       setIsSending(false);
     }
@@ -38,7 +31,7 @@ export const AgentChatExample = () => {
 
   // 处理按键事件
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -47,12 +40,7 @@ export const AgentChatExample = () => {
   return (
     <div className="flex flex-col h-full bg-slate-900 text-white">
       {/* 聊天头部 */}
-      <ChatHeader
-        onTemplateSelect={() => {}}
-        selectedTemplate={null}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      <ChatHeader onTemplateSelect={() => {}} selectedTemplate={null} activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* 聊天内容 */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -80,19 +68,14 @@ export const AgentChatExample = () => {
           </div>
         ) : (
           messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
+            <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === 'user'
-                    ? 'bg-blue-600 text-white'
-                    : message.role === 'assistant'
-                    ? 'bg-slate-700 text-white'
-                    : 'bg-slate-800 text-slate-300 italic text-sm'
+                  message.role === "user"
+                    ? "bg-blue-600 text-white"
+                    : message.role === "assistant"
+                    ? "bg-slate-700 text-white"
+                    : "bg-slate-800 text-slate-300 italic text-sm"
                 }`}
               >
                 {message.content}
@@ -100,7 +83,7 @@ export const AgentChatExample = () => {
             </div>
           ))
         )}
-        
+
         {/* 加载指示器 */}
         {isLoading && (
           <div className="flex justify-center">
@@ -118,7 +101,7 @@ export const AgentChatExample = () => {
             onKeyDown={handleKeyDown}
             placeholder="输入消息..."
             className="flex-1 bg-slate-800 border-slate-700 focus:border-blue-500 text-white"
-            disabled={!isInitialized || isLoading }
+            disabled={!isInitialized || isLoading}
           />
           <Button
             onClick={handleSendMessage}

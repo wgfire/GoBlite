@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { createChatWithMemoryAgent } from "../agents/chatWithMemory";
-import { MessageRole, ModelProvider, ModelType } from "../../types";
+import { createRouterAgent } from "../agents/routerAgent";
+import { Message, MessageRole, ModelProvider, ModelType } from "../../types";
 import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { useModelConfig } from "../../hooks/useModelConfig";
-import { ChatStateType } from "../agents/chatWithMemory";
+import { RouterStateType } from "../agents/routerAgent";
 import { useConversation } from "./useConversation";
 
 // Hook选项
@@ -31,7 +31,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
   const conversation = useConversation();
 
   // 代理状态
-  const [agent, setAgent] = useState<ReturnType<typeof createChatWithMemoryAgent> | null>(null);
+  const [agent, setAgent] = useState<ReturnType<typeof createRouterAgent> | null>(null);
 
   // 使用useMemo创建配置，避免不必要的重新渲染
   const config = useMemo(
@@ -44,13 +44,14 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
   );
 
   // 当前状态
-  const [currentState, setCurrentState] = useState<ChatStateType>({
-    messages: [
-      new SystemMessage({
-        content: options.systemPrompt || "你是一个专业的前端开发和网页设计师，能够回答用户相关的前端问题和设计页面问题，其他问题回复不知道即可",
-      }),
-    ],
+  const [currentState, setCurrentState] = useState<RouterStateType>({
+    messages: [],
     userInput: "",
+    next: null,
+    routerAnalysis: null,
+    templateContext: null,
+    generatedCode: null,
+    error: null,
   });
 
   // 初始化代理
@@ -61,7 +62,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
       console.log("开始初始化AI代理");
 
       // 创建代理
-      const agentInstance = createChatWithMemoryAgent();
+      const agentInstance = createRouterAgent();
       console.log("代理实例创建成功");
 
       // 获取当前会话的消息历史
@@ -78,16 +79,6 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
         // 将消息历史转换为 LangChain 消息格式
         const messagesForAgent = [];
 
-        // 添加系统提示词（如果有）
-        if (currentConversation.systemPrompt) {
-          messagesForAgent.push(
-            new SystemMessage({
-              content: currentConversation.systemPrompt,
-            })
-          );
-          console.log(`添加系统提示词: "${currentConversation.systemPrompt.substring(0, 30)}..."`);
-        }
-
         // 将会话消息转换为 LangChain 消息
         for (const msg of currentConversation.messages) {
           if (msg.role === MessageRole.USER) {
@@ -100,6 +91,11 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
             messagesForAgent.push(
               new AIMessage({
                 content: msg.content,
+                additional_kwargs: {
+                  metadata: {
+                    isError: msg.metadata?.isError,
+                  },
+                },
               })
             );
           } else if (msg.role === MessageRole.SYSTEM && !currentConversation.systemPrompt) {
@@ -191,12 +187,14 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
         // 调用代理
         console.log("调用AI代理处理消息");
 
-        const result = await agent?.app.invoke(
-          {
-            userInput: content,
-          },
-          config
-        );
+        // 准备调用代理的参数
+        const invokeParams = {
+          userInput: content,
+          // 如果有模板上下文，保留它
+          templateContext: currentState.templateContext,
+        };
+
+        const result = await agent?.app.invoke(invokeParams, config);
 
         console.log("代理返回结果:", result);
 
@@ -204,19 +202,20 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
           throw new Error("代理返回的消息为空");
         }
 
-        const responseContent = result.messages[result.messages.length - 1].content;
-        // 处理可能的复杂内容类型
-        const responseText = typeof responseContent === "string" ? responseContent : Array.isArray(responseContent) ? JSON.stringify(responseContent) : String(responseContent);
+        const responseContent = result.messages[result.messages.length - 1];
+        const responseText = responseContent.content as string;
+        const metadata = responseContent.additional_kwargs?.metadata as Message["metadata"];
 
         // 添加助手消息到会话，使用同一个会话ID
         console.log(`添加AI响应到会话 ${activeConversationId}`);
-        const assistantMessageId = await conversation.addMessage(
-          {
-            role: MessageRole.ASSISTANT,
-            content: responseText,
+        const addMessage: Omit<Message, "id" | "timestamp"> = {
+          role: MessageRole.ASSISTANT,
+          content: responseText,
+          metadata: {
+            isError: metadata?.isError,
           },
-          activeConversationId
-        );
+        };
+        const assistantMessageId = await conversation.addMessage(addMessage, activeConversationId);
         console.log(`AI响应添加成功，消息ID: ${assistantMessageId}`);
 
         // 更新代理状态
@@ -243,7 +242,8 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
         setIsLoading(false);
       }
     },
-    [config, conversation, agent]
+    /**禁止修改 */
+    [config]
   );
 
   // 初始化
@@ -260,7 +260,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
       console.log("会话未初始化，等待会话初始化");
     }
     /**禁止修改 */
-  }, [conversation.isInitialized]);
+  }, [conversation.isInitialized, initAgent, initializeModelConfig]);
 
   return {
     // 状态

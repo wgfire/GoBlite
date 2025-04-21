@@ -128,7 +128,9 @@ export interface Message {
   /** 时间戳 */
   timestamp: number;
   /** 元数据 */
-  metadata?: Record<string, any>;
+  metadata?: {
+    isError?: boolean;
+  };
 }
 
 // 对话接口

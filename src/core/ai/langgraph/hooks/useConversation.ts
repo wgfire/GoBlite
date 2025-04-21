@@ -6,8 +6,16 @@ import { useState, useEffect, useCallback } from "react";
 import { useAtom } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import { useStore } from "jotai";
-import { agentConversationIdsAtom, agentCurrentConversationIdAtom, agentConversationsAtom, agentCurrentMessagesAtom } from "../atoms/conversationAtoms";
+import {
+  agentConversationIdsAtom,
+  agentCurrentConversationIdAtom,
+  agentConversationsAtom,
+  agentCurrentMessagesAtom,
+  dbInitializedAtom,
+  dbInitializingAtom,
+} from "../atoms/conversationAtoms";
 import { Conversation, Message, MessageRole } from "../../types";
+import useMemoizedFn from "@/hooks/useMemoizedFn";
 
 // IndexedDB配置
 const DB_NAME = "agent_conversations_db";
@@ -28,14 +36,26 @@ export function useConversation() {
   const [currentConversationId, setCurrentConversationId] = useAtom(agentCurrentConversationIdAtom);
   const [conversations, setConversations] = useAtom(agentConversationsAtom);
   const [currentMessages] = useAtom(agentCurrentMessagesAtom);
+  const [dbInitialized, setDbInitialized] = useAtom(dbInitializedAtom);
+  const [dbInitializing, setDbInitializing] = useAtom(dbInitializingAtom);
+  const store = useStore();
 
   // IndexedDB实例
   const [db, setDb] = useState<IDBDatabase | null>(null);
   /**
    * 初始化IndexedDB
+   * 使用全局原子状态来确保只初始化一次
    */
-  const initDB = useCallback(async () => {
+  const initDB = useMemoizedFn(async () => {
+    // 如果数据库已经初始化或正在初始化，直接返回
+    if (dbInitialized || dbInitializing) {
+      console.log("数据库已经初始化或正在初始化，跳过");
+      return;
+    }
+
     try {
+      // 设置正在初始化标志
+      setDbInitializing(true);
       setIsLoading(true);
       setError(null);
       console.log("开始初始化 IndexedDB");
@@ -46,6 +66,7 @@ export function useConversation() {
         console.error("初始化IndexedDB失败:", event);
         setError("初始化数据库失败");
         setIsLoading(false);
+        setDbInitializing(false);
       };
 
       request.onsuccess = (event) => {
@@ -53,6 +74,9 @@ export function useConversation() {
         setDb(database);
         setIsInitialized(true);
         setIsLoading(false);
+        // 设置全局初始化标志
+        setDbInitialized(true);
+        setDbInitializing(false);
         console.log("IndexedDB 初始化成功");
 
         // 从IndexedDB加载会话数据
@@ -137,7 +161,7 @@ export function useConversation() {
       setError(err instanceof Error ? err.message : "初始化失败");
       setIsLoading(false);
     }
-  }, [currentConversationId, setConversationIds, setConversations, setCurrentConversationId]);
+  });
 
   /**
    * 保存会话到IndexedDB
@@ -343,75 +367,63 @@ export function useConversation() {
     )
   );
 
-  // 封装一个简单的接口，与原来的函数签名保持一致
-  const handleSwitchConversation = useCallback(
-    async (id: string) => {
-      return await switchConversation(id);
-    },
-    [switchConversation]
-  );
-
   /**
    * 添加消息到会话
    * @param message 消息对象
    * @param conversationId 可选的会话ID，如果不提供则使用当前会话ID
    */
-  const addMessage = useAtomCallback(
-    useCallback(
-      async (get, set, params: { message: Omit<Message, "id" | "timestamp">; conversationId?: string | null }) => {
-        try {
-          const { message, conversationId } = params;
+  const addMessage = useMemoizedFn(async (params: { message: Omit<Message, "id" | "timestamp">; conversationId?: string | null }) => {
+    try {
+      const { message, conversationId } = params;
 
-          // 获取最新的原子值
-          const latestConversations = get(agentConversationsAtom);
-          const latestCurrentConversationId = get(agentCurrentConversationIdAtom);
+      // 获取最新的原子值
+      const latestConversations = store.get(agentConversationsAtom);
+      const latestCurrentConversationId = store.get(agentCurrentConversationIdAtom);
 
-          // 使用提供的会话ID或当前会话ID
-          const targetConversationId = conversationId || latestCurrentConversationId;
-          if (!targetConversationId) {
-            throw new Error("没有指定会话ID，且没有当前选中的会话");
-          }
+      // 使用提供的会话ID或当前会话ID
+      const targetConversationId = conversationId || latestCurrentConversationId;
+      console.log(`latestConversations`, latestConversations);
 
-          const conversation = latestConversations[targetConversationId];
-          if (!conversation) {
-            throw new Error(`会话不存在: ${targetConversationId}`);
-          }
+      if (!targetConversationId) {
+        throw new Error("没有指定会话ID，且没有当前选中的会话");
+      }
 
-          const now = Date.now();
+      const conversation = latestConversations[targetConversationId];
+      if (!conversation) {
+        throw new Error(`会话不存在: ${targetConversationId}`);
+      }
 
-          // 创建完整消息
-          const fullMessage: Message = {
-            id: crypto.randomUUID(),
-            ...message,
-            timestamp: now,
-          };
+      const now = Date.now();
 
-          // 更新会话
-          const updatedConversation: Conversation = {
-            ...conversation,
-            messages: [...conversation.messages, fullMessage],
-            updatedAt: now,
-          };
+      // 创建完整消息
+      const fullMessage: Message = {
+        id: crypto.randomUUID(),
+        ...message,
+        timestamp: now,
+      };
 
-          // 使用 set 更新原子值
-          set(agentConversationsAtom, {
-            ...latestConversations,
-            [targetConversationId]: updatedConversation,
-          });
+      // 更新会话
+      const updatedConversation: Conversation = {
+        ...conversation,
+        messages: [...conversation.messages, fullMessage],
+        updatedAt: now,
+      };
 
-          // 保存到IndexedDB
-          await saveConversationToDB(updatedConversation);
+      setConversations((prev) => ({
+        ...prev,
+        [targetConversationId]: updatedConversation,
+      }));
 
-          return fullMessage.id;
-        } catch (err) {
-          console.error("添加消息失败:", err);
-          setError(err instanceof Error ? err.message : "添加消息失败");
-          return null;
-        }
-      },
-      [saveConversationToDB, setError]
-    )
-  );
+      // 保存到IndexedDB
+      await saveConversationToDB(updatedConversation);
+
+      return fullMessage.id;
+    } catch (err) {
+      console.error("添加消息失败:", err);
+      setError(err instanceof Error ? err.message : "添加消息失败");
+      return null;
+    }
+  });
 
   // 封装一个简单的接口，与原来的函数签名保持一致
   const handleAddMessage = useCallback(
@@ -524,10 +536,20 @@ export function useConversation() {
 
   // 初始化
   useEffect(() => {
-    if (!isInitialized && !isLoading) {
-      initDB();
+    // 如果数据库已经初始化，直接返回
+    if (dbInitialized) {
+      setIsInitialized(true);
+      return;
     }
-  }, [isInitialized, isLoading, initDB]);
+
+    // 如果数据库正在初始化，等待它完成
+    if (dbInitializing) {
+      return;
+    }
+
+    // 否则初始化数据库
+    initDB();
+  }, [dbInitialized, dbInitializing, initDB, setIsInitialized]);
 
   return {
     // 状态
@@ -544,7 +566,7 @@ export function useConversation() {
     // 方法
     createConversation,
     deleteConversation,
-    switchConversation: handleSwitchConversation,
+    switchConversation,
     addMessage: handleAddMessage,
     updateConversationTitle,
     clearAllConversations,

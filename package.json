@@ -46,7 +46,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.0",
-    "jotai": "^2.12.2",
+    "jotai": "^2.12.3",
     "langchain": "^0.3.21",
     "lucide-react": "^0.487.0",
     "react-hook-form": "^7.55.0",

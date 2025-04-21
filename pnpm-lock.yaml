@@ -96,8 +96,8 @@ importers:
         specifier: ^11.18.0
         version: 11.18.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       jotai:
-        specifier: ^2.12.2
-        version: 2.12.2(@types/react@19.0.12)(react@19.0.0)
+        specifier: ^2.12.3
+        version: 2.12.3(@types/react@19.0.12)(react@19.0.0)
       langchain:
         specifier: ^0.3.21
         version: 0.3.21(@langchain/core@0.3.44(openai@4.93.0(zod@3.24.2)))(@langchain/deepseek@0.0.1(@langchain/core@0.3.44(openai@4.93.0(zod@3.24.2))))(@langchain/google-genai@0.2.3(@langchain/core@0.3.44(openai@4.93.0(zod@3.24.2)))(zod@3.24.2))(openai@4.93.0(zod@3.24.2))
@@ -2051,8 +2051,8 @@ packages:
     resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
     hasBin: true
 
-  jotai@2.12.2:
-    resolution: {integrity: sha512-oN8715y7MkjXlSrpyjlR887TOuc/NLZMs9gvgtfWH/JP47ChwO0lR2ijSwBvPMYyXRAPT+liIAhuBavluKGgtA==}
+  jotai@2.12.3:
+    resolution: {integrity: sha512-DpoddSkmPGXMFtdfnoIHfueFeGP643nqYUWC6REjUcME+PG2UkAtYnLbffRDw3OURI9ZUTcRWkRGLsOvxuWMCg==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=17.0.0'
@@ -4446,7 +4446,7 @@ snapshots:
 
   jiti@2.4.2: {}
 
-  jotai@2.12.2(@types/react@19.0.12)(react@19.0.0):
+  jotai@2.12.3(@types/react@19.0.12)(react@19.0.0):
     optionalDependencies:
       '@types/react': 19.0.12
       react: 19.0.0
