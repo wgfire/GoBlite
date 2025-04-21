@@ -13,6 +13,7 @@ import {
   agentCurrentMessagesAtom,
   dbInitializedAtom,
   dbInitializingAtom,
+  dbAtom,
 } from "../atoms/conversationAtoms";
 import { Conversation, Message, MessageRole } from "../../types";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
@@ -20,7 +21,8 @@ import useMemoizedFn from "@/hooks/useMemoizedFn";
 // IndexedDB配置
 const DB_NAME = "agent_conversations_db";
 const STORE_NAME = "conversations";
-
+// 在文件顶部添加一个全局变量
+let isDBInitializing = false;
 /**
  * 对话管理钩子
  * 提供对话创建、删除、加载和更新功能
@@ -41,18 +43,18 @@ export function useConversation() {
   const store = useStore();
 
   // IndexedDB实例
-  const [db, setDb] = useState<IDBDatabase | null>(null);
+  const [db, setDb] = useAtom<IDBDatabase | null>(dbAtom);
   /**
    * 初始化IndexedDB
    * 使用全局原子状态来确保只初始化一次
    */
   const initDB = useMemoizedFn(async () => {
     // 如果数据库已经初始化或正在初始化，直接返回
-    if (dbInitialized || dbInitializing) {
+    if (dbInitialized || dbInitializing || isDBInitializing) {
       console.log("数据库已经初始化或正在初始化，跳过");
       return;
     }
-
+    isDBInitializing = true;
     try {
       // 设置正在初始化标志
       setDbInitializing(true);
@@ -237,9 +239,10 @@ export function useConversation() {
    * 创建新会话
    * @param title 会话标题
    * @param systemPrompt 系统提示词
+   * @returns 如果成功，返回包含新会话ID和会话对象的结构；如果失败，返回null
    */
   const createConversation = useCallback(
-    async (title: string = "新对话", systemPrompt?: string) => {
+    async (title: string = "新对话", systemPrompt?: string): Promise<{ newConversationId: string; } | null> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -280,7 +283,7 @@ export function useConversation() {
         await saveConversationToDB(newConversation);
 
         setIsLoading(false);
-        return id;
+        return { newConversationId: id }; // 返回ID和新会话对象
       } catch (err) {
         console.error("创建会话失败:", err);
         setError(err instanceof Error ? err.message : "创建会话失败");
@@ -369,10 +372,13 @@ export function useConversation() {
 
   /**
    * 添加消息到会话
-   * @param message 消息对象
-   * @param conversationId 可选的会话ID，如果不提供则使用当前会话ID
+   * @param params 参数对象
+   * @param params.message 消息对象
+   * @param params.conversationId 可选的会话ID，如果不提供则使用当前会话ID
+   * @param params.conversation 可选的会话对象，如果提供则直接使用而不从状态中获取
+   * @returns 消息ID或null（如果失败）
    */
-  const addMessage = useMemoizedFn(async (params: { message: Omit<Message, "id" | "timestamp">; conversationId?: string | null }) => {
+  const addMessage = useMemoizedFn(async (params: { message: Omit<Message, "id" | "timestamp">; conversationId?: string }) => {
     try {
       const { message, conversationId } = params;
 
@@ -382,14 +388,14 @@ export function useConversation() {
 
       // 使用提供的会话ID或当前会话ID
       const targetConversationId = conversationId || latestCurrentConversationId;
-      console.log(`latestConversations`, latestConversations);
+      console.log(`latestConversations`, latestConversations, latestCurrentConversationId);
 
       if (!targetConversationId) {
         throw new Error("没有指定会话ID，且没有当前选中的会话");
       }
 
-      const conversation = latestConversations[targetConversationId];
-      if (!conversation) {
+      const newConversation = latestConversations[targetConversationId];
+      if (!newConversation) {
         throw new Error(`会话不存在: ${targetConversationId}`);
       }
 
@@ -404,8 +410,8 @@ export function useConversation() {
 
       // 更新会话
       const updatedConversation: Conversation = {
-        ...conversation,
-        messages: [...conversation.messages, fullMessage],
+        ...newConversation,
+        messages: [...newConversation.messages, fullMessage],
         updatedAt: now,
       };
 
@@ -424,14 +430,6 @@ export function useConversation() {
       return null;
     }
   });
-
-  // 封装一个简单的接口，与原来的函数签名保持一致
-  const handleAddMessage = useCallback(
-    async (message: Omit<Message, "id" | "timestamp">, conversationId?: string | null) => {
-      return await addMessage({ message, conversationId });
-    },
-    [addMessage]
-  );
 
   /**
    * 更新会话标题
@@ -567,7 +565,7 @@ export function useConversation() {
     createConversation,
     deleteConversation,
     switchConversation,
-    addMessage: handleAddMessage,
+    addMessage,
     updateConversationTitle,
     clearAllConversations,
   };

@@ -20,6 +20,9 @@ export const dbInitializedAtom = atom<boolean>(false);
 // 数据库初始化中状态 - 全局共享，防止并发初始化
 export const dbInitializingAtom = atom<boolean>(false);
 
+// 当前db对象
+export const dbAtom = atom<IDBDatabase | null>(null);
+
 // 当前会话的消息列表 - 派生原子
 export const agentCurrentMessagesAtom = atom((get) => {
   const currentId = get(agentCurrentConversationIdAtom);

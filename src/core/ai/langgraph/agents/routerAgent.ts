@@ -105,7 +105,6 @@ const userInputNode = async (state: RouterStateType) => {
 
   // 返回更新后的消息数组和清空用户输入
   const updatedMessages = [...currentMessages, userMessage];
-  console.log(`userInputNode 更新后的消息历史有 ${updatedMessages.length} 条消息`);
 
   return {
     messages: updatedMessages,
@@ -171,7 +170,6 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
 
     // 过滤掉错误消息后再发送给模型
     const filteredMessages = filterMessages(messages);
-    console.log(`routerAnalysisNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
 
     // 准备发送给模型的消息
     const promptMessages = [
@@ -188,7 +186,7 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
 
     return {
       routerAnalysis: parsedOutput,
-      messages: [...messages, new AIMessage(`${parsedOutput.content}`)],
+      messages: [...messages],
     };
   } catch (error) {
     console.error("routerAnalysisNode 处理失败:", error);
@@ -311,10 +309,7 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
 
   // 如果没有消息，返回错误
   if (!messages || messages.length === 0) {
-    console.log(`[RouterAgent] generalChatNode 没有消息历史，返回错误`);
-    return {
-      error: "没有消息历史，无法处理对话请求",
-    };
+    return state;
   }
 
   try {
@@ -338,8 +333,8 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
     );
 
     // 过滤掉错误消息后再发送给模型
-    const filteredMessages = filterMessages(messages);
-    console.log(`[RouterAgent] generalChatNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
+    const filteredMessages = filterMessages(messages).filter((msg) => msg.getType() === "human");
+    console.log(` generalChatNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
 
     // 准备发送给模型的消息
     const promptMessages = [
@@ -382,8 +377,6 @@ export function createRouterAgent() {
 
   // 创建内置MemorySaver实例用于保存历史记录
   const memorySaver = new MemorySaver();
-  console.log(`创建了MemorySaver实例用于保存历史记录，将自动保存到浏览器存储`);
-
   try {
     // 定义工作流图
     console.log("创建状态图工作流");
@@ -403,11 +396,6 @@ export function createRouterAgent() {
       })
       .addEdge("templateCreation", END) // 从模板创建到结束
       .addEdge("generalChat", END); // 从通用对话到结束
-
-    console.log("工作流图创建成功，包含所有必要节点和路由");
-
-    // 编译工作流，并传入checkpointer
-    console.log("编译工作流并配置 MemorySaver");
     const app = workflow.compile({
       checkpointer: memorySaver,
     });

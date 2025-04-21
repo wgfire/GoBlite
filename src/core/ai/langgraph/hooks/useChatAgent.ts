@@ -5,6 +5,7 @@ import { SystemMessage, HumanMessage, AIMessage } from "@langchain/core/messages
 import { useModelConfig } from "../../hooks/useModelConfig";
 import { RouterStateType } from "../agents/routerAgent";
 import { useConversation } from "./useConversation";
+import useMemoizedFn from "@/hooks/useMemoizedFn";
 
 // Hook选项
 export interface UseAgentChatOptions {
@@ -141,110 +142,108 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [config, conversation.currentConversation, currentState]);
+  }, []);
 
   // 发送消息
-  const sendMessage = useCallback(
-    async (content: string) => {
-      // 声明在函数开始处，确保在整个函数作用域内可用
-      let activeConversationId: string | null = null;
+  const sendMessage = useMemoizedFn(async (content: string) => {
+    // 声明在函数开始处，确保在整个函数作用域内可用
+    let activeConversationId: string | null = null;
 
-      try {
-        setIsLoading(true);
-        console.log(`准备发送消息: "${content}"`);
+    try {
+      setIsLoading(true);
 
-        // 确保有一个有效的会话ID
-        activeConversationId = conversation.currentConversationId;
+      // 确保有一个有效的会话ID
+      activeConversationId = conversation.currentConversationId;
+      console.log(`准备发送消息: "${content}"`, activeConversationId);
 
-        // 如果没有当前会话，创建一个新会话
-        if (!activeConversationId) {
-          console.log("没有当前会话，创建新会话");
+      // 如果没有当前会话，创建一个新会话
+      if (!activeConversationId) {
+        console.log("没有当前会话，创建新会话");
 
-          // 创建新会话并等待完成
-          const newConversationId = await conversation.createConversation("新对话", options.systemPrompt);
-          console.log(`创建了新会话: ${newConversationId}`);
-
-          // 等待一下，确保会话已经创建完成
-          await new Promise((resolve) => setTimeout(resolve, 500));
-
-          // 使用新创建的会话ID
-          activeConversationId = newConversationId;
+        // 创建新会话并等待完成
+        const result = await conversation.createConversation("新对话", options.systemPrompt);
+        if (!result) {
+          throw new Error("创建会话失败");
         }
 
+        const { newConversationId } = result;
+        console.log(`创建了新会话: ${newConversationId}`);
+
+        // 使用新创建的会话ID
+        activeConversationId = newConversationId;
         // 添加用户消息到会话
         console.log(`添加用户消息到会话 ${activeConversationId}`);
 
-        // 使用addMessage方法添加消息
-        const userMessageId = await conversation.addMessage(
-          {
+        // 使用addMessage方法添加消息，传入新创建的会话对象避免状态同步问题
+        const userMessageId = await conversation.addMessage({
+          message: {
             role: MessageRole.USER,
             content,
           },
-          activeConversationId
-        );
+          conversationId: activeConversationId,
+        });
+
         console.log(`用户消息添加成功，消息ID: ${userMessageId}`);
-
-        // 调用代理
-        console.log("调用AI代理处理消息");
-
-        // 准备调用代理的参数
-        const invokeParams = {
-          userInput: content,
-          // 如果有模板上下文，保留它
-          templateContext: currentState.templateContext,
-        };
-
-        const result = await agent?.app.invoke(invokeParams, config);
-
-        console.log("代理返回结果:", result);
-
-        if (!result || !result.messages || result.messages.length === 0) {
-          throw new Error("代理返回的消息为空");
-        }
-
-        const responseContent = result.messages[result.messages.length - 1];
-        const responseText = responseContent.content as string;
-        const metadata = responseContent.additional_kwargs?.metadata as Message["metadata"];
-
-        // 添加助手消息到会话，使用同一个会话ID
-        console.log(`添加AI响应到会话 ${activeConversationId}`);
-        const addMessage: Omit<Message, "id" | "timestamp"> = {
-          role: MessageRole.ASSISTANT,
-          content: responseText,
-          metadata: {
-            isError: metadata?.isError,
-          },
-        };
-        const assistantMessageId = await conversation.addMessage(addMessage, activeConversationId);
-        console.log(`AI响应添加成功，消息ID: ${assistantMessageId}`);
-
-        // 更新代理状态
-        setCurrentState(result);
-
-        return responseText;
-      } catch (err) {
-        console.error("发送消息失败:", err);
-        setError(`发送消息失败: ${err instanceof Error ? err.message : "未知错误"}`);
-
-        // 添加错误消息到会话
-        if (activeConversationId) {
-          await conversation.addMessage(
-            {
-              role: MessageRole.SYSTEM,
-              content: `发送消息失败: ${err instanceof Error ? err.message : "未知错误"}`,
-            },
-            activeConversationId
-          );
-        }
-
-        return null;
-      } finally {
-        setIsLoading(false);
       }
-    },
-    /**禁止修改 */
-    [config]
-  );
+
+      // 调用代理
+      console.log("调用AI代理处理消息");
+
+      // 准备调用代理的参数
+      const invokeParams = {
+        userInput: content,
+        // 如果有模板上下文，保留它
+        templateContext: { path: "", content: "" },
+      };
+
+      const result = await agent?.app.invoke(invokeParams, config);
+
+      console.log("代理返回结果:", result);
+
+      if (!result || !result.messages || result.messages.length === 0) {
+        throw new Error("代理返回的消息为空");
+      }
+
+      const responseContent = result.messages[result.messages.length - 1];
+      const responseText = responseContent.content as string;
+      const metadata = responseContent.additional_kwargs?.metadata as Message["metadata"];
+
+      // 添加助手消息到会话，使用同一个会话ID
+      console.log(`添加AI响应到会话 ${activeConversationId}`);
+      const addMessage: Omit<Message, "id" | "timestamp"> = {
+        role: MessageRole.ASSISTANT,
+        content: responseText,
+        metadata: {
+          isError: metadata?.isError,
+        },
+      };
+      const assistantMessageId = await conversation.addMessage({ message: addMessage, conversationId: activeConversationId });
+      console.log(`AI响应添加成功，消息ID: ${assistantMessageId}`);
+
+      // 更新代理状态
+      setCurrentState(result);
+
+      return responseText;
+    } catch (err) {
+      console.error("发送消息失败:", err);
+      setError(`发送消息失败: ${err instanceof Error ? err.message : "未知错误"}`);
+
+      // 添加错误消息到会话
+      if (activeConversationId) {
+        await conversation.addMessage({
+          message: {
+            role: MessageRole.SYSTEM,
+            content: `发送消息失败: ${err instanceof Error ? err.message : "未知错误"}`,
+          },
+          conversationId: activeConversationId,
+        });
+      }
+
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  });
 
   // 初始化
   useEffect(() => {
