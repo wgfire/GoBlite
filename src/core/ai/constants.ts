@@ -95,9 +95,9 @@ export const STORAGE_KEYS = {
  * 默认模型配置
  */
 export const DEFAULT_MODEL_CONFIG: ModelConfig = {
-  provider: ModelProvider.GEMINI,
-  modelType: ModelType.GEMINI_PRO,
-  apiKey: "AIzaSyA3CN1Yj65hiDuH0onPeR5Q5hcly7s-5vI",
+  provider: ModelProvider.OPENAI,
+  modelType: ModelType.GPT4O,
+  apiKey: "sk-52d91eff7864416faa1aa7683963f223",
   temperature: 0.7,
   maxTokens: 20000,
 };

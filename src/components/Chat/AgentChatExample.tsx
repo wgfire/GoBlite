@@ -70,7 +70,7 @@ export const AgentChatExample = () => {
           messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[80%] rounded-lg p-3 ${
+                className={`max-w-[80%] rounded-lg p-3 break-all ${
                   message.role === "user"
                     ? "bg-blue-600 text-white"
                     : message.role === "assistant"

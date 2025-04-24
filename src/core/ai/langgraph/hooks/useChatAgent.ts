@@ -120,18 +120,8 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
         console.log("没有当前会话或消息历史，使用默认初始状态");
       }
 
-      // 初始化代理状态
-      try {
-        console.log("尝试初始化代理状态");
-        await agentInstance.app.invoke(initialState, config);
-        console.log("代理状态初始化成功");
-
-        // 更新当前状态
-        setCurrentState(initialState);
-      } catch (invokeError) {
-        console.warn("代理状态初始化失败，但仍然继续:", invokeError);
-        // 即使初始化失败，我们仍然继续使用代理
-      }
+      setCurrentState(initialState);
+      console.log("代理状态初始化成功");
 
       setAgent(agentInstance);
       setIsInitialized(true);

@@ -150,12 +150,12 @@ const parseTemplateParamsNode = async (state: TemplateAgentStateType, config?: R
     // 创建系统提示
     const systemPrompt = new SystemMessage(
       `你是一个专业的前端开发模板参数解析专家。你的任务是分析用户的需求，根据模版的信息，分析改动的点。
-      
+
       请根据用户的描述，提取以下信息：
-     
-      
+
+
       ${parser.getFormatInstructions()}
-      
+
       请确保你的分析全面且准确，这将直接影响到生成的代码质量。`
     );
 
@@ -244,16 +244,16 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
     // 创建系统提示
     const systemPrompt = new SystemMessage(
       `你是一个专业的前端开发代码生成专家。你的任务是根据提供的模版信息生成高质量的代码。
-      
+
       请根据以下参数生成代码：
       ${JSON.stringify(templateParams, null, 2)}
-      
+
       请遵循以下原则：
       1. 代码应该遵循最佳实践和设计模式
       2. 代码应该清晰、可读、易于维护
       3. 代码应该包含适当的注释
       4. 代码应该考虑性能和可扩展性
-      
+
       请生成完整的代码，不要省略任何部分。代码应该可以直接复制粘贴使用。`
     );
 
@@ -318,6 +318,9 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
 
 /**
  * 创建模板代理
+ *
+ * 注意：此函数仅创建代理的结构，不会执行任何节点
+ * 实际的节点执行将在首次调用app.invoke()时发生
  */
 export function createTemplateAgent() {
   console.log("开始创建模板代理");
@@ -336,7 +339,6 @@ export function createTemplateAgent() {
 
     console.log("[TemplateAgent] 工作流图创建成功");
 
-    // 编译工作流
     console.log("[TemplateAgent] 编译工作流");
     const app = workflow.compile();
 

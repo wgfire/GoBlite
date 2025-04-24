@@ -333,7 +333,7 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
     );
 
     // 过滤掉错误消息后再发送给模型
-    const filteredMessages = filterMessages(messages).filter((msg) => msg.getType() === "human");
+    const filteredMessages = filterMessages(messages);
     console.log(` generalChatNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
 
     // 准备发送给模型的消息
@@ -371,6 +371,9 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
 
 /**
  * 创建带有路由功能的代理
+ *
+ * 注意：此函数仅创建代理的结构，不会执行任何节点
+ * 实际的节点执行将在首次调用app.invoke()时发生
  */
 export function createRouterAgent() {
   console.log("开始创建带有路由功能的代理");
@@ -396,6 +399,8 @@ export function createRouterAgent() {
       })
       .addEdge("templateCreation", END) // 从模板创建到结束
       .addEdge("generalChat", END); // 从通用对话到结束
+
+    // 编译工作流但不执行任何节点
     const app = workflow.compile({
       checkpointer: memorySaver,
     });
