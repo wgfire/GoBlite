@@ -1,9 +1,7 @@
-import React, { useRef, ChangeEvent } from "react";
+import React, { useRef, ChangeEvent, useMemo } from "react";
 import { FiUpload, FiZap, FiSettings } from "react-icons/fi";
 import { ModelType, AI_MODELS } from "@/core/ai";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@components/ui/select";
-import { useAtom } from "jotai";
-import { availableModelsAtom } from "@/core/ai/atoms/modelAtoms";
 import { toast } from "@/components/ui/use-toast";
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,7 +28,13 @@ export const InputOperations: React.FC<InputOperationsProps> = ({
   onOpenAPIKeyConfig,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [availableModels] = useAtom(availableModelsAtom);
+  const availableModels = useMemo(() => {
+    return Object.values(AI_MODELS)
+      .filter((model) => {
+        return model.apiKey;
+      })
+      .map((el) => el.modelType);
+  }, []);
 
   // 处理模型切换，如果模型不可用则显示提示
   const handleModelChange = (modelType: ModelType) => {

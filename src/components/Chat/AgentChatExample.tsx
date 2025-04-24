@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useAgentChat } from "@/core/ai/langgraph/hooks/useChatAgent";
+import { useChatAgent } from "@/core/ai/langgraph/hooks/useChatAgent";
 import { ChatHeader } from "./ChatHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,7 @@ export const AgentChatExample = () => {
   const [isSending, setIsSending] = useState(false);
 
   // 使用useAgentChat hook
-  const { isInitialized, isLoading, error, messages, sendMessage } = useAgentChat();
+  const { isInitialized, isLoading, error, messages, sendMessage } = useChatAgent();
 
   // 处理发送消息
   const handleSendMessage = async () => {
@@ -71,11 +71,7 @@ export const AgentChatExample = () => {
             <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
                 className={`max-w-[80%] rounded-lg p-3 break-all ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : message.role === "assistant"
-                    ? "bg-slate-700 text-white"
-                    : "bg-slate-800 text-slate-300 italic text-sm"
+                  message.role === "user" ? "bg-blue-600 text-white" : message.role === "assistant" ? "bg-slate-700 text-white" : "bg-slate-800 text-slate-300 italic text-sm"
                 }`}
               >
                 {message.content}
@@ -103,11 +99,7 @@ export const AgentChatExample = () => {
             className="flex-1 bg-slate-800 border-slate-700 focus:border-blue-500 text-white"
             disabled={!isInitialized || isLoading}
           />
-          <Button
-            onClick={handleSendMessage}
-            disabled={!isInitialized || isLoading || !userInput.trim()}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <Button onClick={handleSendMessage} disabled={!isInitialized || isLoading || !userInput.trim()} className="bg-blue-600 hover:bg-blue-700 text-white">
             发送
           </Button>
         </div>

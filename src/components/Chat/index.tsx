@@ -11,9 +11,10 @@ import { ServiceStatus } from "@/core/ai";
 import { FiChevronLeft, FiChevronRight, FiMessageSquare, FiSettings } from "react-icons/fi";
 import "./Chat.css";
 import { useChat } from "./useChat";
+import { useAgentChat } from "@/core/ai/langgraph";
 
 interface ChatProps {
-  onCollapseChange?: (collapsed: boolean) => void;
+  onCollapseChange?: () => void;
 }
 
 const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
@@ -41,7 +42,6 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
     handleCancelRequest,
     handleModelChange,
     handleSaveAPIKey,
-    toggleCollapse,
     parseAIResponse,
   } = useChat({ onCollapseChange });
 
@@ -70,7 +70,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
     >
       {/* Collapse/Expand button */}
       <motion.button
-        onClick={toggleCollapse}
+        onClick={onCollapseChange}
         className={`absolute z-20 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 transition-colors ${
           isCollapsed ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4"
         }`}
@@ -82,11 +82,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
       </motion.button>
 
       {/* Right border gradient */}
-      <div
-        className={`absolute right-0 h-full ${
-          isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"
-        }`}
-      ></div>
+      <div className={`absolute right-0 h-full ${isCollapsed ? "chat-collapsed-border" : "w-[1px] bg-gradient-to-b from-purple-500/0 via-cyan-500/50 to-purple-500/0"}`}></div>
 
       {/* Collapsed state icon */}
       <AnimatePresence>
@@ -129,25 +125,13 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader
-                onTemplateSelect={handleTemplateSelect}
-                selectedTemplate={selectedTemplate}
-                isMobile={false}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-              />
+              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || ServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea
-              onSend={handleSend}
-              isSending={isSending}
-              uploadedFiles={uploadedFiles}
-              setUploadedFiles={setUploadedFiles}
-              onCancel={handleCancelRequest}
-            />
+            <InputArea onSend={handleSend} isSending={isSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
             <InputOperations
               onOptimizePrompt={() => handleOptimizePrompt("")}
               isOptimizing={false}
@@ -188,12 +172,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           </motion.div>
         )}
         {/* API密钥配置对话框 */}
-        <APIKeyConfig
-          isOpen={showAPIKeyConfig}
-          onClose={() => setShowAPIKeyConfig(false)}
-          onSave={handleSaveAPIKey}
-          currentModel={selectedModelType}
-        />
+        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={selectedModelType} />
       </AnimatePresence>
     </motion.div>
   );

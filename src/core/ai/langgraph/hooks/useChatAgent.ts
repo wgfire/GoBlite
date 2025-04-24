@@ -21,7 +21,7 @@ export interface UseAgentChatOptions {
  * 简化版的useAgentChat hook，只负责与AI交互和存储消息
  * 会话管理由useConversation hook负责
  */
-export function useAgentChat(options: UseAgentChatOptions = {}) {
+export function useChatAgent(options: UseAgentChatOptions = {}) {
   // 状态
   const [isInitialized, setIsInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -161,20 +161,21 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
 
         // 使用新创建的会话ID
         activeConversationId = newConversationId;
-        // 添加用户消息到会话
-        console.log(`添加用户消息到会话 ${activeConversationId}`);
-
-        // 使用addMessage方法添加消息，传入新创建的会话对象避免状态同步问题
-        const userMessageId = await conversation.addMessage({
-          message: {
-            role: MessageRole.USER,
-            content,
-          },
-          conversationId: activeConversationId,
-        });
-
-        console.log(`用户消息添加成功，消息ID: ${userMessageId}`);
       }
+
+      // 无论是否创建新会话，都添加用户消息到会话
+      console.log(`添加用户消息到会话 ${activeConversationId}`);
+
+      // 使用addMessage方法添加消息，传入会话ID避免状态同步问题
+      const userMessageId = await conversation.addMessage({
+        message: {
+          role: MessageRole.USER,
+          content,
+        },
+        conversationId: activeConversationId,
+      });
+
+      console.log(`用户消息添加成功，消息ID: ${userMessageId}`);
 
       // 调用代理
       console.log("调用AI代理处理消息");
@@ -248,7 +249,6 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
     } else {
       console.log("会话未初始化，等待会话初始化");
     }
-    /**禁止修改 */
   }, [conversation.isInitialized, initAgent, initializeModelConfig]);
 
   return {
@@ -267,4 +267,4 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
   };
 }
 
-export default useAgentChat;
+export default useChatAgent;

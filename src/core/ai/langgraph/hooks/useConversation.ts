@@ -242,7 +242,7 @@ export function useConversation() {
    * @returns 如果成功，返回包含新会话ID和会话对象的结构；如果失败，返回null
    */
   const createConversation = useCallback(
-    async (title: string = "新对话", systemPrompt?: string): Promise<{ newConversationId: string; } | null> => {
+    async (title: string = "新对话", systemPrompt?: string): Promise<{ newConversationId: string } | null> => {
       try {
         setIsLoading(true);
         setError(null);
@@ -381,23 +381,34 @@ export function useConversation() {
   const addMessage = useMemoizedFn(async (params: { message: Omit<Message, "id" | "timestamp">; conversationId?: string }) => {
     try {
       const { message, conversationId } = params;
+      console.log(`开始添加消息，内容: "${message.content.substring(0, 50)}${message.content.length > 50 ? "..." : ""}", 角色: ${message.role}`);
+      console.log(`提供的会话ID: ${conversationId || "无"}`);
 
       // 获取最新的原子值
       const latestConversations = store.get(agentConversationsAtom);
       const latestCurrentConversationId = store.get(agentCurrentConversationIdAtom);
 
+      console.log(`当前会话ID (从原子状态获取): ${latestCurrentConversationId || "无"}`);
+      console.log(`可用会话数量: ${Object.keys(latestConversations).length}`);
+
       // 使用提供的会话ID或当前会话ID
       const targetConversationId = conversationId || latestCurrentConversationId;
-      console.log(`latestConversations`, latestConversations, latestCurrentConversationId);
+      console.log(`目标会话ID: ${targetConversationId || "无"}`);
 
       if (!targetConversationId) {
+        console.error("没有指定会话ID，且没有当前选中的会话");
         throw new Error("没有指定会话ID，且没有当前选中的会话");
       }
 
-      const newConversation = latestConversations[targetConversationId];
-      if (!newConversation) {
+      // 检查会话是否存在
+      if (!latestConversations[targetConversationId]) {
+        console.error(`会话不存在: ${targetConversationId}`);
+        console.log(`可用会话IDs: ${Object.keys(latestConversations).join(", ")}`);
         throw new Error(`会话不存在: ${targetConversationId}`);
       }
+
+      const newConversation = latestConversations[targetConversationId];
+      console.log(`找到目标会话: ${targetConversationId}, 标题: ${newConversation.title}, 当前消息数: ${newConversation.messages.length}`);
 
       const now = Date.now();
 
@@ -407,6 +418,7 @@ export function useConversation() {
         ...message,
         timestamp: now,
       };
+      console.log(`创建了新消息，ID: ${fullMessage.id}`);
 
       // 更新会话
       const updatedConversation: Conversation = {
@@ -414,14 +426,23 @@ export function useConversation() {
         messages: [...newConversation.messages, fullMessage],
         updatedAt: now,
       };
+      console.log(`更新后的会话消息数: ${updatedConversation.messages.length}`);
 
-      setConversations((prev) => ({
-        ...prev,
-        [targetConversationId]: updatedConversation,
-      }));
+      // 更新内存中的状态
+      console.log(`更新内存中的会话状态`);
+      setConversations((prev) => {
+        const updated = {
+          ...prev,
+          [targetConversationId]: updatedConversation,
+        };
+        console.log(`内存状态更新完成，会话数: ${Object.keys(updated).length}`);
+        return updated;
+      });
 
       // 保存到IndexedDB
+      console.log(`开始保存会话到IndexedDB: ${targetConversationId}`);
       await saveConversationToDB(updatedConversation);
+      console.log(`会话已保存到IndexedDB: ${targetConversationId}`);
 
       return fullMessage.id;
     } catch (err) {

@@ -31,8 +31,6 @@ export const modelSettingsAtom = atomWithStorage("ai_model_settings", {
   maxTokens: DEFAULT_MAX_TOKENS,
 });
 
-// 已移除可用模型列表原子，现在通过apiKeys和AI_MODELS动态计算
-
 // 当前模型配置 - 持久化存储
 export const currentModelConfigAtom = atomWithStorage<ModelConfig | null>(STORAGE_KEYS.CURRENT_MODEL, null);
 
