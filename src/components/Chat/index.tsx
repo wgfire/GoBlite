@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
@@ -7,43 +7,28 @@ import { APIKeyConfig } from "./APIKeyConfig";
 import { StatusIndicator } from "./StatusIndicator";
 import { AnimatePresence, motion } from "framer-motion";
 import { TemplateForm } from "../TemplateForm";
-import { ServiceStatus } from "@/core/ai";
+import { ServiceStatus, useModelConfig } from "@/core/ai";
 import { FiChevronLeft, FiChevronRight, FiMessageSquare, FiSettings } from "react-icons/fi";
 import "./Chat.css";
-import { useChat } from "./useChat";
-import { useAgentChat } from "@/core/ai/langgraph";
-
+import { useChatAgent } from "@/core/ai/langgraph";
+import { HeaderTab } from "./types";
+import { useFiles } from "./hooks/useFiles";
+import { useTemplates } from "./hooks/useTemplates";
+import { parseAIResponse } from "@/core/ai";
 interface ChatProps {
   onCollapseChange?: () => void;
+  isCollapsed: boolean;
 }
 
-const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
+const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
   // 使用自定义 hook 获取所有状态和方法
-  const {
-    messages,
-    uploadedFiles,
-    isSending,
-    activeTab,
-    selectedTemplate,
-    showTemplateForm,
-    isCollapsed,
-    showAPIKeyConfig,
-    status,
-    selectedModelType,
-    setActiveTab,
-    setUploadedFiles,
-    setShowAPIKeyConfig,
-    setIsCollapsed,
-    handleSend,
-    handleOptimizePrompt,
-    handleTemplateSelect,
-    handleTemplateFormSubmit,
-    handleTemplateFormClose,
-    handleCancelRequest,
-    handleModelChange,
-    handleSaveAPIKey,
-    parseAIResponse,
-  } = useChat({ onCollapseChange });
+  const [activeTab, setActiveTab] = useState<HeaderTab>("conversations");
+  const { switchModelType, currentModelConfig, serviceStatus: status, setModelKey } = useModelConfig();
+  const modelType = currentModelConfig?.modelType;
+  const [showAPIKeyConfig, setShowAPIKeyConfig] = useState(false);
+  const { setUploadedFiles, uploadedFiles } = useFiles();
+  const { showTemplateForm, selectedTemplate, handleTemplateFormSubmit, handleTemplateSelect, handleTemplateFormClose } = useTemplates();
+  const { messages, isLoading: isSending, sendMessage, handleCancelRequest } = useChatAgent();
 
   // Ref to store the current width before collapsing
   const chatRef = useRef<HTMLDivElement>(null);
@@ -101,7 +86,6 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setIsCollapsed(false);
                 setTimeout(() => setShowAPIKeyConfig(true), 300);
               }}
               className="mt-8 p-2.5 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 transition-colors"
@@ -131,9 +115,11 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
               </div>
             </div>
             <MessageList messages={messages} isSending={isSending} parseAIResponse={parseAIResponse} />
-            <InputArea onSend={handleSend} isSending={isSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
+            <InputArea onSend={sendMessage} isSending={isSending} uploadedFiles={uploadedFiles} setUploadedFiles={setUploadedFiles} onCancel={handleCancelRequest} />
             <InputOperations
-              onOptimizePrompt={() => handleOptimizePrompt("")}
+              onOptimizePrompt={() => {
+                console.log("暂未实现");
+              }}
               isOptimizing={false}
               isSending={isSending}
               hasPrompt={true}
@@ -147,8 +133,8 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
                   setUploadedFiles((prev) => [...prev, ...newFiles]);
                 }
               }}
-              currentModel={selectedModelType}
-              onModelChange={handleModelChange}
+              currentModel={modelType!}
+              onModelChange={switchModelType}
               onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)}
             />
           </motion.div>
@@ -172,7 +158,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange }) => {
           </motion.div>
         )}
         {/* API密钥配置对话框 */}
-        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={handleSaveAPIKey} currentModel={selectedModelType} />
+        <APIKeyConfig isOpen={showAPIKeyConfig} onClose={() => setShowAPIKeyConfig(false)} onSave={setModelKey} currentModel={modelType!} />
       </AnimatePresence>
     </motion.div>
   );

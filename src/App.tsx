@@ -347,7 +347,7 @@ export const App: React.FC = () => {
       <div className="app-content">
         <div className={`chat-box-container ${isChatCollapsed ? "chat-collapsed-state" : ""}`}>
           {/* <AgentChatExample /> */}
-          <Chat onCollapseChange={onCollapseChange} />
+          <Chat onCollapseChange={onCollapseChange} isCollapsed={isChatCollapsed} />
         </div>
 
         {currentView === "templateGallery" ? (

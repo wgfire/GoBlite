@@ -236,6 +236,10 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
     }
   });
 
+  const handleCancelRequest = () => {
+    setIsLoading(false);
+  };
+
   // 初始化
   useEffect(() => {
     console.log("初始化useAgentChat");
@@ -260,6 +264,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
 
     // 方法
     sendMessage,
+    handleCancelRequest,
 
     // 原始对象
     agent,

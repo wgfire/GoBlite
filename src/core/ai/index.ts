@@ -25,7 +25,6 @@ export * from "./langchain/retrievers";
 // 导出新钩子
 export * from "./hooks";
 
-export { default as createStorageAdapter } from "./langchain/memory/storageAdapter";
 
 // 导出提示词相关
 export { default as promptTemplates } from "./langchain/prompts/promptTemplates";

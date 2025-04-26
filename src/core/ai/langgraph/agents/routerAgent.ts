@@ -302,7 +302,7 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
  * 处理一般对话请求
  */
 const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) => {
-  console.log(`[RouterAgent] generalChatNode 开始处理一般对话请求`);
+  console.log(`[RouterAgent] generalChatNode 开始处理一般对话请求`,state.messages);
 
   // 获取消息历史
   const messages = state.messages;

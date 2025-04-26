@@ -1,7 +1,6 @@
-import { Message } from "./types";
-import { FiImage, FiFile, FiX } from "react-icons/fi";
+// import { FiImage, FiFile, FiX } from "react-icons/fi";
 import { AIResponseContent } from "./AIResponseHandler";
-import { AIMessageContent } from "@/core/ai/types";
+import { AIMessageContent, Message, MessageRole } from "@/core/ai/types";
 
 interface MessageListProps {
   messages: Message[];
@@ -13,18 +12,14 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isSending, p
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       {messages.map((message) => (
-        <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-          <div
-            className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${
-              message.sender === "user" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200"
-            }`}
-          >
-            {message.sender === "ai" ? (
-              <AIResponseContent text={message.text} parseContent={parseAIResponse} />
+        <div key={message.id} className={`flex ${message.role === MessageRole.USER ? "justify-end" : "justify-start"}`}>
+          <div className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200"}`}>
+            {message.role === MessageRole.ASSISTANT ? (
+              <AIResponseContent text={message.content} parseContent={parseAIResponse} />
             ) : (
-              <p className="whitespace-pre-wrap">{message.text}</p>
+              <p className="whitespace-pre-wrap">{message.content}</p>
             )}
-            {message.files && message.files.length > 0 && (
+            {/* {message.files && message.files.length > 0 && (
               <div className="mt-2 space-y-2">
                 {message.files.map((file) => (
                   <div key={file.id} className="bg-gray-800 rounded p-2">
@@ -47,7 +42,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isSending, p
                   </div>
                 ))}
               </div>
-            )}
+            )} */}
           </div>
         </div>
       ))}

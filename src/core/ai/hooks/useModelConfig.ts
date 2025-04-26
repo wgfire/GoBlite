@@ -273,7 +273,17 @@ export function useModelConfig() {
     setErrorMessage(null);
   }, [setCurrentModelConfig, setServiceStatus, setErrorMessage]);
 
-  // 不再需要初始化effect，因为我们不再使用selectedModelType
+  /**
+   * 更新某一个模型对应的apikey
+   */
+  const setModelKey = (model: ModelType, apiKey: string) => {
+    console.log(model);
+    setCurrentModelConfig((pre) => {
+      console.log(pre);
+      console.log(model);
+    });
+    return true;
+  };
 
   return {
     // 状态
@@ -288,7 +298,6 @@ export function useModelConfig() {
     updateModelSettings,
     initializeModelConfig,
     switchModelType,
-    resetModelConfig,
-    createModel,
+    setModelKey,
   };
 }

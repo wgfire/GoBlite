@@ -13,7 +13,7 @@ import { apiKeysAtom } from "@/core/ai/atoms/modelAtoms";
 interface APIKeyConfigProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (modelType: ModelType, apiKey: string) => Promise<boolean>;
+  onSave: (modelType: ModelType, apiKey: string) => boolean;
   currentModel: ModelType;
 }
 
@@ -55,7 +55,7 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
       // 使用try-catch包裹onSave调用，防止未捕获的异常
       let success = false;
       try {
-        success = await onSave(selectedModel, apiKey);
+        success = onSave(selectedModel, apiKey);
       } catch (saveError) {
         console.error("保存API密钥时出错:", saveError);
         throw saveError;
@@ -100,12 +100,7 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
                 <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
                 <span>
                   Google Gemini -{" "}
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:underline"
-                  >
+                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
                     https://aistudio.google.com/app/apikey
                   </a>
                 </span>
@@ -114,12 +109,7 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
                 <span className="w-2 h-2 bg-cyan-400 rounded-full"></span>
                 <span>
                   DeepSeek -{" "}
-                  <a
-                    href="https://platform.deepseek.com/api-keys"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:underline"
-                  >
+                  <a href="https://platform.deepseek.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">
                     https://platform.deepseek.com/api-keys
                   </a>
                 </span>
@@ -173,20 +163,10 @@ export const APIKeyConfig: React.FC<APIKeyConfigProps> = ({ isOpen, onClose, onS
         </div>
 
         <DialogFooter className="gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            className="bg-transparent border-slate-700 text-gray-300 hover:bg-slate-800 hover:text-gray-200"
-          >
+          <Button type="button" variant="outline" onClick={onClose} className="bg-transparent border-slate-700 text-gray-300 hover:bg-slate-800 hover:text-gray-200">
             取消
           </Button>
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white"
-          >
+          <Button type="button" onClick={handleSave} disabled={isSaving} className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white">
             {isSaving ? (
               <span className="flex items-center gap-2">
                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

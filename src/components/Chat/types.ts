@@ -2,14 +2,6 @@
 
 export type Tab = "landing" | "campaign";
 
-export interface Message {
-  id: string;
-  sender: "user" | "ai" | "system";
-  text: string;
-  timestamp: number;
-  files?: UploadedFile[];
-}
-
 export interface UploadedFile {
   id: string;
   file: File;
