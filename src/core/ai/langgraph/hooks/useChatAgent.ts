@@ -17,6 +17,18 @@ export interface UseAgentChatOptions {
   systemPrompt?: string;
 }
 
+const initAgentState = {
+  messages: [],
+  userInput: "",
+  next: null,
+  routerAnalysis: null,
+  templateContext: null,
+  generatedCode: null,
+  error: null,
+  isInitializing: false,
+  hasResponse: false,
+};
+
 /**
  * 简化版的useAgentChat hook，只负责与AI交互和存储消息
  * 会话管理由useConversation hook负责
@@ -45,15 +57,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
   );
 
   // 当前状态
-  const [currentState, setCurrentState] = useState<RouterStateType>({
-    messages: [],
-    userInput: "",
-    next: null,
-    routerAnalysis: null,
-    templateContext: null,
-    generatedCode: null,
-    error: null,
-  });
+  const [currentState, setCurrentState] = useState<RouterStateType>(initAgentState);
 
   // 初始化代理
   const initAgent = useCallback(async () => {
@@ -118,12 +122,36 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
         console.log(`初始化状态包含 ${messagesForAgent.length} 条消息`);
       } else {
         console.log("没有当前会话或消息历史，使用默认初始状态");
+        initialState = {
+          ...initAgentState,
+        };
       }
 
       setCurrentState(initialState);
-      console.log("代理状态初始化成功");
+      console.log("代理状态初始化成功", initialState);
 
       setAgent(agentInstance);
+
+      // 添加一个特殊的空调用，仅用于激活 memorySaver
+      if (agentInstance && currentConversation) {
+        console.log("执行空调用以激活 memorySaver");
+        try {
+          // 使用与正常调用相同的参数结构，但设置初始化标记
+          const invokeParams = {
+            ...initialState,
+            userInput: null,
+            templateContext: { path: "", content: "" },
+            isInitializing: true, // 设置初始化标记
+          };
+
+          await agentInstance.app.invoke(invokeParams, config);
+          console.log("memorySaver 激活成功");
+        } catch (initError) {
+          console.error("激活 memorySaver 失败:", initError);
+          // 即使激活失败也继续，不影响整体初始化
+        }
+      }
+
       setIsInitialized(true);
       console.log("代理初始化完成");
     } catch (err) {
@@ -132,7 +160,8 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+    /**无需修改 */
+  }, [config]);
 
   // 发送消息
   const sendMessage = useMemoizedFn(async (content: string) => {

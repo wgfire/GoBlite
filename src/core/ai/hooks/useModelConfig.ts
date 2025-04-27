@@ -10,7 +10,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
 import { apiKeysAtom, modelSettingsAtom, currentModelConfigAtom, serviceStatusAtom, errorMessageAtom } from "../atoms/modelAtoms";
 import { ModelType, ModelProvider, ServiceStatus, ModelConfig } from "../types";
-import { DEFAULT_MODEL_CONFIG, AI_MODELS, DEFAULT_MODEL_PARAMS } from "../constants";
+import { DEFAULT_MODEL_CONFIG, AI_MODELS, DEFAULT_MODEL_PARAMS, STORAGE_KEYS } from "../constants";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
 
 /**
@@ -104,96 +104,86 @@ export function useModelConfig() {
 
   /**
    * 初始化模型配置
-   * 首次使用默认配置，之后使用浏览器保存的配置
+   * 简化版：优先使用本地存储的配置，否则使用默认配置
+   *
+   * 简化思路：
+   * 1. 优先从本地存储读取配置 - 满足需求2：用户切换模型后下次进来优先使用
+   * 2. 如果本地没有配置，检查是否有API密钥 - 满足需求3：用户在APIKeyConfig中设置的密钥优先使用
+   * 3. 如果没有任何配置，使用默认配置 - 满足需求1：首次进入使用默认配置
+   *
+   * 相比原来的实现，移除了冗余的日志和复杂的嵌套逻辑，使代码更清晰易读
    */
   const initializeModelConfig = useMemoizedFn(async () => {
     try {
       setServiceStatus(ServiceStatus.INITIALIZING);
       setErrorMessage(null);
 
-      // 如果已有当前模型配置，使用它
-      if (currentModelConfig) {
-        const model = createModel(currentModelConfig);
-        if (model) {
-          setServiceStatus(ServiceStatus.READY);
-          return { model, config: currentModelConfig };
+      // 步骤1: 尝试从本地存储获取配置
+      const savedModelConfig = localStorage.getItem(STORAGE_KEYS.CURRENT_MODEL);
+      let configToUse: ModelConfig | null = null;
+
+      if (savedModelConfig) {
+        try {
+          configToUse = JSON.parse(savedModelConfig);
+          console.log("使用本地存储的模型配置");
+        } catch (_) {
+          // 解析失败时不使用该配置
+          console.error("解析本地存储的模型配置失败");
         }
       }
 
-      // 首次加载或之前的配置无效，使用默认配置
-      // 检查是否有API密钥
-      const hasAnyApiKey = Object.values(apiKeys).some((key) => key && key.trim() !== "");
-
-      // 如果没有任何API密钥，使用默认API密钥
-      if (!hasAnyApiKey) {
-        setApiKey(DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey!);
-        console.log("已设置默认API密钥到浏览器缓存", DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey);
-      }
-
-      // 获取所有可用的模型配置
-      const availableConfigs: ModelConfig[] = [];
-
-      // 遍历所有模型类型
-      Object.values(ModelType).forEach((modelType) => {
+      // 步骤2: 如果本地存储没有有效配置，检查是否有API密钥
+      if (!configToUse || !configToUse.apiKey) {
+        // 检查是否有已保存的API密钥
+        const modelType = configToUse?.modelType || DEFAULT_MODEL_CONFIG.modelType;
         const modelInfo = AI_MODELS[modelType];
-        if (!modelInfo) return;
 
-        const provider = modelInfo.provider;
-        let apiKey = apiKeys[provider];
+        if (modelInfo) {
+          const provider = modelInfo.provider;
+          let apiKey = apiKeys[provider];
 
-        // 如果没有API密钥，检查AI_MODELS中是否有该模型的API密钥
-        if (!apiKey && modelInfo.apiKey && modelInfo.apiKey.trim() !== "") {
-          apiKey = modelInfo.apiKey;
-          setApiKey(provider, apiKey);
-          console.log(`已将${modelType}的API密钥从constants.ts设置到浏览器缓存`, provider, apiKey);
+          // 如果没有保存的API密钥，使用默认API密钥
+          if (!apiKey && modelInfo.apiKey) {
+            apiKey = modelInfo.apiKey;
+            setApiKey(provider, apiKey);
+          }
+
+          // 如果有API密钥，创建配置
+          if (apiKey) {
+            configToUse = {
+              provider,
+              modelType,
+              apiKey,
+              temperature: modelSettings.temperature,
+              maxTokens: modelSettings.maxTokens,
+              ...(modelInfo.baseUrl && { baseUrl: modelInfo.baseUrl }),
+            };
+          }
         }
+      }
 
-        // 如果有API密钥，添加到可用配置中
-        if (apiKey) {
-          availableConfigs.push({
-            provider,
-            modelType,
-            apiKey,
-            temperature: modelSettings.temperature,
-            maxTokens: modelSettings.maxTokens,
-            ...(modelInfo.baseUrl && { baseUrl: modelInfo.baseUrl }),
-          });
-        }
-      });
-
-      // 如果没有可用配置，使用默认配置
-      if (availableConfigs.length === 0) {
-        const defaultConfig = {
+      // 步骤3: 如果仍然没有配置，使用默认配置
+      if (!configToUse) {
+        configToUse = {
           ...DEFAULT_MODEL_CONFIG,
           temperature: modelSettings.temperature,
           maxTokens: modelSettings.maxTokens,
         };
-        availableConfigs.push(defaultConfig);
 
         // 确保默认API密钥已设置
         setApiKey(DEFAULT_MODEL_CONFIG.provider, DEFAULT_MODEL_CONFIG.apiKey!);
       }
 
-      // 记录可用模型列表（仅用于日志）
-      const availableModelTypes = availableConfigs.map((config) => config.modelType);
-      console.log("可用模型列表", availableModelTypes);
-
-      // 选择当前模型配置
-      // 优先使用DEFAULT_MODEL_CONFIG对应的配置，而不是第一个可用的配置
-      const defaultModelConfig = availableConfigs.find((config) => config.provider === DEFAULT_MODEL_CONFIG.provider && config.modelType === DEFAULT_MODEL_CONFIG.modelType);
-      const configToUse = defaultModelConfig || availableConfigs[0];
-
-      // 创建模型
+      // 步骤4: 创建模型
       const model = createModel(configToUse);
       if (!model) {
         throw new Error("创建模型失败");
       }
 
-      // 保存当前模型配置
+      // 步骤5: 更新状态
       setCurrentModelConfig(configToUse);
-      console.log("已更新当前模型配置到浏览器存储", configToUse);
-
       setServiceStatus(ServiceStatus.READY);
+
       return { model, config: configToUse };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : "初始化模型失败";
@@ -266,6 +256,7 @@ export function useModelConfig() {
 
   /**
    * 重置模型配置
+   *
    */
   const resetModelConfig = useCallback(() => {
     setCurrentModelConfig(null);
@@ -275,14 +266,43 @@ export function useModelConfig() {
 
   /**
    * 更新某一个模型对应的apikey
+   * @param model 模型类型
+   * @param apiKey API密钥
+   * @returns 是否成功更新
    */
   const setModelKey = (model: ModelType, apiKey: string) => {
-    console.log(model);
-    setCurrentModelConfig((pre) => {
-      console.log(pre);
-      console.log(model);
-    });
-    return true;
+    try {
+      console.log(`正在更新模型 ${model} 的API密钥`);
+
+      // 获取模型信息
+      const modelInfo = AI_MODELS[model];
+      if (!modelInfo) {
+        console.error(`不支持的模型类型: ${model}`);
+        return false;
+      }
+
+      // 获取提供商
+      const provider = modelInfo.provider;
+
+      // 更新API密钥
+      setApiKey(provider, apiKey);
+
+      // 如果当前使用的就是这个模型，更新当前模型配置
+      if (currentModelConfig && currentModelConfig.modelType === model) {
+        const updatedConfig: ModelConfig = {
+          ...currentModelConfig,
+          apiKey: apiKey,
+        };
+
+        setCurrentModelConfig(updatedConfig);
+        console.log(`已更新当前模型配置的API密钥`, updatedConfig);
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`更新模型API密钥失败:`, error);
+      return false;
+    }
   };
 
   return {

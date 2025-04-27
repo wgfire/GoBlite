@@ -13,7 +13,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isSending, p
     <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
       {messages.map((message) => (
         <div key={message.id} className={`flex ${message.role === MessageRole.USER ? "justify-end" : "justify-start"}`}>
-          <div className={`max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200"}`}>
+          <div className={`break-words max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200"}`}>
             {message.role === MessageRole.ASSISTANT ? (
               <AIResponseContent text={message.content} parseContent={parseAIResponse} />
             ) : (

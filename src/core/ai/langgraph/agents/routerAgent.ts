@@ -1,11 +1,13 @@
 // 从"@langchain/langgraph/web"导入必要的组件
 import { END, START, StateGraph, Annotation, messagesStateReducer, MemorySaver } from "@langchain/langgraph/web";
-import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
+import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { type RunnableConfig } from "@langchain/core/runnables";
-import { ModelFactory } from "../../langchain/models/modelFactory";
 import { z } from "zod";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { createTemplateAgent } from "./templateAgent";
+import { getRouterAnalysisPrompt } from "../prompts/routerPrompts";
+import { getGeneralChatPrompt } from "../prompts/generalChatPrompts";
+import { invokeModel } from "../utils/modelUtils";
 
 // 定义意图类型
 export enum IntentType {
@@ -74,6 +76,14 @@ const RouterState = Annotation.Root({
   generatedCode: Annotation<string | null>({
     reducer: (_, y) => y,
   }),
+  /**初始化标记，用于标识是否是初始化调用 */
+  isInitializing: Annotation<boolean>({
+    reducer: (_, y) => y,
+  }),
+  /**标记是否已经有回复，避免重复调用大模型 */
+  hasResponse: Annotation<boolean>({
+    reducer: (_, y) => y,
+  }),
 });
 
 export type RouterStateType = typeof RouterState.State;
@@ -83,6 +93,16 @@ export type RouterStateType = typeof RouterState.State;
  * 处理用户输入并添加到消息历史
  */
 const userInputNode = async (state: RouterStateType) => {
+  // 检查是否是初始化调用
+  if (state.isInitializing === true) {
+    console.log("userInputNode 检测到初始化调用，跳过消息处理");
+    // 返回当前状态，但设置标记表明这是初始化调用
+    return {
+      ...state,
+      isInitializing: true,
+    };
+  }
+
   // 获取用户输入
   const userInput = state.userInput;
   console.log(`userInputNode 收到输入: ${userInput ? `"${userInput}"` : "无输入"}`);
@@ -109,6 +129,7 @@ const userInputNode = async (state: RouterStateType) => {
   return {
     messages: updatedMessages,
     userInput: null, // 清空用户输入，防止重复处理
+    isInitializing: false, // 确保初始化标记被清除
   };
 };
 
@@ -119,6 +140,7 @@ const userInputNode = async (state: RouterStateType) => {
 const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfig) => {
   // 获取消息历史
   const messages = state.messages;
+  console.log(messages, "历史消息");
 
   // 如果没有消息，返回空结果
   if (!messages || messages.length === 0) {
@@ -130,19 +152,6 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
   }
 
   try {
-    // 使用ModelFactory创建模型
-    const modelConfigStr = localStorage.getItem("ai_current_model");
-    const modelConfig = modelConfigStr ? JSON.parse(modelConfigStr) : {};
-    const model = ModelFactory.createModel(modelConfig);
-
-    if (!model) {
-      console.error("routerAnalysisNode 无法创建模型，返回错误消息");
-      return {
-        error: "无法创建 AI 模型",
-        next: "generalChat", // 默认到通用对话
-      };
-    }
-
     // 创建结构化输出解析器
     const parser = StructuredOutputParser.fromZodSchema(routerOutputSchema);
 
@@ -155,35 +164,35 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
       };
     }
 
-    // 创建系统提示
-    const systemPrompt = new SystemMessage(
-      `你是一个意图分析专家，负责分析用户输入并确定他们想要执行的操作。
-      可能的意图有：
-      - template_creation: 用户想要基于模板创建代码
-      - template_query: 用户想要查询模板信息
-      - document_analysis: 用户想要分析上传的文档
-      - image_analysis: 用户想要分析上传的图片
-      - general_chat: 用户想要进行一般对话
-      如果是一般对话的意图，你是一个专业的前端开发和网页设计师，能够回答用户相关的前端问题和设计页面问题，其他问题回复不知道即可
-      ${parser.getFormatInstructions()}`
-    );
-
     // 过滤掉错误消息后再发送给模型
     const filteredMessages = filterMessages(messages);
+    const limitedMessages = filteredMessages.slice(-10); // 只取最近的10条消息，避免上下文过长
 
-    // 准备发送给模型的消息
-    const promptMessages = [
-      systemPrompt,
-      ...filteredMessages.slice(-5), // 只取最近的5条消息，避免上下文过长
-    ];
-
-    // 调用模型
-    const response = await model.invoke(promptMessages, config);
+    // 使用工具函数调用模型
+    const response = await invokeModel(limitedMessages, getRouterAnalysisPrompt(parser.getFormatInstructions()), config);
 
     // 解析结构化输出
     const parsedOutput = await parser.parse(typeof response.content === "string" ? response.content : JSON.stringify(response.content));
     console.log("路由分析结果:", parsedOutput);
 
+    // 如果是一般对话，直接将分析结果中的内容作为AI回复添加到消息历史
+    if (parsedOutput.intent === IntentType.GENERAL_CHAT) {
+      console.log("检测到一般对话意图，直接使用分析结果中的内容作为回复");
+
+      // 创建AI回复消息
+      const responseMessage = new AIMessage({
+        content: parsedOutput.content,
+      });
+
+      return {
+        routerAnalysis: parsedOutput,
+        messages: [...messages, responseMessage],
+        // 设置标记，表示已经有回复，避免generalChatNode再次调用大模型
+        hasResponse: true,
+      };
+    }
+
+    // 其他意图正常返回
     return {
       routerAnalysis: parsedOutput,
       messages: [...messages],
@@ -302,7 +311,7 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
  * 处理一般对话请求
  */
 const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) => {
-  console.log(`[RouterAgent] generalChatNode 开始处理一般对话请求`,state.messages);
+  console.log(`[RouterAgent] generalChatNode 开始处理一般对话请求`, state.messages);
 
   // 获取消息历史
   const messages = state.messages;
@@ -313,38 +322,14 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
   }
 
   try {
-    // 使用ModelFactory创建模型
-    const modelConfigStr = localStorage.getItem("ai_current_model");
-    const modelConfig = modelConfigStr ? JSON.parse(modelConfigStr) : {};
-    const model = ModelFactory.createModel(modelConfig);
-
-    if (!model) {
-      console.error(`[RouterAgent] generalChatNode 无法创建模型，返回错误消息`);
-      return {
-        error: "无法创建 AI 模型",
-      };
-    }
-
-    // 创建系统提示
-    const systemPrompt = new SystemMessage(
-      `你是一个专业的前端开发和网页设计师，能够回答用户相关的前端问题和设计页面问题。
-      你应该提供清晰、准确、有用的信息，并尽量包含代码示例或具体建议。
-      如果用户提出的问题与前端开发或网页设计无关，请礼谐地说明你只能回答相关领域的问题。`
-    );
-
     // 过滤掉错误消息后再发送给模型
     const filteredMessages = filterMessages(messages);
     console.log(` generalChatNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
+    const limitedMessages = filteredMessages.slice(-10); // 只取最近10条消息，避免上下文过长
 
-    // 准备发送给模型的消息
-    const promptMessages = [
-      systemPrompt,
-      ...filteredMessages.slice(-10), // 只取最近10条消息，避免上下文过长
-    ];
-
-    // 调用模型
+    // 使用工具函数调用模型
     console.log(`[RouterAgent] generalChatNode 调用模型处理对话`);
-    const response = await model.invoke(promptMessages, config);
+    const response = await invokeModel(limitedMessages, getGeneralChatPrompt(), config);
 
     // 创建AI回复消息
     const responseMessage = new AIMessage({
@@ -371,8 +356,6 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
 
 /**
  * 创建带有路由功能的代理
- *
- * 注意：此函数仅创建代理的结构，不会执行任何节点
  * 实际的节点执行将在首次调用app.invoke()时发生
  */
 export function createRouterAgent() {
@@ -389,9 +372,35 @@ export function createRouterAgent() {
       .addNode("routerDecision", routerDecisionNode)
       .addNode("templateCreation", templateAgentNode)
       .addNode("generalChat", generalChatNode)
+      .addNode("resetInitializing", () => {
+        return { isInitializing: false };
+      })
       .addEdge(START, "processUserInput") // 从开始到用户输入
-      .addEdge("processUserInput", "analysis") // 从用户输入到路由分析
-      .addEdge("analysis", "routerDecision") // 从路由分析到路由决策
+      // 添加条件边，检查是否是初始化调用
+      .addConditionalEdges(
+        "processUserInput",
+        (state) => {
+          // 如果是初始化调用，直接跳到结束
+          if (state.isInitializing === true) {
+            console.log("检测到初始化调用，直接跳到结束");
+            return "resetInitializing";
+          }
+          // 否则继续正常流程
+          return "analysis";
+        },
+        {
+          resetInitializing: "resetInitializing",
+          analysis: "analysis", // 正常流程继续分析
+        }
+      )
+
+      .addEdge("resetInitializing", END)
+      .addConditionalEdges("analysis", (state) => {
+        if (state.hasResponse === true) {
+          return END;
+        }
+        return "routerDecision";
+      })
       .addConditionalEdges("routerDecision", (state) => state.next || "generalChat", {
         templateCreation: "templateCreation",
         generalChat: "generalChat",

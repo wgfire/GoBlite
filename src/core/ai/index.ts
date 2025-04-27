@@ -15,12 +15,12 @@ export * from "./atoms/memoryAtoms";
 export * from "./utils/messageFormatter";
 export * from "./utils/responseParser";
 
-// 导出 LangChain 集成
-export * from "./langchain/models";
-export * from "./langchain/memory";
-export * from "./langchain/chains";
-export * from "./langchain/documents";
-export * from "./langchain/retrievers";
+// // 导出 LangChain 集成
+// export * from "./langchain/models";
+// export * from "./langchain/memory";
+// export * from "./langchain/chains";
+// export * from "./langchain/documents";
+// export * from "./langchain/retrievers";
 
 // 导出新钩子
 export * from "./hooks";
