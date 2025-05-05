@@ -163,6 +163,29 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
         next: "generalChat", // 默认到通用对话
       };
     }
+    
+    // 检查是否有模板上下文
+    const hasTemplateContext = state.templateContext !== null;
+    console.log(`[RouterAgent] routerAnalysisNode 是否有模板上下文: ${hasTemplateContext}`);
+    
+    // 初始化意图覆盖变量
+    let intentOverride = null;
+    let nextOverride = null;
+    
+    // 如果有模板上下文，检查是否是模板相关的问题
+    if (hasTemplateContext) {
+      const userContent = typeof lastUserMessage.content === 'string' 
+        ? lastUserMessage.content 
+        : JSON.stringify(lastUserMessage.content);
+      
+      // 简单判断是否是模板相关的问题
+      if (userContent.includes('模板') || userContent.includes('代码') || 
+          userContent.includes('文件') || userContent.includes('实现')) {
+        intentOverride = IntentType.TEMPLATE_QUERY;
+        nextOverride = 'templateCreation';
+        console.log(`[RouterAgent] 检测到模板相关问题，覆盖意图为: ${intentOverride}`);
+      }
+    }
 
     // 过滤掉错误消息后再发送给模型
     const filteredMessages = filterMessages(messages);
@@ -174,9 +197,16 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
     // 解析结构化输出
     const parsedOutput = await parser.parse(typeof response.content === "string" ? response.content : JSON.stringify(response.content));
     console.log("路由分析结果:", parsedOutput);
+    
+    // 如果有意图覆盖，应用它
+    if (intentOverride) {
+      parsedOutput.intent = intentOverride;
+      parsedOutput.next = nextOverride || parsedOutput.next;
+      console.log(`[RouterAgent] 应用意图覆盖: ${intentOverride}, 下一步: ${parsedOutput.next}`);
+    }
 
     // 如果是一般对话，直接将分析结果中的内容作为AI回复添加到消息历史
-    if (parsedOutput.intent === IntentType.GENERAL_CHAT) {
+    if (parsedOutput.intent === IntentType.GENERAL_CHAT && !intentOverride) {
       console.log("检测到一般对话意图，直接使用分析结果中的内容作为回复");
 
       // 创建AI回复消息
@@ -196,6 +226,7 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
     return {
       routerAnalysis: parsedOutput,
       messages: [...messages],
+      next: nextOverride || parsedOutput.next,
     };
   } catch (error) {
     console.error("routerAnalysisNode 处理失败:", error);
@@ -241,10 +272,10 @@ const routerDecisionNode = async (state: RouterStateType) => {
 
 /**
  * 模板代理处理节点
- * 处理模板创建请求
+ * 处理模板创建请求和模板查询请求
  */
 const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig) => {
-  console.log(`[RouterAgent] templateAgentNode 开始处理模板创建请求`);
+  console.log(`[RouterAgent] templateAgentNode 开始处理模板相关请求`);
 
   // 获取消息历史和模板上下文
   const messages = state.messages;
@@ -254,18 +285,39 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
   if (!messages || messages.length === 0) {
     console.log(`[RouterAgent] templateAgentNode 没有消息历史，返回错误`);
     return {
-      error: "没有消息历史，无法处理模板创建请求",
+      error: "没有消息历史，无法处理模板相关请求",
+    };
+  }
+  
+  // 检查是否有模板上下文
+  if (!templateContext) {
+    console.log(`[RouterAgent] templateAgentNode 没有模板上下文，返回错误`);
+    const errorMessage = new AIMessage({
+      content: `请先选择一个模板，然后再进行模板相关的操作。`,
+    });
+    return {
+      error: "没有模板上下文，请先选择模板",
+      messages: [...messages, errorMessage],
     };
   }
 
   try {
+    // 过滤掉错误消息后再发送给模型
+    const filteredMessages = filterMessages(messages);
+    const limitedMessages = filteredMessages.slice(-10); // 只取最近的10条消息
+    
+    // 获取模板文档信息
+    const templateDocuments = templateContext.documents || [];
+    console.log(`[RouterAgent] templateAgentNode 模板文档数量: ${templateDocuments.length}`);
+   
+    
     // 创建模板代理
     console.log(`[RouterAgent] 创建模板代理`);
     const templateAgent = createTemplateAgent();
 
     // 准备模板代理的初始状态
     const templateAgentState = {
-      messages: messages, // 只取最近的10条消息,
+      messages: limitedMessages,
       userInput: state.userInput,
       templateContext: templateContext,
       templateParams: null,
@@ -294,13 +346,13 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
   } catch (error) {
     console.error(`[RouterAgent] templateAgentNode 处理失败:`, error);
     const errorMessage = new AIMessage({
-      content: `模板创建失败: ${error instanceof Error ? error.message : String(error)}`,
+      content: `处理模板请求失败: ${error instanceof Error ? error.message : String(error)}`,
     });
     errorMessage.additional_kwargs = {
       metadata: { isError: true },
     };
     return {
-      error: `模板创建失败: ${error instanceof Error ? error.message : String(error)}`,
+      error: `处理模板请求失败: ${error instanceof Error ? error.message : String(error)}`,
       messages: [...messages, errorMessage],
     };
   }
@@ -326,10 +378,28 @@ const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) 
     const filteredMessages = filterMessages(messages);
     console.log(` generalChatNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
     const limitedMessages = filteredMessages.slice(-10); // 只取最近10条消息，避免上下文过长
+    
+    // 检查是否有模板上下文
+    const hasTemplateContext = state.templateContext !== null;
+    console.log(`[RouterAgent] generalChatNode 是否有模板上下文: ${hasTemplateContext}`);
+    
+    // 准备提示词
+    let prompt = getGeneralChatPrompt();
+    
+    // 如果有模板上下文，添加模板信息到提示词
+    if (hasTemplateContext && state.templateContext) {
+      const templateInfo = state.templateContext.template ? 
+        `模板名称: ${state.templateContext.template.name}\n模板描述: ${state.templateContext.template.description || '无描述'}` : 
+        '有模板上下文但缺少模板信息';
+      
+      // 扩展提示词，添加模板信息
+      prompt = `${prompt}\n\n当前已加载模板信息:\n${templateInfo}\n\n请在回答用户问题时考虑这个模板的上下文。`;
+      console.log(`[RouterAgent] generalChatNode 添加了模板信息到提示词`);
+    }
 
     // 使用工具函数调用模型
     console.log(`[RouterAgent] generalChatNode 调用模型处理对话`);
-    const response = await invokeModel(limitedMessages, getGeneralChatPrompt(), config);
+    const response = await invokeModel(limitedMessages, prompt, config);
 
     // 创建AI回复消息
     const responseMessage = new AIMessage({

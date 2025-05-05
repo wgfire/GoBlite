@@ -9,8 +9,9 @@ import { selectedTemplateAtom, showTemplateFormAtom, templateErrorAtom, template
 import { useTemplate } from "@/template/useTemplate";
 import { TemplateService } from "@/template/templateService";
 import { toast } from "@/components/ui/use-toast";
-import { Message } from "../types";
+import { Message, MessageRole } from "@core/ai/types";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
+import { useLangChainDoc } from "@/core/ai/hooks/useLangChainDoc";
 
 export const useTemplates = () => {
   // 使用jotai原子状态
@@ -22,22 +23,28 @@ export const useTemplates = () => {
   // 使用useMemo创建templateService，避免每次渲染都创建新实例
   const templateService = useMemo(() => new TemplateService(), []);
   const { loadTemplateContent } = useTemplate(templateService);
+  
+  // 使用LangChain处理模板内容
+  const { loadTemplateDocuments, clearTemplateContext: clearLangChainContext } = useLangChainDoc();
 
   /**
    * 选择模板
    * @param template 选择的模板
-   * @returns 包含系统消息的数组
+   * @returns 包含模板相关消息的数组，用于在Chat组件中显示
    */
   const handleTemplateSelect = useMemoizedFn(async (template: Template): Promise<Message[]> => {
     try {
+      // 切换模板前清空之前的上下文
+      clearLangChainContext();
+      
       setSelectedTemplate(template);
       setTemplateError(null);
 
       // 创建模板选择消息
       const templateSelectMessage: Message = {
         id: crypto.randomUUID(),
-        sender: "system",
-        text: `已选择模板: ${template.name}\n${template.description || ""}`,
+        role: MessageRole.ASSISTANT,
+        content: `已选择模板: ${template.name}\n${template.description || ""}`,
         timestamp: Date.now(),
       };
 
@@ -45,17 +52,26 @@ export const useTemplates = () => {
       const loadResult = await loadTemplateContent(template.id);
 
       if (loadResult.success && loadResult.files) {
+        // 使用LangChain处理模板内容
+        const langChainResult = await loadTemplateDocuments(template, loadResult.files);
+        
         // 创建助手消息
         const aiMessage: Message = {
           id: crypto.randomUUID(),
-          sender: "ai",
-          text: `我已经加载了 ${template.name} 模板的代码。请描述您对这个模板的优化需求，我将根据您的需求生成优化后的代码。`,
+          role: MessageRole.ASSISTANT,
+          content: `我已经加载了 ${template.name} 模板的代码。请描述您对这个模板的需求，我将根据您的需求提供帮助。`,
           timestamp: Date.now(),
         };
+        
+        // 更新模板上下文，包含LangChain处理结果
         setTemplateContext({
           loadResult: loadResult,
+          langChainResult: langChainResult,
+          documents: langChainResult.success ? langChainResult.documents : [],
+          template: template
         });
 
+        // 返回消息数组，由Chat组件负责将这些消息添加到会话中
         return [templateSelectMessage, aiMessage];
       } else {
         setShowTemplateForm(false);
@@ -76,8 +92,8 @@ export const useTemplates = () => {
       return [
         {
           id: crypto.randomUUID(),
-          sender: "system",
-          text: `加载模板失败: ${error instanceof Error ? error.message : "未知错误"}`,
+          role: MessageRole.ASSISTANT,
+          content: `加载模板失败: ${error instanceof Error ? error.message : "未知错误"}`,
           timestamp: Date.now(),
         },
       ];
@@ -114,6 +130,17 @@ export const useTemplates = () => {
     setSelectedTemplate(null);
   }, [setShowTemplateForm, setSelectedTemplate]);
 
+  /**
+   * 清空模板上下文
+   * 在切换模板或重置状态时调用
+   */
+  const clearTemplateContext = useCallback(() => {
+    clearLangChainContext();
+    setTemplateContext(null);
+    setSelectedTemplate(null);
+    return { success: true };
+  }, [clearLangChainContext, setTemplateContext, setSelectedTemplate]);
+  
   return {
     // 状态
     selectedTemplate,
@@ -129,5 +156,6 @@ export const useTemplates = () => {
     handleTemplateSelect,
     handleTemplateFormSubmit,
     handleTemplateFormClose,
+    clearTemplateContext,
   };
 };

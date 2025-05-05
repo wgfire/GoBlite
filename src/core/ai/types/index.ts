@@ -116,6 +116,23 @@ export interface ModelConfig {
   /** 基础URL */
   baseUrl?: string;
 }
+// 添加元数据类型
+export interface MessageMetadata {
+  // 如果消息包含生成的代码
+  generatedCode?: {
+    files: GeneratedFile[];
+    appliedToFileSystem?: boolean;
+    appliedAt?: number;
+  };
+  // 如果消息是模板选择
+  templateSelection?: {
+    templateId: string;
+    templateName: string;
+    selectedAt: number;
+  };
+  // 其他元数据...
+  isError?: boolean;
+}
 
 // 消息接口
 export interface Message {
@@ -128,9 +145,7 @@ export interface Message {
   /** 时间戳 */
   timestamp: number;
   /** 元数据 */
-  metadata?: {
-    isError?: boolean;
-  };
+  metadata?: MessageMetadata;
 }
 
 // 对话接口
@@ -148,7 +163,7 @@ export interface Conversation {
   /** 更新时间 */
   updatedAt: number;
   /** 元数据 */
-  metadata?: Record<string, any>;
+  metadata?: MessageMetadata;
 }
 
 // 对话信息接口
@@ -337,35 +352,6 @@ export interface ImageGenerationOptions extends AIRequestOptions {
 export interface ImageGenerationResult extends AIResponse {
   /** 图像URL */
   imageUrl?: string;
-}
-
-// 模板处理参数接口
-export interface TemplateProcessingParams {
-  /** 模板ID */
-  templateId: string;
-  /** 表单数据 */
-  formData: Record<string, any>;
-  /** 业务上下文 */
-  businessContext?: string;
-}
-
-// 模板处理选项
-export interface TemplateProcessOptions extends AIRequestOptions {
-  /** 模板ID */
-  templateId: string;
-  /** 模板数据 */
-  templateData: Record<string, any>;
-  /** 业务上下文 */
-  businessContext?: {
-    /** 行业 */
-    industry?: string;
-    /** 业务目标 */
-    businessGoal?: string;
-    /** 目标受众 */
-    targetAudience?: string;
-    /** 设计风格 */
-    designStyle?: string;
-  };
 }
 
 // 模板处理结果接口

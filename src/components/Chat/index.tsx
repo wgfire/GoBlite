@@ -10,11 +10,12 @@ import { TemplateForm } from "../TemplateForm";
 import { ServiceStatus, useModelConfig } from "@/core/ai";
 import { FiChevronLeft, FiChevronRight, FiMessageSquare, FiSettings } from "react-icons/fi";
 import "./Chat.css";
-import { useChatAgent } from "@/core/ai/langgraph";
+import { useChatAgent, useConversation } from "@/core/ai/langgraph";
 import { HeaderTab } from "./types";
 import { useFiles } from "./hooks/useFiles";
 import { useTemplates } from "./hooks/useTemplates";
 import { parseAIResponse } from "@/core/ai";
+import { Template } from "@/template/types";
 interface ChatProps {
   onCollapseChange?: () => void;
   isCollapsed: boolean;
@@ -29,9 +30,42 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
   const { setUploadedFiles, uploadedFiles } = useFiles();
   const { showTemplateForm, selectedTemplate, handleTemplateFormSubmit, handleTemplateSelect, handleTemplateFormClose } = useTemplates();
   const { messages, isLoading: isSending, sendMessage, handleCancelRequest } = useChatAgent();
+  const conversation = useConversation();
 
   // Ref to store the current width before collapsing
   const chatRef = useRef<HTMLDivElement>(null);
+
+  const onTemplateSelect = async (template: Template) => {
+    // 处理模板选择，获取生成的消息
+    const templateMessages = await handleTemplateSelect(template);
+
+    // 将模板消息添加到聊天会话
+    if (templateMessages && templateMessages.length > 0) {
+      // 确保有当前会话
+      const activeConversationId = conversation?.currentConversationId;
+      if (!activeConversationId) {
+        // 如果没有当前会话，创建一个新会话
+        const result = await conversation?.createConversation(`模板: ${template.name}`);
+        if (result) {
+          // 使用新创建的会话 ID
+          for (const msg of templateMessages) {
+            await conversation?.addMessage({
+              message: msg,
+              conversationId: result.newConversationId
+            });
+          }
+        }
+      } else {
+        // 使用当前会话 ID
+        for (const msg of templateMessages) {
+          await conversation?.addMessage({
+            message: msg,
+            conversationId: activeConversationId
+          });
+        }
+      }
+    }
+  }
 
   return (
     <motion.div
@@ -49,16 +83,14 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
         ease: "easeInOut",
         duration: 0.3,
       }}
-      className={`flex flex-col bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative ${
-        isCollapsed ? "rounded-r-lg overflow-hidden chat-collapsed" : "h-full"
-      }`}
+      className={`flex flex-col bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative ${isCollapsed ? "rounded-r-lg overflow-hidden chat-collapsed" : "h-full"
+        }`}
     >
       {/* Collapse/Expand button */}
       <motion.button
         onClick={onCollapseChange}
-        className={`absolute z-20 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 transition-colors ${
-          isCollapsed ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4"
-        }`}
+        className={`absolute z-20 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 transition-colors ${isCollapsed ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4"
+          }`}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         title={isCollapsed ? "展开聊天" : "收起聊天"}
@@ -109,7 +141,13 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader onTemplateSelect={handleTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
+              <ChatHeader
+                onTemplateSelect={onTemplateSelect}
+                selectedTemplate={selectedTemplate}
+                isMobile={false}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+              />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || ServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>

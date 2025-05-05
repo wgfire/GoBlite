@@ -7,6 +7,7 @@
  */
 import { atom } from "jotai";
 import { Template, TemplateLoadResult } from "@/template/types";
+import { DocumentLoadResult } from "@/core/ai";
 
 // 当前选中的模板
 export const selectedTemplateAtom = atom<Template | null>(null);
@@ -21,4 +22,10 @@ export const isProcessingTemplateAtom = atom<boolean>(false);
 export const templateErrorAtom = atom<string | null>(null);
 
 // 加载的模板内容 包含文件和表单信息
-export const templateContextAtom = atom<{ loadResult: TemplateLoadResult; formData?: Record<string, unknown> } | null>(null);
+export const templateContextAtom = atom<{
+  loadResult: TemplateLoadResult;
+  formData?: Record<string, unknown>;
+  langChainResult?: DocumentLoadResult;
+  documents?: any[];
+  template?: Template;
+} | null>(null);

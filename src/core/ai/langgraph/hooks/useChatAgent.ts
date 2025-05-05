@@ -6,6 +6,8 @@ import { useModelConfig } from "../../hooks/useModelConfig";
 import { RouterStateType } from "../agents/routerAgent";
 import { useConversation } from "./useConversation";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
+import { useAtomValue } from "jotai";
+import { templateContextAtom } from "@/components/Chat/atoms/templateAtom";
 
 // Hook选项
 export interface UseAgentChatOptions {
@@ -42,6 +44,9 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
 
   // 使用useConversation hook管理会话
   const conversation = useConversation();
+  
+  // 获取模板上下文
+  const templateContext = useAtomValue(templateContextAtom);
 
   // 代理状态
   const [agent, setAgent] = useState<ReturnType<typeof createRouterAgent> | null>(null);
@@ -212,9 +217,11 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
       // 准备调用代理的参数
       const invokeParams = {
         userInput: content,
-        // 如果有模板上下文，保留它
-        templateContext: { path: "", content: "" },
+        // 传递模板上下文给大模型
+        templateContext: templateContext || null,
       };
+      
+      console.log("发送消息时的模板上下文:", templateContext);
 
       const result = await agent?.app.invoke(invokeParams, config);
 
@@ -290,6 +297,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
     isLoading,
     error,
     messages: conversation.currentMessages,
+    templateContext,
 
     // 方法
     sendMessage,
@@ -298,6 +306,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
     // 原始对象
     agent,
     currentState,
+    conversation,
   };
 }
 
