@@ -41,6 +41,7 @@ export function useLangChainDoc() {
           if (file.type === FileItemType.FILE && file.content) {
             // 创建文档对象
             const doc = new Document({
+              id: file.path,
               pageContent: file.content,
               metadata: {
                 path: file.path,

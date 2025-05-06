@@ -44,7 +44,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
 
   // 使用useConversation hook管理会话
   const conversation = useConversation();
-  
+
   // 获取模板上下文
   const templateContext = useAtomValue(templateContextAtom);
 
@@ -205,6 +205,9 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
         message: {
           role: MessageRole.USER,
           content,
+          metadata: {
+            timestamp: Date.now(),
+          }
         },
         conversationId: activeConversationId,
       });
@@ -220,7 +223,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
         // 传递模板上下文给大模型
         templateContext: templateContext || null,
       };
-      
+
       console.log("发送消息时的模板上下文:", templateContext);
 
       const result = await agent?.app.invoke(invokeParams, config);
@@ -242,6 +245,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
         content: responseText,
         metadata: {
           isError: metadata?.isError,
+          timestamp: Date.now(),
         },
       };
       const assistantMessageId = await conversation.addMessage({ message: addMessage, conversationId: activeConversationId });
@@ -259,6 +263,10 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
       if (activeConversationId) {
         await conversation.addMessage({
           message: {
+            metadata: {
+              isError: true,
+              timestamp: Date.now(),
+            },
             role: MessageRole.SYSTEM,
             content: `发送消息失败: ${err instanceof Error ? err.message : "未知错误"}`,
           },

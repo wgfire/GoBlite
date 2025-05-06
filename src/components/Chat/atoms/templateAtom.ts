@@ -24,8 +24,6 @@ export const templateErrorAtom = atom<string | null>(null);
 // 加载的模板内容 包含文件和表单信息
 export const templateContextAtom = atom<{
   loadResult: TemplateLoadResult;
-  formData?: Record<string, unknown>;
   langChainResult?: DocumentLoadResult;
-  documents?: any[];
   template?: Template;
 } | null>(null);

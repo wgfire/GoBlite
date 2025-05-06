@@ -128,8 +128,10 @@ export interface MessageMetadata {
   templateSelection?: {
     templateId: string;
     templateName: string;
-    selectedAt: number;
+    document: any;
   };
+  /** 时间戳 */
+  timestamp: number;
   // 其他元数据...
   isError?: boolean;
 }
@@ -142,10 +144,8 @@ export interface Message {
   role: MessageRole;
   /** 内容 */
   content: string;
-  /** 时间戳 */
-  timestamp: number;
   /** 元数据 */
-  metadata?: MessageMetadata;
+  metadata: MessageMetadata;
 }
 
 // 对话接口
@@ -163,7 +163,7 @@ export interface Conversation {
   /** 更新时间 */
   updatedAt: number;
   /** 元数据 */
-  metadata?: MessageMetadata;
+  metadata: MessageMetadata;
 }
 
 // 对话信息接口

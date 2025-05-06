@@ -23,7 +23,7 @@ export const useTemplates = () => {
   // 使用useMemo创建templateService，避免每次渲染都创建新实例
   const templateService = useMemo(() => new TemplateService(), []);
   const { loadTemplateContent } = useTemplate(templateService);
-  
+
   // 使用LangChain处理模板内容
   const { loadTemplateDocuments, clearTemplateContext: clearLangChainContext } = useLangChainDoc();
 
@@ -36,7 +36,7 @@ export const useTemplates = () => {
     try {
       // 切换模板前清空之前的上下文
       clearLangChainContext();
-      
+
       setSelectedTemplate(template);
       setTemplateError(null);
 
@@ -45,7 +45,9 @@ export const useTemplates = () => {
         id: crypto.randomUUID(),
         role: MessageRole.ASSISTANT,
         content: `已选择模板: ${template.name}\n${template.description || ""}`,
-        timestamp: Date.now(),
+        metadata: {
+          timestamp: Date.now(),
+        }
       };
 
       // 使用useTemplate钩子加载模板内容
@@ -54,22 +56,28 @@ export const useTemplates = () => {
       if (loadResult.success && loadResult.files) {
         // 使用LangChain处理模板内容
         const langChainResult = await loadTemplateDocuments(template, loadResult.files);
-        
+
         // 创建助手消息
         const aiMessage: Message = {
           id: crypto.randomUUID(),
           role: MessageRole.ASSISTANT,
           content: `我已经加载了 ${template.name} 模板的代码。请描述您对这个模板的需求，我将根据您的需求提供帮助。`,
-          timestamp: Date.now(),
+          metadata: {
+            timestamp: Date.now(),
+          }
         };
-        
+
         // 更新模板上下文，包含LangChain处理结果
         setTemplateContext({
           loadResult: loadResult,
           langChainResult: langChainResult,
-          documents: langChainResult.success ? langChainResult.documents : [],
           template: template
         });
+        aiMessage.metadata.templateSelection = {
+          templateId: template.id,
+          templateName: template.name,
+          document: langChainResult
+        }
 
         // 返回消息数组，由Chat组件负责将这些消息添加到会话中
         return [templateSelectMessage, aiMessage];
@@ -94,7 +102,9 @@ export const useTemplates = () => {
           id: crypto.randomUUID(),
           role: MessageRole.ASSISTANT,
           content: `加载模板失败: ${error instanceof Error ? error.message : "未知错误"}`,
-          timestamp: Date.now(),
+          metadata: {
+            timestamp: Date.now(),
+          }
         },
       ];
     }
@@ -140,7 +150,7 @@ export const useTemplates = () => {
     setSelectedTemplate(null);
     return { success: true };
   }, [clearLangChainContext, setTemplateContext, setSelectedTemplate]);
-  
+
   return {
     // 状态
     selectedTemplate,
