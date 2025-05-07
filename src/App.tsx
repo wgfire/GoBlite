@@ -19,7 +19,6 @@ import Chat from "./components/Chat";
 import { logDebug } from "./utils/logDebug";
 import useMemoizedFn from "@/hooks/useMemoizedFn"; // Import the custom hook
 import { useViewAtom } from "@/hooks/useViewAtom";
-import AgentChatExample from "./components/Chat/AgentChatExample";
 
 // 创建模板服务实例
 

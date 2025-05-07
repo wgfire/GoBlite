@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 // import { FiImage, FiFile, FiX } from "react-icons/fi";
 import { AIResponseContent } from "./AIResponseHandler";
 import { AIMessageContent, Message, MessageRole } from "@/core/ai/types";
@@ -9,8 +10,16 @@ interface MessageListProps {
 }
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, isSending, parseAIResponse }) => {
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollTop = messagesEndRef.current.scrollHeight;
+    }
+  }, [messages]); 
+
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800" ref={messagesEndRef}>
       {messages.map((message) => (
         <div key={message.id} className={`flex ${message.role === MessageRole.USER ? "justify-end" : "justify-start"}`}>
           <div className={`break-words max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg p-3 ${message.role === "user" ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-200"}`}>
