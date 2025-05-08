@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 /**
  * 解析器工具函数
  */
@@ -245,77 +246,142 @@ export function nodeBasicStyleToCss(node: SceneNode): Partial<CSSProperties> {
  * 将CSS样式对象转换为内联样式字符串
  */
 export function styleObjectToString(style: CSSProperties): string {
-  return Object.entries(style)
-    .map(([key, value]) => `${key}: ${value};`)
-    .join(" ");
+  try {
+    // 验证样式对象
+    if (!style || typeof style !== "object") {
+      return "";
+    }
+
+    return Object.entries(style)
+      .filter(([key, value]) => {
+        // 过滤无效的样式属性
+        return key && value !== undefined && value !== null && value !== "" && typeof key === "string";
+      })
+      .map(([key, value]) => {
+        // 安全地处理样式值
+        const safeValue =
+          typeof value === "string"
+            ? value.replace(/"/g, "'") // 将双引号替换为单引号
+            : String(value);
+        return `${key}: ${safeValue};`;
+      })
+      .join(" ");
+  } catch (error) {
+    console.error("处理样式对象时出错:", error);
+    return "";
+  }
 }
 
 /**
  * 将解析后的节点转换为HTML字符串
  */
 export function jsonToHtml(node: ParsedNode, options: HTMLConvertOptions = {}): string {
-  const { inlineStyles = true, prettify = false, includeComments = false } = options;
+  try {
+    // 验证输入节点
+    if (!node || typeof node !== "object") {
+      console.error("无效的解析节点:", node);
+      return '<div class="parse-error">无效的解析节点</div>';
+    }
 
-  // 创建HTML元素
-  let tagName = "div";
-  if (node.type === "TEXT") {
-    tagName = "p";
-  } else if (node.type === "IMAGE") {
-    tagName = "img";
+    // 安全地解构选项
+    const { inlineStyles = true, prettify = false, includeComments = false } = options || {};
+
+    // 确保节点有必要的属性
+    const safeNode: ParsedNode = {
+      style: node.style || {},
+      children: Array.isArray(node.children) ? node.children : [],
+      ...node
+    };
+
+    // 安全地确定标签名
+    let tagName = safeNode.tag || "div";
+    if (safeNode.type === "TEXT" && !safeNode.tag) {
+      tagName = "p";
+    } else if (safeNode.type === "IMAGE" && !safeNode.tag) {
+      tagName = "img";
+    }
+
+    // 处理属性
+    const attributes: string[] = [];
+
+    // 添加类名
+    if (safeNode.className) {
+      attributes.push(`class="${safeNode.className}"`);
+    }
+
+    // 添加ID
+    attributes.push(`id="${safeNode.id}"`);
+
+    // 添加内联样式
+    if (inlineStyles && safeNode.style && typeof safeNode.style === "object") {
+      try {
+        attributes.push(`style="${styleObjectToString(safeNode.style)}"`);
+      } catch (styleError) {
+        console.error("处理样式时出错:", styleError);
+        // 出错时使用空样式
+        attributes.push('style=""');
+      }
+    }
+
+    // 处理特殊属性
+    if (safeNode.type === "IMAGE") {
+      if ("src" in safeNode && safeNode.src) {
+        attributes.push(`src="${safeNode.src}"`);
+      } else {
+        attributes.push(
+          `src="data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24'/>"`
+        );
+      }
+      attributes.push(`alt="${safeNode.name || "image"}"`);
+    }
+
+    // 生成HTML标签
+    const indent = prettify ? "  " : "";
+    const newline = prettify ? "\n" : "";
+
+    // 添加注释
+    const comment = includeComments ? `<!-- Figma ${safeNode.type}: ${safeNode.name || "unnamed"} -->${newline}` : "";
+
+    // 处理自闭合标签
+    if (tagName === "img") {
+      return `${comment}${indent}<${tagName} ${attributes.join(" ")} />`;
+    }
+
+    // 处理文本内容
+    let content = "";
+    if (safeNode.type === "TEXT" && "characters" in safeNode && typeof safeNode.characters === "string") {
+      content = safeNode.characters;
+    }
+
+    // 处理子节点
+    if (Array.isArray(safeNode.children) && safeNode.children.length > 0) {
+      try {
+        const childrenHtml = safeNode.children
+          .filter(child => child && typeof child === "object") // 过滤无效子节点
+          .map(child => {
+            try {
+              const childHtml = jsonToHtml(child, options);
+              return prettify ? `${indent}${indent}${childHtml.replace(/\n/g, `\n${indent}`)}` : childHtml;
+            } catch (childError) {
+              console.error("处理子节点时出错:", childError);
+              return `${indent}${indent}<div class="parse-error">子节点解析错误</div>`;
+            }
+          })
+          .join(newline);
+
+        content = `${newline}${childrenHtml}${newline}${indent}`;
+      } catch (childrenError) {
+        console.error("处理子节点列表时出错:", childrenError);
+        content = "";
+      }
+    }
+
+    // 返回完整的HTML
+    return `${comment}${indent}<${tagName} ${attributes.join(" ")}>${content}</${tagName}>`;
+  } catch (error) {
+    console.error("转换为HTML时出错:", error);
+    return `<div class="parse-error">转换为HTML时出错: ${error instanceof Error ? error.message : "未知错误"}</div>`;
   }
-
-  // 处理属性
-  const attributes: string[] = [];
-
-  // 添加类名
-  if (node.className) {
-    attributes.push(`class="${node.className}"`);
-  }
-
-  // 添加ID
-  attributes.push(`id="${node.id}"`);
-
-  // 添加内联样式
-  if (inlineStyles && node.style) {
-    attributes.push(`style="${styleObjectToString(node.style)}"`);
-  }
-
-  // 处理特殊属性
-  if (node.type === "IMAGE" && "src" in node) {
-    attributes.push(`src="${node.src}"`);
-    attributes.push(`alt="${node.name}"`);
-  }
-
-  // 生成HTML标签
-  const indent = prettify ? "  " : "";
-  const newline = prettify ? "\n" : "";
-
-  // 添加注释
-  const comment = includeComments ? `<!-- Figma ${node.type}: ${node.name} -->${newline}` : "";
-
-  // 处理自闭合标签
-  if (tagName === "img") {
-    return `${comment}${indent}<${tagName} ${attributes.join(" ")} />`;
-  }
-
-  // 处理文本内容
-  let content = "";
-  if (node.type === "TEXT" && "characters" in node) {
-    content = node.characters;
-  }
-
-  // 处理子节点
-  if (node.children && node.children.length > 0) {
-    content = `${newline}${node.children
-      .map(child => {
-        const childHtml = jsonToHtml(child, options);
-        return prettify ? `${indent}${indent}${childHtml.replace(/\n/g, `\n${indent}`)}` : childHtml;
-      })
-      .join(newline)}${newline}${indent}`;
-  }
-
-  // 返回完整的HTML
-  return `${comment}${indent}<${tagName} ${attributes.join(" ")}>${content}</${tagName}>`;
 }
 
 /**
@@ -323,6 +389,18 @@ export function jsonToHtml(node: ParsedNode, options: HTMLConvertOptions = {}): 
  */
 export async function copyToClipboard(text: string): Promise<void> {
   try {
+    // 验证输入
+    if (typeof text !== "string") {
+      console.error("复制到剪贴板的文本无效:", text);
+      text = String(text) || "";
+    }
+
+    // 验证 figma API 是否可用
+    if (typeof figma === "undefined" || !figma.ui || typeof figma.ui.postMessage !== "function") {
+      console.error("复制到剪贴板失败: figma API 不可用");
+      return Promise.reject(new Error("figma API 不可用"));
+    }
+
     // 在Figma插件中，使用figma.ui.postMessage发送消息到UI，然后在UI中执行复制操作
     figma.ui.postMessage({
       type: "copyToClipboard",

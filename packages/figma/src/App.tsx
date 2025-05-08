@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from "@go-blite/shadcn/tabs";
 import { Button } from "@go-blite/shadcn/button";
 import { ExportService, ServiceData } from "./components/module/exportService";
 import { ExportForm, FormValues } from "./components/module/exportForm";
-import { usePluginContext } from "./context";
+import { usePluginContext } from "./context/usePluginContext";
 import { DeviceType, Language, PageType } from "./components/module/exportForm/types";
 import { debounce } from "lodash-es";
 import { ExportPreview } from "./components/module/exportPreview";
@@ -64,8 +64,7 @@ export default function App() {
     setFormValues({ ...defaultValues, id: data.id, name: data.name, devices: devices });
     setState(prev => ({ ...prev, nodes: data.allChildren! }));
   };
-  useEffect(() => {
-    parent.postMessage({ pluginMessage: { type: "init" } }, "*");
+  const onmessage = () => {
     window.onmessage = event => {
       const { type, data } = event.data.pluginMessage;
       if (type === "init") {
@@ -76,18 +75,15 @@ export default function App() {
         const current = formValues.devices.find(el => el.type === previewTab.device)!;
         const key = previewTab.language ?? (Object.keys(current!.languagePageMap)[0] as Language);
         current.languagePageMap[key]!.nodes = data;
-        const strData = JSON.stringify(data);
-        writeTextToClipboard(strData);
       }
-      if (type === "exportedImages") {
-        if (data.success) {
-          console.log("导出的图像:", data.data);
-          // 这里可以添加处理导出图像的逻辑
-        } else {
-          console.error("导出图像失败:", data.message);
-        }
+      if (type === "copyClipboard") {
+        writeTextToClipboard(data);
       }
     };
+  };
+  useEffect(() => {
+    parent.postMessage({ pluginMessage: { type: "init" } }, "*");
+    onmessage();
   }, []);
 
   const previewChange = debounce((type: DeviceType, _language?: Language) => {

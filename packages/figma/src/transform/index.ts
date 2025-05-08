@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Figma节点解析器入口文件
  */
@@ -27,18 +28,49 @@ export class ParseManager {
    * @returns 解析结果（JSON对象或HTML字符串）
    */
   public async parse(node: SceneNode): Promise<ParsedNode | string> {
-    // 创建对应类型的解析器
-    const parser = createParserByNodeType(node);
+    try {
+      // 验证输入节点
+      if (!node || typeof node !== "object" || !("id" in node) || !("type" in node)) {
+        console.error("无效的Figma节点:", node);
+        throw new Error("无效的Figma节点");
+      }
 
-    // 解析节点为JSON对象
-    const parsedNode = await this.parseNodeWithChildren(node, parser);
+      // 创建对应类型的解析器
+      const parser = createParserByNodeType(node);
 
-    // 根据配置决定输出格式
-    if (this.config.outputFormat === "JSON") {
-      return parsedNode;
-    } else {
-      // 转换为HTML字符串
-      return jsonToHtml(parsedNode, this.config.htmlOptions);
+      // 解析节点为JSON对象
+      const parsedNode = await this.parseNodeWithChildren(node, parser);
+
+      // 根据配置决定输出格式
+      if (this.config.outputFormat === "JSON") {
+        return parsedNode;
+      } else {
+        // 转换为HTML字符串
+        try {
+          return jsonToHtml(parsedNode, this.config.htmlOptions);
+        } catch (htmlError) {
+          console.error("转换为HTML时出错:", htmlError);
+          // 如果HTML转换失败，返回JSON
+          return JSON.stringify(parsedNode, null, 2);
+        }
+      }
+    } catch (error) {
+      console.error("解析节点时出错:", error);
+      // 返回错误信息
+      const errorNode: ParsedNode = {
+        name: node?.name || "error",
+        id: node?.id || "error",
+        type: node?.type || "unknown",
+        tag: "div",
+        error: error instanceof Error ? error.message : "未知错误"
+      };
+
+      // 根据配置决定输出格式
+      if (this.config.outputFormat === "JSON") {
+        return errorNode;
+      } else {
+        return `<div class="parse-error">${errorNode.error}</div>`;
+      }
     }
   }
 
@@ -49,22 +81,70 @@ export class ParseManager {
    * @returns 解析后的节点
    */
   private async parseNodeWithChildren(node: SceneNode, parser: unknown): Promise<ParsedNode> {
-    // 解析当前节点
-    const parsedNode = parser.parse(node);
+    try {
+      // 验证解析器是否有效
+      if (!parser || typeof parser !== "object" || typeof (parser as any).parse !== "function") {
+        console.error("无效的解析器:", parser);
+        throw new Error("无效的解析器");
+      }
 
-    // 如果节点有子节点，递归解析
-    if ("children" in node && Array.isArray(node.children) && node.children.length > 0) {
-      const childPromises = node.children
-        .filter(child => child.visible !== false) // 过滤掉不可见的节点
-        .map(async child => {
-          const childParser = createParserByNodeType(child);
-          return this.parseNodeWithChildren(child, childParser);
-        });
+      // 安全地调用解析器的parse方法
+      const parsedNode = await (parser as any).parse(node);
 
-      parsedNode.children = await Promise.all(childPromises);
+      // 验证解析结果
+      if (!parsedNode || typeof parsedNode !== "object") {
+        console.error("解析结果无效:", parsedNode);
+        throw new Error("解析结果无效");
+      }
+
+      // 如果节点有子节点，递归解析
+      if (
+        node &&
+        typeof node === "object" &&
+        "children" in node &&
+        Array.isArray(node.children) &&
+        node.children.length > 0
+      ) {
+        // 创建一个安全的子节点数组
+        const validChildren = node.children.filter(
+          child => child && typeof child === "object" && "id" in child && child.visible !== false
+        );
+
+        if (validChildren.length > 0) {
+          const childPromises = validChildren.map(async child => {
+            try {
+              const childParser = createParserByNodeType(child);
+              return await this.parseNodeWithChildren(child, childParser);
+            } catch (childError) {
+              console.error(`解析子节点 ${child.id || "未知"} 时出错:`, childError);
+              // 返回一个最小化的有效节点，避免整个解析过程失败
+              return { id: child.id || "unknown", type: child.type || "unknown", tag: "div" };
+            }
+          });
+
+          // 确保children属性存在
+          if (!parsedNode.children) {
+            parsedNode.children = [];
+          }
+
+          // 等待所有子节点解析完成
+          const childResults = await Promise.all(childPromises);
+          parsedNode.children = childResults.filter(result => result !== null);
+        }
+      }
+
+      return parsedNode;
+    } catch (error) {
+      console.error(`解析节点 ${node?.id || "未知"} 时出错:`, error);
+      // 返回一个最小化的有效节点，避免整个解析过程失败
+      return {
+        name: node?.name || "error",
+        id: node?.id || "error",
+        type: node?.type || "unknown",
+        tag: "div",
+        error: error instanceof Error ? error.message : "未知错误"
+      };
     }
-
-    return parsedNode;
   }
 
   /**
@@ -73,9 +153,21 @@ export class ParseManager {
    * @returns 解析结果的Promise
    */
   public async parseAndCopy(node: SceneNode): Promise<void> {
-    const result = await this.parse(node);
-    const textToCopy = typeof result === "string" ? result : JSON.stringify(result, null, 2);
-    await copyToClipboard(textToCopy);
+    try {
+      // 验证输入节点
+      if (!node || typeof node !== "object" || !("id" in node)) {
+        console.error("无效的Figma节点:", node);
+        throw new Error("无效的Figma节点");
+      }
+
+      const result = await this.parse(node);
+      const textToCopy = typeof result === "string" ? result : JSON.stringify(result, null, 2);
+      await copyToClipboard(textToCopy);
+      console.log(`成功解析并复制节点 ${node.id}`);
+    } catch (error) {
+      console.error("解析并复制节点时出错:", error);
+      throw error; // 重新抛出错误，让调用者处理
+    }
   }
 
   /**
@@ -84,8 +176,46 @@ export class ParseManager {
    * @returns 解析结果数组
    */
   public async parseMultiple(nodes: SceneNode[]): Promise<(ParsedNode | string)[]> {
-    const promises = nodes.map(node => this.parse(node));
-    return Promise.all(promises);
+    try {
+      // 验证输入节点数组
+      if (!Array.isArray(nodes)) {
+        console.error("无效的Figma节点数组:", nodes);
+        throw new Error("无效的Figma节点数组");
+      }
+
+      // 过滤掉无效节点
+      const validNodes = nodes.filter(node => node && typeof node === "object" && "id" in node);
+
+      if (validNodes.length === 0) {
+        console.warn("没有有效的节点可以解析");
+        return [];
+      }
+
+      // 使用Promise.allSettled确保即使部分节点解析失败，也能获得其他节点的结果
+      const results = await Promise.allSettled(validNodes.map(node => this.parse(node)));
+
+      // 处理结果
+      return results.map((result, index) => {
+        if (result.status === "fulfilled") {
+          return result.value;
+        } else {
+          console.error(`解析节点 ${validNodes[index]?.id || "未知"} 时出错:`, result.reason);
+          // 返回错误信息
+          const errorNode: ParsedNode = {
+            name: validNodes[index]?.name || "error",
+            id: validNodes[index]?.id || "error",
+            type: validNodes[index]?.type || "unknown",
+            tag: "div",
+            error: result.reason instanceof Error ? result.reason.message : "未知错误"
+          };
+
+          return this.config.outputFormat === "JSON" ? errorNode : `<div class="parse-error">${errorNode.error}</div>`;
+        }
+      });
+    } catch (error) {
+      console.error("批量解析节点时出错:", error);
+      throw error;
+    }
   }
 
   /**
@@ -165,10 +295,3 @@ export class ParseManager {
     this.config = { ...this.config, ...config };
   }
 }
-
-// 导出类型定义
-export * from "./types";
-// 导出工具函数
-export * from "./utils";
-// 导出解析器
-export * from "./parsers/base";

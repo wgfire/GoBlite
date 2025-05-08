@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
+import AutoParser from "./pages/autoParser/index.tsx";
 import "./index.css";
 import { PluginProvider } from "./context/index.tsx";
 
@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
   createRoot(document.getElementById("root")!).render(
     <StrictMode>
       <PluginProvider>
-        <App />
+        <AutoParser />
       </PluginProvider>
     </StrictMode>
   );

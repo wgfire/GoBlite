@@ -80,7 +80,7 @@ export const useDragNode = (): HookConfig => {
     if (!newParent) return;
 
     // 计算百分比
-    const { left: leftPercent, top: topPercent } = calculateRelativePosition(element, newParent, "%");
+    const { left: leftPercent, top: topPercent } = calculateRelativePosition(element, newParent, "px");
     // 使用px
     // const leftPx = `${relativeLeft}px`;
     // const topPx = `${relativeTop}px`;

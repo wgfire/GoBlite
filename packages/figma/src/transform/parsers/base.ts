@@ -148,68 +148,63 @@ import { StickyNodeParser } from "./sticky";
  * @returns 对应类型的解析器
  */
 export function createParserByNodeType(node: SceneNode): BaseNodeParser<unknown> {
-  switch (node.type) {
-    case "TEXT":
-      return new TextNodeParser();
-    case "RECTANGLE":
-      // 检查是否为图片填充
-      if (
-        "fills" in node &&
-        node.fills &&
-        Array.isArray(node.fills) &&
-        node.fills.some((fill: Paint) => fill.type === "IMAGE")
-      ) {
-        return new ImageNodeParser();
-      }
-      return new RectangleNodeParser();
-    case "FRAME":
-      // 检查是否为图片填充
-      if (
-        "fills" in node &&
-        node.fills &&
-        Array.isArray(node.fills) &&
-        node.fills.some((fill: Paint) => fill.type === "IMAGE")
-      ) {
-        return new ImageNodeParser();
-      }
-      return new FrameNodeParser();
-    case "GROUP":
-      return new GroupNodeParser();
-    case "ELLIPSE":
-      // 检查是否为图片填充
-      if (
-        "fills" in node &&
-        node.fills &&
-        Array.isArray(node.fills) &&
-        node.fills.some((fill: Paint) => fill.type === "IMAGE")
-      ) {
-        return new ImageNodeParser();
-      }
-      return new EllipseNodeParser();
-    case "VECTOR":
-      return new VectorNodeParser();
-    case "COMPONENT":
-      return new ComponentNodeParser();
-    case "INSTANCE":
-      return new InstanceNodeParser();
-    case "LINE":
-      return new LineNodeParser();
-    case "POLYGON":
-      return new PolygonNodeParser();
-    case "STAR":
-      return new StarNodeParser();
-    case "BOOLEAN_OPERATION":
-      return new BooleanOperationNodeParser();
-    case "COMPONENT_SET":
-      return new ComponentSetNodeParser();
-    case "CONNECTOR":
-      return new ConnectorNodeParser();
-    case "SHAPE_WITH_TEXT":
-      return new ShapeWithTextNodeParser();
-    case "STICKY":
-      return new StickyNodeParser();
-    default:
-      return createDefaultParser(node);
+  try {
+    // 首先检查节点是否有效
+    if (!node || typeof node !== "object" || !("type" in node)) {
+      console.warn("创建解析器时收到无效节点:", node);
+      return new GenericNodeParser(); // 返回通用解析器作为后备
+    }
+
+    // 安全地检查节点类型
+    const nodeType = node.type;
+
+    // 安全地检查是否为图片填充
+    const hasImageFill =
+      "fills" in node &&
+      node.fills &&
+      Array.isArray(node.fills) &&
+      node.fills.length > 0 &&
+      node.fills.some(fill => fill && typeof fill === "object" && "type" in fill && fill.type === "IMAGE");
+
+    switch (nodeType) {
+      case "TEXT":
+        return new TextNodeParser();
+      case "RECTANGLE":
+        return hasImageFill ? new ImageNodeParser() : new RectangleNodeParser();
+      case "FRAME":
+        return hasImageFill ? new ImageNodeParser() : new FrameNodeParser();
+      case "GROUP":
+        return new GroupNodeParser();
+      case "ELLIPSE":
+        return hasImageFill ? new ImageNodeParser() : new EllipseNodeParser();
+      case "VECTOR":
+        return new VectorNodeParser();
+      case "COMPONENT":
+        return new ComponentNodeParser();
+      case "INSTANCE":
+        return new InstanceNodeParser();
+      case "LINE":
+        return new LineNodeParser();
+      case "POLYGON":
+        return new PolygonNodeParser();
+      case "STAR":
+        return new StarNodeParser();
+      case "BOOLEAN_OPERATION":
+        return new BooleanOperationNodeParser();
+      case "COMPONENT_SET":
+        return new ComponentSetNodeParser();
+      case "CONNECTOR":
+        return new ConnectorNodeParser();
+      case "SHAPE_WITH_TEXT":
+        return new ShapeWithTextNodeParser();
+      case "STICKY":
+        return new StickyNodeParser();
+      default:
+        return createDefaultParser(node);
+    }
+  } catch (error) {
+    console.error("创建解析器时出错:", error);
+    return new GenericNodeParser(); // 出错时返回通用解析器
   }
 }
 
@@ -219,11 +214,16 @@ export function createParserByNodeType(node: SceneNode): BaseNodeParser<unknown>
  * @returns 默认解析器
  */
 function createDefaultParser(node: SceneNode): BaseNodeParser<unknown> {
-  // 根据节点类型选择合适的默认解析器
-  if ("children" in node) {
-    return new FrameNodeParser(); // 对于有子节点的未知类型，使用Frame解析器
+  try {
+    // 根据节点类型选择合适的默认解析器
+    if (node && typeof node === "object" && "children" in node && Array.isArray(node.children)) {
+      return new FrameNodeParser(); // 对于有子节点的未知类型，使用Frame解析器
+    }
+    return new GenericNodeParser();
+  } catch (error) {
+    console.error("创建默认解析器时出错:", error);
+    return new GenericNodeParser();
   }
-  return new GenericNodeParser();
 }
 
 /**
@@ -232,13 +232,19 @@ function createDefaultParser(node: SceneNode): BaseNodeParser<unknown> {
  */
 class GenericNodeParser extends BaseNodeParser<SceneNode> {
   protected parseSpecificProps(node: SceneNode, parsedNode: ParsedNode): void {
-    // 通用解析器不需要特殊处理
-    if ("width" in node) {
-      parsedNode.width = node.width;
-    }
+    try {
+      // 安全地访问属性
+      if (node && typeof node === "object") {
+        if ("width" in node && typeof node.width === "number") {
+          parsedNode.width = node.width;
+        }
 
-    if ("height" in node) {
-      parsedNode.height = node.height;
+        if ("height" in node && typeof node.height === "number") {
+          parsedNode.height = node.height;
+        }
+      }
+    } catch (error) {
+      console.error("解析节点属性时出错:", error);
     }
   }
 }

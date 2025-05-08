@@ -1,17 +1,13 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useMemo, useState } from "react";
 
 export interface StateProps {
   nodes: { label: string; value: string }[];
 }
 
-const PluginContext = createContext<{
+export const PluginContext = createContext<{
   state: StateProps;
   setState: React.Dispatch<React.SetStateAction<StateProps>>;
 }>({ state: { nodes: [] }, setState: () => {} });
-
-export const usePluginContext = () => {
-  return useContext(PluginContext);
-};
 
 export const PluginProvider: React.FC<React.PropsWithChildren> = props => {
   const [state, setState] = useState<StateProps>({ nodes: [] });

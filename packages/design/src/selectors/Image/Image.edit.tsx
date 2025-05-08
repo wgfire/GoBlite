@@ -5,12 +5,15 @@ import { ImageProps } from "./type";
 import { ImageSettingsFast } from "./ImageSettingsFast";
 import ElementBox from "@/components/ElementBox";
 
-export const Image: UserComponent<Partial<ImageProps>> = props => {
+export type useImageType = UserComponent<Partial<ImageProps>>;
+
+export const Image: useImageType = props => {
   const {
     id,
     connectors: { connect }
   } = useNode();
   const { style, src, alt, watermark, noWatermarkSrc, switchNoWatermarkSrc = false, customStyle } = props;
+  console.log(props, "图片");
 
   const renderSrc = switchNoWatermarkSrc && watermark ? noWatermarkSrc : src;
   return (

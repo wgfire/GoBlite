@@ -1,14 +1,12 @@
 import { EventManager } from "./message";
 import { ExportPreviewType } from "@/components/module/Preview";
-import { ParseManager } from "../transform";
-
+import { debounce } from "lodash-es";
 figma.showUI(__html__, {
   width: 1000,
   height: 1000
 });
 
-/**有其他类型的arg后可不传此泛型 */
-const message = new EventManager<string[]>();
+const message = new EventManager();
 
 /**
  * 导出选中节点下的所有图片。
@@ -95,194 +93,24 @@ const initPreview = (nodes?: BaseNode[]) => {
 figma.ui.onmessage = msg => {
   const { type, data } = msg;
   console.log(type, data, "插件接收消息");
-
-  // 处理显示通知的消息
-  if (type === "showNotification") {
-    const { message, success } = msg;
-    if (success) {
-      figma.notify(message);
-    } else {
-      figma.notify(message, { error: true });
-    }
-    return;
-  }
-
   message.trigger(type, data);
 };
 
-figma.on("selectionchange", () => {
+// 使用防抖函数包装选择变化的处理逻辑
+const handleSelectionChange = debounce(() => {
   console.log("selectionchange", figma.currentPage.selection);
-  initUIData();
-  initPreview();
-});
+  // 检查是否有选中的节点
+  if (figma.currentPage.selection.length > 0) {
+    initUIData();
+    initPreview();
+  }
+}, 300); // 300毫秒的防抖延迟
+
+figma.on("selectionchange", handleSelectionChange);
 
 message.addHandler("init", () => {
   initUIData();
   initPreview();
-});
-
-message.addHandler("FigmaPreview", async arg => {
-  const sceneNodePromise = arg.map(async (el: string) => {
-    const result = await figma.getNodeByIdAsync(el);
-    return result;
-  });
-  const sceneNode = (await Promise.all(sceneNodePromise)).filter(node => !!node);
-  initPreview(sceneNode);
-});
-
-/**
- * 解析Figma节点为HTML并复制到剪贴板
- * @param nodeId 节点ID
- */
-async function parseNodeToHtml(nodeId: string): Promise<void> {
-  try {
-    // 获取节点
-    const node = await figma.getNodeByIdAsync(nodeId);
-    if (!node || !("type" in node)) {
-      throw new Error("无效的节点ID");
-    }
-
-    // 创建解析管理器
-    const parseManager = new ParseManager({
-      outputFormat: "HTML",
-      htmlOptions: {
-        inlineStyles: true,
-        prettify: true,
-        includeComments: true
-      }
-    });
-
-    // 解析节点并复制到剪贴板
-    await parseManager.parseAndCopy(node as SceneNode);
-
-    // 通知UI
-    figma.notify("已成功解析节点并复制到剪贴板");
-
-    figma.ui.postMessage({
-      type: "parseComplete",
-      success: true,
-      message: "已成功解析节点并复制到剪贴板"
-    });
-  } catch (error: unknown) {
-    console.error("解析节点失败:", error);
-
-    // 显示错误通知
-    figma.notify(`解析失败: ${error.message || "未知错误"}`, { error: true });
-
-    figma.ui.postMessage({
-      type: "parseComplete",
-      success: false,
-      message: `解析失败: ${error.message || "未知错误"}`
-    });
-  }
-}
-
-/**
- * 解析Figma节点为JSON并复制到剪贴板
- * @param nodeId 节点ID
- */
-async function parseNodeToJson(nodeId: string): Promise<void> {
-  try {
-    // 获取节点
-    const node = await figma.getNodeByIdAsync(nodeId);
-    if (!node || !("type" in node)) {
-      throw new Error("无效的节点ID");
-    }
-
-    // 创建解析管理器
-    const parseManager = new ParseManager({
-      outputFormat: "JSON"
-    });
-
-    // 解析节点并复制到剪贴板
-    await parseManager.parseAndCopy(node as SceneNode);
-
-    // 显示成功通知
-    figma.notify("已成功解析节点为JSON并复制到剪贴板");
-
-    // 通知UI
-    figma.ui.postMessage({
-      type: "parseComplete",
-      success: true,
-      message: "已成功解析节点为JSON并复制到剪贴板"
-    });
-  } catch (error: unknown) {
-    console.error("解析节点失败:", error);
-
-    // 显示错误通知
-    figma.notify(`解析失败: ${error.message || "未知错误"}`, { error: true });
-
-    figma.ui.postMessage({
-      type: "parseComplete",
-      success: false,
-      message: `解析失败: ${error.message || "未知错误"}`
-    });
-  }
-}
-
-/**
- * 导出节点中的所有图像
- * @param nodeId 节点ID
- */
-async function exportNodeImages(nodeId: string): Promise<void> {
-  try {
-    // 获取节点
-    const node = await figma.getNodeByIdAsync(nodeId);
-    if (!node || !("type" in node)) {
-      throw new Error("无效的节点ID");
-    }
-
-    // 创建解析管理器
-    const parseManager = new ParseManager();
-
-    // 导出所有图像
-    const imageMap = await parseManager.exportImages(node as SceneNode, {
-      format: "PNG",
-      scale: 2
-    });
-
-    // 将图像数据发送到UI
-    figma.ui.postMessage({
-      type: "exportedImages",
-      success: true,
-      data: imageMap,
-      message: `成功导出 ${Object.keys(imageMap).length} 个图像`
-    });
-
-    // 显示成功通知
-    figma.notify(`成功导出 ${Object.keys(imageMap).length} 个图像`);
-  } catch (error: unknown) {
-    console.error("导出图像失败:", error);
-
-    // 显示错误通知
-    figma.notify(`导出图像失败: ${error.message || "未知错误"}`, { error: true });
-
-    figma.ui.postMessage({
-      type: "exportedImages",
-      success: false,
-      message: `导出图像失败: ${error.message || "未知错误"}`
-    });
-  }
-}
-
-// 添加解析处理器
-message.addHandler("parseToHtml", (args: string[]) => {
-  if (args && args.length > 0) {
-    parseNodeToHtml(args[0]);
-  }
-});
-
-message.addHandler("parseToJson", (args: string[]) => {
-  if (args && args.length > 0) {
-    parseNodeToJson(args[0]);
-  }
-});
-
-// 添加导出图像处理器
-message.addHandler("exportImages", (args: string[]) => {
-  if (args && args.length > 0) {
-    exportNodeImages(args[0]);
-  }
 });
 
 //figma.closePlugin();

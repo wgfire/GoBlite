@@ -86,7 +86,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "16.477274080602132%",
@@ -251,7 +251,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "16.477274080602132%",
@@ -410,7 +410,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "16.477274080602132%",
@@ -569,7 +569,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "16.482565236646078%",
@@ -646,7 +646,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "7.341443438862645%",
@@ -684,7 +684,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "6.8763271597928775%",
@@ -809,7 +809,7 @@ const devices: Devices = [
                 padding: 0,
                 shadow: 0
               },
-              text: "文反反复复烦烦烦烦<div>烦烦烦</div><div>烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦烦</div><div>烦烦烦烦烦烦本</div>",
+              text: "文反反复复<div>测试</div><div>测试文本</div><div>测试</div>",
               customStyle: {
                 position: "relative",
                 left: "16.477274080602132%",

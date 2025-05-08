@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useCanvasSubscribe } from "@/hooks/useCanvasSubscribe";
 import { ContextMenuManager } from "@/components/ContextMenu/ContextMenuManager";
 import { AlignmentGuides } from "@/components/AlignmentGuides";
 import { eventBus } from "@/hooks/useEvents";
 import { Events } from "@/hooks/type";
+import { useClipboard } from "@/hooks/useClipboard";
 export interface CanvasProps extends React.PropsWithChildren {
   className?: string;
 }
@@ -12,8 +13,12 @@ export const Canvas = React.memo<CanvasProps>(props => {
   const ref = React.useRef<HTMLDivElement>(null);
   const dragRef = React.useRef<{ element: HTMLElement } | null>(null);
   const mouseDownRef = React.useRef<Events["mouseDown"] | null>(null);
+  const { lastPastedData } = useClipboard();
 
   useCanvasSubscribe();
+  useEffect(() => {
+    console.log("lastPastedData", lastPastedData);
+  }, [lastPastedData]);
 
   const handleDoubleClick = React.useCallback((e: MouseEvent) => {
     const id = (e.target as HTMLElement).dataset.id;

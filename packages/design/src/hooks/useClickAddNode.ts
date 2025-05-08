@@ -3,7 +3,7 @@ import { FreshNode, useEditor } from "@craftjs/core";
 import { useCallback } from "react";
 import { HookConfig } from "./type";
 /**
- * 根据传入的id，在当前id的父级节点下添加一个节点
+ * 根据传入的id，在当前id的父级节点下添加一个容器节点
  */
 export const useClickAddNode = (): HookConfig => {
   const {
