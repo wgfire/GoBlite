@@ -42,11 +42,11 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   const getPos = useCallback((dom: HTMLElement | null) => {
     if (!dom || !currentRef.current) return { top: "0px", left: "0px" };
-    const { bottom, right, width } = dom.getBoundingClientRect();
+    const { top, right, width } = dom.getBoundingClientRect();
     const offset = right - width * 0.5 - currentRef.current.offsetWidth / 2;
 
     return {
-      top: `${bottom + 10}px`,
+      top: `${top - 60}px`,
       left: `${offset}px`
     };
   }, []);

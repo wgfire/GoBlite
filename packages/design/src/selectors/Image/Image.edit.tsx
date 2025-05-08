@@ -13,7 +13,6 @@ export const Image: useImageType = props => {
     connectors: { connect }
   } = useNode();
   const { style, src, alt, watermark, noWatermarkSrc, switchNoWatermarkSrc = false, customStyle } = props;
-  console.log(props, "图片");
 
   const renderSrc = switchNoWatermarkSrc && watermark ? noWatermarkSrc : src;
   return (

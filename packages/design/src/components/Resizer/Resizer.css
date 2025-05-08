@@ -348,6 +348,7 @@
   --moveable-line-color: #4af;
   opacity: 0;
   animation: control-box-animation 0.3s ease-out forwards;
+  z-index: 100 !important;
 }
 
 @keyframes control-box-animation {

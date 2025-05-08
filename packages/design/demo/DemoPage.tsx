@@ -132,7 +132,6 @@ const devices: Devices = [
                 top: "38.429101907982016%",
                 willChange: "none",
                 zIndex: "auto",
-                transform: "matrix(1, 0, 0, 1, 0, 0)",
                 justifySelf: "start",
                 alignSelf: "start",
                 maxWidth: 420,
@@ -297,7 +296,6 @@ const devices: Devices = [
                 top: "38.429101907982016%",
                 willChange: "none",
                 zIndex: "auto",
-                transform: "matrix(1, 0, 0, 1, 0, 0)",
                 justifySelf: "start",
                 alignSelf: "start",
                 maxWidth: 420,
@@ -459,8 +457,7 @@ const devices: Devices = [
                 justifySelf: "start",
                 alignSelf: "start",
                 maxWidth: 420,
-                maxHeight: 633,
-                transform: "matrix(1, 0, 0, 1, 0, 0)"
+                maxHeight: 633
               }
             },
             displayName: "Image",
@@ -618,8 +615,7 @@ const devices: Devices = [
                 justifySelf: "start",
                 alignSelf: "start",
                 maxWidth: 406,
-                maxHeight: 661,
-                transform: "matrix(1, 0, 0, 1, 0, 0)"
+                maxHeight: 661
               }
             },
             displayName: "Image",
@@ -855,7 +851,6 @@ const devices: Devices = [
                 top: "38.429101907982016%",
                 willChange: "none",
                 zIndex: "auto",
-                transform: "matrix(1, 0, 0, 1, 0, 0)",
                 justifySelf: "start",
                 alignSelf: "start",
                 maxWidth: 420,

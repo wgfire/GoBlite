@@ -19,7 +19,7 @@ export const ContextMenuHoc = React.memo((props: ContextMenuHocProps) => {
         position: "absolute",
         left: position.x,
         top: position.y,
-        zIndex: 100
+        zIndex: 1000
       }}
     >
       <div className="flex justify-between items-center mb-2">

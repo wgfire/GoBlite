@@ -27,6 +27,7 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
       scalaText={true}
       style={{
         width: "max-content",
+        userSelect: "none",
         ...customStyle
       }}
     >
