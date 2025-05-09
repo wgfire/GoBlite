@@ -60,7 +60,7 @@ const getElementRectWithoutTransform = (element: HTMLElement): DOMRect => {
   const originalTransform = element.style.transform;
   element.style.transform = "none";
   const rect = element.getBoundingClientRect();
-  console.log("originalTransform", originalTransform);
+  // 恢复原始 transform
   element.style.transform = originalTransform;
 
   return rect;

@@ -45,7 +45,6 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
 
   // 处理调整大小
   const handleResize = ({ target, width, height, drag }: OnResize) => {
-    console.log(drag, "resize");
     if (!target || !(target instanceof HTMLElement)) return;
 
     // 直接修改 DOM 元素样式

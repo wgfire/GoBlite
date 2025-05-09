@@ -13,6 +13,7 @@ export const useMoveNodeOnly = () => {
 
       // 2. 获取需要移动的节点信息
       const node = currentNodes[nodeId];
+
       if (!node || !node.parent) return;
 
       const oldParentId = node.parent;
@@ -39,6 +40,7 @@ export const useMoveNodeOnly = () => {
       };
 
       // 4. 使用 deserialize 重新加载整个状态树
+      console.log(newNodes, "newNodes");
       actions.deserialize(newNodes);
       actions.selectNode(nodeId);
     } catch (error) {

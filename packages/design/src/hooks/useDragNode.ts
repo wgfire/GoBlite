@@ -2,39 +2,7 @@ import { useEditor } from "@craftjs/core";
 import { useRef } from "react";
 import { HookConfig, Events } from "./type";
 import { calculateRelativePosition } from "@/utils/resize";
-
-// 辅助函数：解析 CSS transform 矩阵字符串
-const parseCSSTransformMatrix = (transformString: string | null): { x: number; y: number; remainingMatrix: string } => {
-  if (!transformString || transformString === "none") {
-    return { x: 0, y: 0, remainingMatrix: "matrix(1, 0, 0, 1, 0, 0)" }; // 返回单位矩阵
-  }
-  try {
-    const matrix = new DOMMatrix(transformString);
-    const tx = matrix.e;
-    const ty = matrix.f;
-
-    // 创建一个新的矩阵，仅包含非平移部分 (旋转, 缩放, 倾斜)
-    const remaining = new DOMMatrix([matrix.a, matrix.b, matrix.c, matrix.d, 0, 0]);
-
-    return { x: tx, y: ty, remainingMatrix: remaining.toString() };
-  } catch (error) {
-    console.warn("使用 DOMMatrix 解析 transform 字符串失败，尝试使用基础的正则表达式回退: ", error);
-    // 针对 "matrix(...)" 格式的基础回退方案
-    const matrixRegex =
-      /matrix\(\s*([+-]?[\d.]+)\s*,\s*([+-]?[\d.]+)\s*,\s*([+-]?[\d.]+)\s*,\s*([+-]?[\d.]+)\s*,\s*([+-]?[\d.]+)\s*,\s*([+-]?[\d.]+)\s*\)/;
-    const match = transformString.match(matrixRegex);
-    if (match) {
-      const values = match.slice(1).map(parseFloat);
-      return {
-        x: values[4],
-        y: values[5],
-        remainingMatrix: `matrix(${values[0]}, ${values[1]}, ${values[2]}, ${values[3]}, 0, 0)`
-      };
-    }
-  }
-  // 如果所有解析都失败
-  return { x: 0, y: 0, remainingMatrix: "matrix(1, 0, 0, 1, 0, 0)" };
-};
+import { parseCSSTransformMatrix } from "@/utils/transform";
 
 interface DragState {
   mode: "translate" | "fixed";
@@ -126,8 +94,10 @@ export const useDragNode = (): HookConfig => {
       p.customStyle = {
         ...p.customStyle,
         position: "absolute",
+        // 重置网格布局属性，避免与绝对定位冲突
         justifySelf: "start",
         alignSelf: "start",
+        // 设置绝对定位属性
         left: `${relativeX}px`,
         top: `${relativeY}px`,
         transform: initialTransform.remainingMatrix, // 应用原始 transform 的非平移部分
@@ -136,6 +106,14 @@ export const useDragNode = (): HookConfig => {
         maxWidth: currentParent.clientWidth - parentPaddingLeft, // 使用 currentParent
         maxHeight: currentParent.clientHeight - parentPaddingTop // 使用 currentParent
       };
+
+      // 如果组件有网格布局相关的属性，也需要重置
+      if (p.justifyContent) {
+        p.justifyContent = "flex-start";
+      }
+      if (p.alignItems) {
+        p.alignItems = "flex-start";
+      }
     });
   };
   const mouseDrag = (data: Events["mouseDrag"]) => {
@@ -156,20 +134,22 @@ export const useDragNode = (): HookConfig => {
     if (!newParent) return;
 
     // calculateRelativePosition 用于计算相对定位时的 left/top。
-    // 注意：如果此函数内部使用 getBoundingClientRect，则元素的当前 transform (remainingMatrix)
-    // 可能会影响其计算结果。理想情况下，calculateRelativePosition 应能处理这种情况，
-    // 或者在调用前临时移除 transform。
     const { left: leftPx, top: topPx } = calculateRelativePosition(element, newParent, "px", false);
 
     setProp(targetId!, p => {
       p.customStyle = {
         ...p.customStyle,
         position: "relative",
-        left: `${leftPx}px`, // 使用像素值
-        top: `${topPx}px`, // 使用像素值
+        left: `${leftPx}`, // 使用像素值
+        top: `${topPx}`, // 使用像素值
         transform: initialTransform?.remainingMatrix || "none", // 应用存储的 remainingMatrix
         zIndex: "auto"
       };
+
+      // 保持网格布局属性为默认值，与 left/top 配合使用
+      p.customStyle.justifySelf = "start";
+      p.customStyle.alignSelf = "start";
+
       // 根据 remainingMatrix 是否为 'none' 或单位矩阵来优化 willChange
       if (
         initialTransform?.remainingMatrix &&
@@ -181,29 +161,6 @@ export const useDragNode = (): HookConfig => {
         p.customStyle.willChange = "none";
       }
     });
-
-    // 更新 setProp 之后，下面的 setProp 调用需要调整或者移除，因为它会覆盖上面的修改
-    // 此处假设上面的 setProp 已经包含了所有需要的修改，因此注释掉重复的 setProp
-    /* setProp(targetId!, p => {
-      p.customStyle = {
-        ...p.customStyle,
-        position: "relative",
-        left: leftPercent, // 这里仍然是 leftPercent，需要改为 leftPx
-        top: topPercent,   // 这里仍然是 topPercent，需要改为 topPx
-        transform: initialTransform?.remainingMatrix || "none", // 应用存储的 remainingMatrix
-        zIndex: "auto"
-      };
-      // 根据 remainingMatrix 是否为 'none' 或单位矩阵来优化 willChange
-      if (
-        initialTransform?.remainingMatrix &&
-        initialTransform.remainingMatrix !== "none" &&
-        initialTransform.remainingMatrix !== "matrix(1, 0, 0, 1, 0, 0)"
-      ) {
-        p.customStyle.willChange = "transform";
-      } else {
-        p.customStyle.willChange = "none";
-      }
-    }); */
 
     dragState.current = {
       mode: "translate",

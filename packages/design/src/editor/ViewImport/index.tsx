@@ -48,7 +48,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
         <div className="page-container flex flex-1 h-full flex-col overflow-hidden pb-3 bg-gray-100">
           <Header />
           <div
-            className={clsx("blite-renderer flex-1 h-full transition overflow-auto mx-auto", {
+            className={clsx("blite-renderer flex-1 h-full transition overflow-hidden mx-auto", {
               "bg-slate-300/30": enabled,
               "w-[430px]": currentInfo.device === "mobile",
               "w-[750px]": currentInfo.device === "tablet",
