@@ -22,8 +22,12 @@ const gridStyle = {
 
 export const ElementBoxView: React.FC<ElementBoxProps> = props => {
   const { id, children, style = {} } = props;
+
+  // 生成唯一的DOM ID，避免重复
+  const uniqueDomId = `${id}-view`;
+
   return (
-    <div data-id={id} id={id} style={{ ...gridStyle, ...style }}>
+    <div data-id={id} id={uniqueDomId} style={{ ...gridStyle, ...style }}>
       {children}
     </div>
   );
@@ -33,11 +37,14 @@ export const ElementBox = forwardRef<HTMLDivElement, ElementBoxProps>((props, re
   const { id, children, style = {}, ...moveProps } = props;
   const targetRef = useRef<HTMLDivElement | null>(null);
 
+  // 生成唯一的DOM ID，避免重复
+  const uniqueDomId = `${id}-dom`;
+
   return (
     <>
       <div
         data-id={id}
-        id={id}
+        id={uniqueDomId}
         style={{ ...gridStyle, ...style }}
         ref={dom => {
           targetRef.current = dom;

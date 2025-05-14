@@ -12,7 +12,7 @@ const app = express();
 const buildManager = new BuildManager();
 const logger = new Logger();
 const buildMonitor = new BuildMonitor();
-const compressor = new Compressor(logger);
+const compressor = new Compressor();
 
 // 监听构建事件
 buildMonitor.on("buildStart", event => {

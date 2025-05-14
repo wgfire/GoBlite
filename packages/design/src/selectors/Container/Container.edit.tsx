@@ -5,15 +5,13 @@ import { ContainerProps } from "./type";
 import { ContainerSettingsFast } from "./ContainerSettingsFast";
 import { omit } from "lodash-es";
 import ElementBox from "@/components/ElementBox";
-
+import { useUpdateAppHeight } from "@/hooks/useUpdateAppHeight";
 export const defaultProps: ContainerProps = {
   style: {
     display: "grid",
     padding: 0,
     margin: 0,
     background: "rgba(237, 237, 237, 0.8)",
-    width: "100%",
-    height: "auto",
     backgroundImage: "none",
     gridArea: "1 / 1 / 2 / 2",
     gridTemplateRows: "minmax(0px, 100%)",
@@ -23,7 +21,10 @@ export const defaultProps: ContainerProps = {
     maxWidth: 100000
   },
   events: {},
-  customStyle: {},
+  customStyle: {
+    width: "100%",
+    height: "auto"
+  },
   animation: []
 };
 
@@ -37,7 +38,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     ...defaultProps,
     ...props
   };
-
+  useUpdateAppHeight(id);
   const { style, events, customStyle, children } = options;
   const { display, fillSpace, background, backgroundImage, gap } = style;
   useEffect(() => {
@@ -73,7 +74,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     <ElementBox
       ref={node => node && connect(node)}
       id={id}
-      // propKey={{ width: "width", height: "height" }}
       data-id={id}
       style={{
         gap: gap ?? 0,

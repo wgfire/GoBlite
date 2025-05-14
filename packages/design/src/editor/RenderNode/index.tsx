@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useCallback, useState, useLayoutEffect, useMemo } from "react";
 import { useNode, useEditor, ROOT_NODE } from "@craftjs/core";
 import { createPortal } from "react-dom";
-import { ArrowUp, Move, Trash2, Copy } from "lucide-react";
+import { ArrowUp, Trash2, Copy, Maximize } from "lucide-react";
 import { Button } from "@go-blite/shadcn";
+import { flushSync } from "react-dom";
 import { useCopyNode } from "@/hooks/useCopyNode";
 import expect from "@/utils/expect";
 
@@ -14,16 +15,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   const copyNode = useCopyNode();
 
-  const {
-    isHover,
-    dom,
-    name,
-    moveable,
-    deletable,
-    parent,
-    connectors: { drag },
-    props
-  } = useNode(node => ({
+  const { isHover, dom, name, deletable, parent, props } = useNode(node => ({
     isHover: node.events.hovered,
     dom: node.dom,
     name: node.data.custom.displayName || node.data.displayName,
@@ -42,11 +34,11 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
 
   const getPos = useCallback((dom: HTMLElement | null) => {
     if (!dom || !currentRef.current) return { top: "0px", left: "0px" };
-    const { top, right, width } = dom.getBoundingClientRect();
+    const { bottom, right, width } = dom.getBoundingClientRect();
     const offset = right - width * 0.5 - currentRef.current.offsetWidth / 2;
 
     return {
-      top: `${top - 60}px`,
+      top: `${bottom + 20}px`,
       left: `${offset}px`
     };
   }, []);
@@ -115,6 +107,29 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
     });
   }, [id, query, actions, copyNode]);
 
+  // 处理宽度设置为100%并清空left值
+  const handleFullWidth = useCallback(() => {
+    flushSync(() => {
+      actions.setProp(id, props => {
+        // 设置宽度为100%
+        if (props.style) {
+          props.customStyle.width = "100%";
+        }
+
+        // 清空left值
+        if (props.customStyle) {
+          props.customStyle.left = "0";
+        }
+      });
+    });
+
+    // 如果有dom元素，更新其样式 让拖拽手柄能够更新
+    if (dom && dom instanceof HTMLElement) {
+      dom.style.width = "100%";
+      dom.style.left = "";
+    }
+  }, [id, actions, dom]);
+
   return (
     <>
       {isActive &&
@@ -129,18 +144,18 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
             }}
           >
             <h4 className="flex-1 mr-2 text-sm">{name}</h4>
-            {moveable && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mr-2 cursor-move"
-                ref={drag as React.Ref<HTMLButtonElement>}
-                onMouseDown={e => {
-                  e.stopPropagation(); // 阻止事件冒泡，避免触发 Canvas 的拖拽
-                }}
-              >
-                <Move className="h-4 w-4" />
-              </Button>
+            {id !== ROOT_NODE && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="mr-2 cursor-pointer"
+                  onClick={handleFullWidth}
+                  title="宽度100%"
+                >
+                  <Maximize className="h-4 w-4" />
+                </Button>
+              </>
             )}
             {id !== ROOT_NODE && (
               <Button

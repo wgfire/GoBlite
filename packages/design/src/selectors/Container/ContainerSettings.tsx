@@ -25,8 +25,8 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
           </Settings.Section>
           <Settings.Section title="尺寸" defaultOpen={true}>
             <div className="grid grid-cols-2 gap-2">
-              <Settings.ItemInput propKey="style.width" type="text" />
-              <Settings.ItemInput propKey="style.height" type="text" />
+              <Settings.ItemInput propKey="customStyle.width" type="text" />
+              <Settings.ItemInput propKey="customStyle.height" type="text" />
             </div>
           </Settings.Section>
           {/* <Settings.Section defaultOpen title={"布局"}>
@@ -60,10 +60,11 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
             </div>
           </Settings.Section> */}
 
-          <Settings.Section defaultOpen title={"边距"}>
+          <Settings.Section defaultOpen title={"边距/圆角"}>
             <div className="grid grid-cols-2 gap-4">
               <Settings.ItemSlide propKey="style.margin" min={0} max={100} step={1} label="外边距" />
               <Settings.ItemSlide propKey="style.padding" min={0} max={100} step={1} label="内边距" />
+              <Settings.ItemSlide propKey="style.borderRadius" min={0} max={100} step={1} label="圆角" />
             </div>
           </Settings.Section>
         </Settings.Content>

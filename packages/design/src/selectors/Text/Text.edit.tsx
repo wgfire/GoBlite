@@ -1,7 +1,6 @@
 import { useNode, useEditor, UserComponent } from "@craftjs/core";
 import ContentEditable from "react-contenteditable";
 import { TextSettings } from "./TextSettings";
-// import { Resizer } from "@/components/Resizer";
 import { TextProps } from "./type";
 import { TextSettingsFast } from "./TextSettingFast";
 import ElementBox from "@/components/ElementBox";
@@ -40,6 +39,7 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
         tagName="p"
         style={{
           ...style,
+          fontSize: parseInt(style?.fontSize as string) + "px",
           textShadow: `0px 0px 2px rgba(0,0,0,${shadow || 0})`,
           width: "max-content"
         }}

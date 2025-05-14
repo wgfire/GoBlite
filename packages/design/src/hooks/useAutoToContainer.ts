@@ -6,6 +6,7 @@ import { useMoveNodeOnly } from "./useMoveOnly";
 interface DragContainerRef {
   element: HTMLElement;
   targetContainer: HTMLElement;
+  type: "autoToContainer" | null;
 }
 
 export const useAutoToContainer = (): HookConfig => {
@@ -21,7 +22,6 @@ export const useAutoToContainer = (): HookConfig => {
     if (container.id !== "ROOT") {
       container.style.boxShadow = "0 0 10px 1px inset rgba(59, 130, 246, 0.5)";
       container.style.transition = "box-shadow 0.2s ease-in-out";
-      console.log(container, "addContainerEffect");
     }
   };
 
@@ -36,7 +36,8 @@ export const useAutoToContainer = (): HookConfig => {
     if (!e.target || !e.target.parentElement) return;
     dragRef.current = {
       element: e.target,
-      targetContainer: e.target.parentElement
+      targetContainer: e.target.parentElement,
+      type: null
     };
     previousContainerRef.current = e.target.parentElement || null;
   }, []);
@@ -90,7 +91,7 @@ export const useAutoToContainer = (): HookConfig => {
       requestAnimationFrame(() => {
         if (!dragRef.current?.element) return;
         const targetContainer = findTargetContainer(e);
-
+        dragRef.current.type = "autoToContainer";
         // 如果有之前的容器，且目标容器不同，移除之前容器的效果
         if (previousContainerRef.current && previousContainerRef.current !== targetContainer) {
           removeContainerEffect(previousContainerRef.current);
@@ -121,7 +122,7 @@ export const useAutoToContainer = (): HookConfig => {
   );
 
   const handleDragEnd = useCallback(() => {
-    if (dragRef.current) {
+    if (dragRef.current && dragRef.current.type === "autoToContainer") {
       removeContainerEffect(dragRef.current.targetContainer);
       setTimeout(() => {
         if (dragRef.current?.targetContainer && dragRef.current?.element && isUpdate.current) {

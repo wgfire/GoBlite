@@ -5,8 +5,8 @@ import eventScripts from "@go-blite/events";
 import ContentEditable from "react-contenteditable";
 import { ButtonProps } from "./type";
 import { ButtonSettingsFast } from "./ButtonSettingsFast";
-import { useEffect } from "react";
 import ElementBox from "@/components/ElementBox";
+import { useUpdateEffect } from "ahooks";
 
 export const defaultProps: Partial<ButtonProps> = {
   style: {
@@ -37,12 +37,14 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
     enabled: state.options.enabled
   }));
 
-  useEffect(() => {
+  useUpdateEffect(() => {
     // 当variant变化时，清空color值
-    setProp((prop: ButtonProps) => {
-      prop.style.color = undefined;
-      prop.style.backgroundColor = undefined;
-    });
+    if (variant) {
+      setProp((prop: ButtonProps) => {
+        prop.style.color = undefined;
+        prop.style.backgroundColor = undefined;
+      });
+    }
   }, [variant]);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {

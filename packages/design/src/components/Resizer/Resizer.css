@@ -344,11 +344,15 @@
 
 /* 控制框样式 */
 .moveable-control-box {
-  --moveable-color: #4af;
-  --moveable-line-color: #4af;
+  --moveable-color: rgb(47, 54, 59) !important;
+  --moveable-line-color: rgb(76, 93, 107) !important;
   opacity: 0;
   animation: control-box-animation 0.3s ease-out forwards;
   z-index: 100 !important;
+}
+.moveable-control {
+  width: 12px !important;
+  height: 12px !important;
 }
 
 @keyframes control-box-animation {

@@ -8,4 +8,5 @@ export interface ContainerStyle extends BaseStyle {
 
 export interface ContainerProps extends CommonComponentProps {
   style: ContainerStyle;
+  customStyle: ContainerStyle;
 }

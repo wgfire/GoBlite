@@ -20,7 +20,8 @@ export const useMoveNodeOnly = () => {
       const oldParent = currentNodes[oldParentId];
       const newParent = currentNodes[newParentId];
 
-      if (!oldParent || !newParent) return;
+      if (!oldParent || !newParent || oldParentId === newParentId) return;
+      console.log([...newParent.nodes.slice(0, index), nodeId], oldParentId, newParentId, "oldParent, newParent");
 
       // 3. 构建新的节点树
       const newNodes = {
@@ -31,7 +32,7 @@ export const useMoveNodeOnly = () => {
         },
         [newParentId]: {
           ...newParent,
-          nodes: [...newParent.nodes.slice(0, index), nodeId, ...newParent.nodes.slice(index)]
+          nodes: [...newParent.nodes.slice(0, index), nodeId]
         },
         [nodeId]: {
           ...node,
@@ -39,7 +40,8 @@ export const useMoveNodeOnly = () => {
         }
       };
 
-      // 4. 使用 deserialize 重新加载整个状态树
+      // 4. 使用 deserialize 重新加载整个状态树，用craftjs的 action state 来设置 由于dom层与内部状态树不一致，导致craftjs报错
+      // 使用 history.ignore() 避免记录这个操作到历史记录中，因为这只是同步DOM操作到状态树
       console.log(newNodes, "newNodes");
       actions.deserialize(newNodes);
       actions.selectNode(nodeId);

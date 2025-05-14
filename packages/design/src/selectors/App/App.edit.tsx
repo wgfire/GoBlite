@@ -16,7 +16,6 @@ export const defaultProps: AppProps = {
     gridAutoFlow: "row",
     gridTemplateColumns: "1fr",
     gridAutoRows: "minmax(0px,100%)",
-    gap: "10px",
     padding: 10,
     height: "auto",
     minHeight: "100%",

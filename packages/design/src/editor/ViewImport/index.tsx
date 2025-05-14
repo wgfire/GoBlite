@@ -55,7 +55,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
               "w-[100%]": currentInfo.device === "desktop"
             })}
           >
-            <Canvas className="h-full w-full">{children}</Canvas>
+            <Canvas className="h-full w-full overflow-y-auto overflow-x-hidden hidden-scroll">{children}</Canvas>
           </div>
         </div>
         {showSidebar && <Sidebar />}

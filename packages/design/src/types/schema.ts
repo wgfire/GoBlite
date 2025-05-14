@@ -79,9 +79,14 @@ export interface ResourceConfig {
 interface CommonComponentProps {
   id?: string;
   className?: string;
+  /**
+   * @deprecated 组件内部元素样式
+   * 比如 object-fit font-size color等
+   */
   style?: BaseStyle;
   animation?: Animation[];
-  customStyle?: CSSProperties; // 自定义样式
+  // 自定义样式 跟布局相关
+  customStyle?: CSSProperties;
   events?: {
     onClick?: () => void | EventConfig;
     onLoad?: string;

@@ -10,7 +10,7 @@ import Moveable, {
   OnScaleStart,
   OnScaleEnd
 } from "react-moveable";
-import React, { CSSProperties, useMemo, useRef } from "react"; // 引入 useState 和 useRef
+import React, { CSSProperties, useEffect, useMemo, useRef } from "react"; // 引入 useState 和 useRef
 import { flushSync } from "react-dom";
 import "./Resizer.css";
 import { extractUnit, getComputedNumberValue, getComputedValue, maintainUnit } from "@/utils/resize";
@@ -26,6 +26,8 @@ export interface ResizerProps {
 
 export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props => {
   const moveableRef = React.useRef<Moveable>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const parentRef = useRef<HTMLElement | null>(null);
   const { target, scalable = false, resizable = true, rotatable = true, scalaText } = props;
   const {
     actions: { setProp },
@@ -137,18 +139,11 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
       const { value: initialValue, unit } = initialFontSizeRef.current;
       const finalScale = Array.isArray(lastEvent.scale) ? (lastEvent.scale[0] + lastEvent.scale[1]) / 2 : 1; // 使用平均缩放值
       const newNumericFontSize = initialValue * finalScale;
-
-      flushSync(() => {
-        // 使用 flushSync 包装 setProp
-        setProp((props: any) => {
-          props.style.fontSize = `${Number(newNumericFontSize.toFixed(4))}${unit}`;
-          // 缩放文本时，通常不希望改变元素的 transform，因为字体大小已经调整
-          // 如果需要保持 transform（例如，如果缩放也应用于元素本身而不仅仅是文本），则需要不同的逻辑
-          props.customStyle.transform = "none"; // 重置 transform
-        });
+      setProp((props: any) => {
+        props.style.fontSize = `${Number(newNumericFontSize.toFixed(4))}${unit}`;
       });
       // 重置元素的内联 transform，因为属性已更新
-      target.style.transform = "none";
+      //target.style.transform = "none";
       initialFontSizeRef.current = null; // 重置初始字体大小
     } else if (!scalaText) {
       // 非文本缩放逻辑保持不变
@@ -198,12 +193,61 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
     }
   };
 
+  // 监听父容器尺寸变化
+  useEffect(() => {
+    if (!dom || !active) return;
+
+    // 获取父元素
+    const targetElement = dom instanceof HTMLElement ? dom : null;
+    if (!targetElement) return;
+
+    const parentElement = targetElement.parentElement;
+    if (!parentElement) return;
+
+    parentRef.current = parentElement;
+
+    // 创建ResizeObserver监听父容器尺寸变化
+    const observer = new ResizeObserver(() => {
+      // 当父容器尺寸变化时，更新控制框
+      if (moveableRef.current) {
+        moveableRef.current.updateRect();
+      }
+    });
+
+    const targetObserver = new MutationObserver(() => {
+      // 当目标元素属性变化时，更新控制框
+      if (moveableRef.current) {
+        moveableRef.current.updateRect();
+      }
+    });
+
+    // 开始监听父容器
+    observer.observe(parentElement);
+    resizeObserverRef.current = observer;
+
+    // 开始监听目标元素
+    targetObserver.observe(targetElement, {
+      attributes: true
+    });
+
+    return () => {
+      // 清理监听
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
+      if (targetObserver) {
+        targetObserver.disconnect();
+      }
+    };
+  }, [dom, active]);
+
   return (
     target &&
     active &&
     !isDragging && (
       <Moveable
         ref={moveableRef}
+        bounds={{ left: 0, top: 0, bottom: 0, right: 0, position: "css" }}
         flushSync={flushSync}
         target={target}
         draggable={false}
@@ -211,6 +255,8 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
         rotatable={rotatable}
         origin={false}
         scalable={scalable}
+        useResizeObserver={true} // 监听目标元素尺寸变化
+        useMutationObserver={true} // 监听目标元素属性变化
         onResize={handleResize}
         onResizeEnd={handleResizeEnd}
         onRotate={handleRotate}

@@ -24,3 +24,7 @@
 div[data-radix-popper-content-wrapper] {
   z-index: 1000 !important;
 }
+
+.hidden-scroll::-webkit-scrollbar{
+  display: none;
+}

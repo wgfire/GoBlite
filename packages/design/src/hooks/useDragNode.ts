@@ -133,15 +133,21 @@ export const useDragNode = (): HookConfig => {
     const newParent = element.parentElement;
     if (!newParent) return;
 
+    // 检查是否为App根节点
+    const isAppRoot = element.dataset.id === "ROOT" || element.querySelector("[data-id='ROOT']") !== null;
+
     // calculateRelativePosition 用于计算相对定位时的 left/top。
-    const { left: leftPx, top: topPx } = calculateRelativePosition(element, newParent, "px", false);
+    const { left: leftPx, top: topPx } = calculateRelativePosition(element, newParent, "%", false);
+
+    // 对于App根节点，确保top值不为负数
+    const adjustedTopPx = isAppRoot && parseFloat(topPx) < 0 ? "0px" : topPx;
 
     setProp(targetId!, p => {
       p.customStyle = {
         ...p.customStyle,
         position: "relative",
         left: `${leftPx}`, // 使用像素值
-        top: `${topPx}`, // 使用像素值
+        top: `${adjustedTopPx}`, // 使用调整后的像素值
         transform: initialTransform?.remainingMatrix || "none", // 应用存储的 remainingMatrix
         zIndex: "auto"
       };

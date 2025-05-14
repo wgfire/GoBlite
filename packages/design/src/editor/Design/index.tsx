@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect } from "react";
-import { Editor } from "@craftjs/core";
+import React, { useMemo, useEffect, useCallback, useRef } from "react";
+import { Editor, QueryMethods } from "@craftjs/core";
 import { RenderNode } from "../RenderNode";
 
 import { useDesignContext } from "@/context/useDesignContext";
@@ -24,13 +24,23 @@ export const Design: React.FC = React.memo(() => {
     []
   );
 
-  const contextData = useDesignContext();
-  const { resolver, schema, onRender, updateContext } = contextData;
+  const { resolver, schema, onRender, updateContext, currentInfo } = useDesignContext();
+
+  // 使用 useRef 存储 currentInfo，确保始终能访问到最新值
+  const currentInfoRef = useRef(currentInfo);
+
+  // 当 currentInfo 变化时更新 ref
+  useEffect(() => {
+    currentInfoRef.current = currentInfo;
+    console.log(currentInfo, "currentInfo");
+  }, [currentInfo]);
+
   useEffect(() => {
     updateContext(draft => {
       draft.resolver = mergedResolver;
     });
   }, []);
+
   const mergedResolver = useMemo(
     () => ({
       ...defaultResolver,
@@ -39,13 +49,18 @@ export const Design: React.FC = React.memo(() => {
     [defaultResolver, resolver]
   );
 
-  const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
+  const onNodesChange = useCallback((query: ReturnType<typeof QueryMethods>) => {
+    // console.log(query.getSerializedNodes(), "query", currentInfoRef.current);
+    localStorage.setItem(currentInfoRef.current.device, JSON.stringify(query.getSerializedNodes()));
+  }, []);
 
+  const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
   return (
     <Editor
       resolver={mergedResolver}
       enabled={true}
       onRender={renderCallback}
+      onNodesChange={onNodesChange}
       indicator={{
         success: "opacity: 0",
         error: "opacity: 1"
