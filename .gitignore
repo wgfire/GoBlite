@@ -46,4 +46,6 @@ response.md
 
 #log 
 /packages/**/logs/*.log
+/builder/logs/
+/builder/build_outputs/
 /packages/**/.build-cache

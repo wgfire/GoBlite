@@ -1,0 +1,12 @@
+{
+  "watch": ["src/"],
+  "ext": "js,json",
+  "ignore": [
+    "build_outputs/*",
+    "schemas/*",
+    "logs/*",
+    "node_modules/*",
+    "*.test.js"
+  ],
+  "exec": "cross-env NODE_ENV=development node ./src/app.js"
+}
