@@ -1,34 +1,25 @@
-import { useContext, useCallback, useMemo } from "react";
-import { DesignContext, DesignContextProps, DeviceType } from "./Provider";
-import { Resolver, SerializedNodes } from "@craftjs/core";
+import { useContext, useCallback } from "react";
+import { DesignContext, DeviceType } from "./Provider";
+import { SerializedNodes } from "@craftjs/core";
 
 interface FindSchemaParams {
   device?: DeviceType;
   language?: string;
 }
-const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
-  if (!newResolver) return oldResolver;
-  return { ...oldResolver, ...newResolver };
-};
-export const useDesignContext = (initialProps?: Partial<DesignContextProps>) => {
+
+/**
+ * 使用设计上下文钩子
+ *
+ * 注意：不再接受 initialProps 参数，所有初始化配置应该通过 DesignProvider 的 initialProps 提供
+ * 这样可以避免多次更新状态，减少不必要的渲染
+ */
+export const useDesignContext = () => {
   const context = useContext(DesignContext);
   if (!context) {
     throw new Error("useDesignContext must be used within a DesignProvider");
   }
 
   const { state, updateContext } = context;
-
-  useMemo(() => {
-    if (initialProps) {
-      const newValue = { ...state, ...initialProps };
-      if (initialProps.resolver) {
-        //默认对传入的resolver进行合并处理
-        newValue.resolver = mergeResolvers(state.resolver!, initialProps.resolver);
-      }
-
-      updateContext(newValue);
-    }
-  }, [initialProps]);
 
   const findSchema = useCallback(
     ({ device, language }: FindSchemaParams): boolean => {

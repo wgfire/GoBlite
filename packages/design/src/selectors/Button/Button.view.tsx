@@ -11,7 +11,7 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
     id,
     connectors: { connect, drag }
   } = useNode();
-  const { background, margin, color } = style;
+  const { color } = style;
   const { text, variant, size } = props;
 
   /*
@@ -32,9 +32,8 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
       id={id}
       data-id={id}
       style={{
-        background: `${background}`,
-        margin: `${margin}px`,
         position: "relative",
+        width: "max-content",
         zIndex: 1,
         ...customStyle
       }}
@@ -44,6 +43,9 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
         ref={ref => connect(drag(ref as HTMLElement))}
         variant={variant}
         size={size}
+        style={{
+          ...style
+        }}
         className="rounded-sm w-full h-full"
       >
         <ContentEditable html={text || ""} disabled={true} style={{ color }} tagName="h2" onChange={() => void 0} />

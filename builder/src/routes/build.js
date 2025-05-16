@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
   try {
     logger.info(`Received build request for project: ${projectName}`);
     // 异步启动构建，立即返回 buildId
-    const { buildId } = await buildProject(projectName, schema); // buildProject 现在是异步的，但我们不 await 它的完成
+    const { buildId } = await buildProject(projectName, schema);
     res.status(202).json({
       message: "Build process started.",
       buildId: buildId,

@@ -15,6 +15,10 @@
     "./styles": {
       "import": "./dist/esm/styles/index.css",
       "require": "./dist/lib/styles/index.css"
+    },
+    "./styles/*": {
+      "import": "./dist/esm/styles/*.css",
+      "require": "./dist/lib/styles/*.css"
     }
   },
   "files": [

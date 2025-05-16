@@ -20,11 +20,10 @@
   @apply border-primary border border-dashed w-full h-full absolute left-0 top-0 pointer-events-none block;
 }
 
-
 div[data-radix-popper-content-wrapper] {
   z-index: 1000 !important;
 }
 
-.hidden-scroll::-webkit-scrollbar{
+.hidden-scroll::-webkit-scrollbar {
   display: none;
 }

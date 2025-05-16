@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import DesignPage from "./components/DesignPage";
 import { useDeviceType } from "./hooks/useDeviceType";
 
-const PageDisplay = ({ langCode, allSchemas }) => {
+const Page = ({ langCode, allSchemas }) => {
   const deviceType = useDeviceType();
   const [currentSchema, setCurrentSchema] = useState(null);
   const [pageTemplate, setPageTemplate] = useState(null);
@@ -44,7 +44,6 @@ const PageDisplay = ({ langCode, allSchemas }) => {
         found = true;
         console.log(`[PageDisplay] Found exact match: device=${deviceType}, lang=${langCode}`);
       } else {
-        // Fallback 1: Current device, default language (e.g., 'zh')
         const fallbackLang = "zh"; // Or from config
         if (deviceData.languagePageMap[fallbackLang]) {
           schemaToLoad = deviceData.languagePageMap[fallbackLang].schema;
@@ -77,7 +76,7 @@ const PageDisplay = ({ langCode, allSchemas }) => {
         }
       }
     }
-
+    console.log(schemaToLoad, "当前渲染的schema");
     if (schemaToLoad) {
       setCurrentSchema(schemaToLoad);
       setPageTemplate(template);
@@ -107,4 +106,4 @@ const PageDisplay = ({ langCode, allSchemas }) => {
   return <DesignPage initialData={currentSchema} />;
 };
 
-export default PageDisplay;
+export default Page;

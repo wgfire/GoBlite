@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useNode, UserComponent } from "@craftjs/core";
 import { ContainerProps } from "./type";
 import { ElementBoxView } from "@/components/ElementBox";
+import { omit } from "lodash-es";
 
 const defaultProps: ContainerProps = {
   style: {
@@ -20,7 +21,10 @@ const defaultProps: ContainerProps = {
     maxWidth: 100000
   },
   events: {},
-  customStyle: {},
+  customStyle: {
+    width: "50px",
+    height: "50px"
+  },
   animation: []
 };
 
@@ -33,6 +37,20 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   };
 
   const { style, events, customStyle, children } = options;
+  const { backgroundImage, background } = style;
+  const styleBg = useMemo(() => {
+    // 如果backgroundImage存在，则设置size
+    return {
+      ...(backgroundImage && backgroundImage !== "none"
+        ? {
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+            backgroundSize: "100% 100%"
+          }
+        : { background: background || "rgba(255, 255, 255, 1)" })
+    };
+  }, [background, backgroundImage]);
 
   useEffect(() => {
     if (events?.onLoad) {
@@ -40,14 +58,21 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     }
   }, [events]);
 
+  const styled = useMemo(() => {
+    // 移除background属性，以避免与backgroundImage同时存在
+    const styled = { ...omit(style, "background", "backgroundImage"), ...customStyle };
+
+    return styled;
+  }, [customStyle, style]);
+
   return (
     <ElementBoxView
       id={id}
       data-id={id}
       style={{
         position: "relative",
-        ...style,
-        ...customStyle
+        ...styleBg,
+        ...styled
       }}
     >
       {children}

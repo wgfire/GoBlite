@@ -1,8 +1,8 @@
 import { useEditor } from "@craftjs/core";
 import { DeviceType } from "@/context/Provider";
 import { useDesignContext } from "@/context/useDesignContext";
-import { Button } from "@go-blite/shadcn";
-import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Download } from "lucide-react";
+import { Button, Toast } from "@go-blite/shadcn";
+import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Download, Loader } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -14,15 +14,17 @@ import {
 } from "@go-blite/shadcn";
 import { useSaveSchema } from "@/hooks/useSaveSchema";
 import { Devices, languages } from "@/constant";
+import { useState } from "react";
 
 export const Header: React.FC = () => {
   const { enabled, actions, query } = useEditor(state => ({
     enabled: state.options.enabled
   }));
 
-  const { updateContext, currentInfo, findSchema } = useDesignContext();
+  const { updateContext, currentInfo, findSchema, device } = useDesignContext();
   const { saveCurrentSchema } = useSaveSchema();
-
+  // 下载状态管理
+  const [isDownloading, setIsDownloading] = useState(false);
   const handleDeviceChange = (newDevice: DeviceType) => {
     saveCurrentSchema();
     updateContext(draft => {
@@ -83,20 +85,65 @@ export const Header: React.FC = () => {
       </Button>
     );
   };
+
+  // 开始构建
   const DownloadHandle = async () => {
-    const result = await fetch("http://localhost:3002/api/build", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        projectName: "test",
-        schema: JSON.stringify(query.getSerializedNodes())
-      })
-    });
-    console.log(result, "结果");
+    try {
+      setIsDownloading(true);
+
+      const result = await fetch("http://localhost:3002/api/build", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          projectName: "test",
+          schema: JSON.stringify(device)
+        })
+      });
+
+      const data = await result.json();
+      console.log(data, "结果");
+
+      if (data.buildId) {
+        await downloadZip(data.buildId);
+      } else {
+        Toast({
+          title: "获取构建ID失败"
+        });
+      }
+    } catch (error) {
+      console.log(error, "下载失败");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
+  // 下载 zip 文件
+  const downloadZip = async (buildId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/build/download/${buildId}`);
+
+      if (!response.ok) {
+        throw new Error(`下载失败: ${response.status} ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `build-${buildId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 0);
+    } catch (error) {
+      console.log(error, "下载失败");
+    }
+  };
   return (
     <div className="w-full h-12 z-50 relative px-4 flex items-center justify-between bg-card shadow-sm">
       {/* 左侧设备切换 */}
@@ -157,8 +204,9 @@ export const Header: React.FC = () => {
           <Eye className="mr-1 h-3 w-3" />
           {enabled ? "预览" : "编辑"}
         </Button>
-        <Button size="sm" onClick={DownloadHandle}>
-          <Download className="mr-1 h-3 w-3" />
+
+        <Button size="sm" onClick={DownloadHandle} disabled={isDownloading}>
+          {isDownloading ? <Loader className="mr-1 h-3 w-3 animate-spin" /> : <Download className="mr-1 h-3 w-3" />}
           下载
         </Button>
       </div>

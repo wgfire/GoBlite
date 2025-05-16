@@ -1,12 +1,11 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 
-const PageDisplay = lazy(() => import("./PageDisplay"));
+const PageDisplay = lazy(() => import("./page"));
 
 // 动态导入 schema.json
 // Vite 支持 JSON 导入
 // 注意：在构建时，这个 import 会被处理，schema.json 的内容会包含在包里
-// import initialAllSchemas from './schema.json'; // 假设后端会将 schema 放在这里
 
 const App = () => {
   const [allSchemaData, setAllSchemaData] = useState(null);
@@ -18,7 +17,8 @@ const App = () => {
       try {
         // Vite 将会处理这个动态导入。确保 schema.json 存在于 src 目录中
         const schemaModule = await import("./schema.json");
-        setAllSchemaData(schemaModule.default); // JSON 模块的默认导出是其内容
+        console.log(JSON.parse(schemaModule.default), "json数据");
+        setAllSchemaData(JSON.parse(schemaModule.default)); // JSON 模块的默认导出是其内容
       } catch (err) {
         console.error("Failed to load schema.json:", err);
         setErrorSchema("Could not load page configuration.");

@@ -1,5 +1,5 @@
 packages:
   - "web-site"
   - "packages/*"
-  - "builder/*"
+  - "builder"
   - "builder/templates/*"

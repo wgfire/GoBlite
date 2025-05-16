@@ -137,7 +137,7 @@ export const useDragNode = (): HookConfig => {
     const isAppRoot = element.dataset.id === "ROOT" || element.querySelector("[data-id='ROOT']") !== null;
 
     // calculateRelativePosition 用于计算相对定位时的 left/top。
-    const { left: leftPx, top: topPx } = calculateRelativePosition(element, newParent, "%", false);
+    const { left: leftPx, top: topPx } = calculateRelativePosition(element, newParent, "px", false);
 
     // 对于App根节点，确保top值不为负数
     const adjustedTopPx = isAppRoot && parseFloat(topPx) < 0 ? "0px" : topPx;

@@ -22,10 +22,11 @@ export const useClickAddNode = (): HookConfig => {
         props: {
           style: {
             ...defaultProps.style,
-            width: "10%",
-            height: "10%",
             background: "rgba(255, 255, 255, 0.8)",
             border: "1px solid rgba(0, 0, 0, 0.3)"
+          },
+          customStyle: {
+            ...defaultProps.customStyle
           }
         },
         nodes: []

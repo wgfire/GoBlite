@@ -42,7 +42,7 @@ export default defineConfig({
           sourcemap: false,
           entryFileNames: "[name].js",
           chunkFileNames: "vendor/[name].js",
-          assetFileNames: "style/[name].[ext]",
+          assetFileNames: "styles/[name].[ext]",
           preserveModules: true, // 保持原始的模块结构
           preserveModulesRoot: "src" // 设置相对路径起点
         },
@@ -52,7 +52,7 @@ export default defineConfig({
           sourcemap: false,
           entryFileNames: "[name].js",
           chunkFileNames: "vendor/[name].js",
-          assetFileNames: "style/[name].[ext]",
+          assetFileNames: "styles/[name].[ext]",
           preserveModules: true,
           preserveModulesRoot: "src"
         }

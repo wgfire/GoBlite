@@ -55,7 +55,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
         clearTimeout(time);
       }
     };
-  }, [props.customStyle?.position]);
+  }, [props?.customStyle?.position]);
 
   const updatePosition = useCallback(() => {
     if (dom && currentRef.current) {
@@ -137,7 +137,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
         createPortal(
           <div
             ref={currentRef}
-            className="py-1 px-1 text-white bg-primary fixed flex items-center z-[9999] rounded-md animate-accordion-down"
+            className="py-1 px-1 text-white bg-primary fixed flex items-center z-[100] rounded-md animate-accordion-down"
             style={{
               left: position.left,
               top: position.top

@@ -64,7 +64,6 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
     flushSync(() => {
       // 使用 flushSync 包装 setProp
       setProp((props: any) => {
-        // 因为拖拽的时候 实时使用px进行更新为了不每次计算% ,所以没有直接获取根据属性提取单位后缀，而是用之前的属性值来判断单位
         const wunit = extractUnit(props.customStyle.width);
         const hunit = extractUnit(props.customStyle.height);
 

@@ -8,7 +8,7 @@ const logger = require("../utils/logger");
 const TEMP_SCHEMA_DIR = process.env.TEMP_SCHEMA_DIR || path.join(__dirname, "..", "..", "schemas");
 const BUILD_OUTPUT_DIR = process.env.BUILD_OUTPUT_DIR || path.join(__dirname, "..", "..", "build_outputs");
 const VITE_TEMPLATE_DIR =
-  process.env.VITE_TEMPLATE_DIR || path.join(__dirname, "..", "..", "templates", "vite-react-template"); // 你需要创建这个模板
+  process.env.VITE_TEMPLATE_DIR || path.join(__dirname, "..", "..", "templates", "vite-react-template");
 
 // 确保目录存在
 fs.ensureDirSync(TEMP_SCHEMA_DIR);
@@ -18,43 +18,104 @@ fs.ensureDirSync(BUILD_OUTPUT_DIR);
 // 生产环境应使用 Redis 或数据库
 const buildCache = new Map();
 
-async function createProjectFromTemplate(projectName, schemaData) {
-  const projectPath = path.join(BUILD_OUTPUT_DIR, projectName);
-  const schemaFilePath = path.join(projectPath, "src", "schema.json"); // 将 schema 放在项目的 src 下
+// 初始化模板目录，确保依赖已安装
+async function initializeTemplateDir() {
+  logger.info(`Initializing template directory: ${VITE_TEMPLATE_DIR}`);
 
-  logger.info(`[${projectName}] Creating project from template at ${projectPath}`);
-
-  if (await fs.pathExists(projectPath)) {
-    logger.warn(`[${projectName}] Project path already exists. Cleaning up: ${projectPath}`);
-    await fs.remove(projectPath); // 清理旧的，或者你可以实现版本控制
+  if (!fs.existsSync(VITE_TEMPLATE_DIR)) {
+    logger.error(`Template directory does not exist: ${VITE_TEMPLATE_DIR}`);
+    throw new Error(`Template directory does not exist: ${VITE_TEMPLATE_DIR}`);
   }
 
+  // 检查 node_modules 是否存在，如果不存在则安装依赖
+  const nodeModulesPath = path.join(VITE_TEMPLATE_DIR, "node_modules");
+  if (!fs.existsSync(nodeModulesPath)) {
+    logger.info("Installing dependencies in template directory...");
+    try {
+      const { stdout, stderr } = await require("util").promisify(exec)("pnpm install", {
+        cwd: VITE_TEMPLATE_DIR
+      });
+      logger.info("Template dependencies installed successfully.");
+      logger.debug(`stdout: ${stdout}`);
+      if (stderr) logger.warn(`stderr: ${stderr}`);
+    } catch (error) {
+      logger.error(`Failed to install template dependencies: ${error.message}`);
+      throw error;
+    }
+  } else {
+    logger.info("Template dependencies already installed.");
+  }
+}
+
+// 启动时初始化模板目录
+initializeTemplateDir().catch(err => {
+  logger.error(`Failed to initialize template directory: ${err.message}`);
+  process.exit(1);
+});
+
+async function createProjectFromTemplate(projectName, schemaData) {
+  const outputPath = path.join(BUILD_OUTPUT_DIR, projectName);
+  const templateSchemaPath = path.join(VITE_TEMPLATE_DIR, "src", "schema.json");
+
+  logger.info(`[${projectName}] Preparing build for project ${projectName}`);
+
+  // 确保输出目录存在
+  if (await fs.pathExists(outputPath)) {
+    logger.warn(`[${projectName}] Output path already exists. Cleaning up: ${outputPath}`);
+    await fs.remove(outputPath);
+  }
+  await fs.ensureDir(outputPath);
+
   try {
-    await fs.copy(VITE_TEMPLATE_DIR, projectPath);
-    logger.info(`[${projectName}] Copied template to ${projectPath}`);
+    // 写入 schema 数据到模板目录
+    await fs.writeJson(templateSchemaPath, schemaData, { spaces: 2 });
+    logger.info(`[${projectName}] Schema data written to template: ${templateSchemaPath}`);
 
-    // 写入 schema 数据
-    await fs.writeJson(schemaFilePath, schemaData, { spaces: 2 });
-    logger.info(`[${projectName}] Schema data written to ${schemaFilePath}`);
+    // 创建临时的 vite.config.js 来覆盖输出目录
+    const viteConfigPath = path.join(VITE_TEMPLATE_DIR, "vite.config.js");
+    const originalViteConfig = await fs.readFile(viteConfigPath, "utf-8");
 
-    return projectPath;
+    // 保存原始配置
+    const backupConfigPath = path.join(VITE_TEMPLATE_DIR, "vite.config.js.backup");
+    await fs.writeFile(backupConfigPath, originalViteConfig);
+
+    // 修改 vite.config.js 以输出到指定目录
+    const newViteConfig = `
+    import { defineConfig } from "vite";
+    import react from "@vitejs/plugin-react";
+    import path from "path";
+    export default defineConfig({
+      plugins: [react()],
+      base: "./",
+      build: {
+        outDir: "${outputPath.replace(/\\/g, "\\\\")}"
+      }
+    });
+`;
+
+    await fs.writeFile(viteConfigPath, newViteConfig);
+    logger.info(`[${projectName}] Updated vite.config.js to output to: ${outputPath}`);
+
+    return VITE_TEMPLATE_DIR;
   } catch (error) {
-    logger.error(`[${projectName}] Error creating project from template: ${error.message}`);
+    logger.error(`[${projectName}] Error preparing build: ${error.message}`);
     throw error;
   }
 }
 
-function runViteBuild(projectPath, projectName) {
+function runViteBuild(templatePath, projectName) {
   return new Promise((resolve, reject) => {
     const buildId = buildCache.get(projectName)?.buildId || projectName;
+    const outputPath = path.join(BUILD_OUTPUT_DIR, buildId);
     const logStream = fs.createWriteStream(path.join(__dirname, "..", "..", "logs", `${buildId}-build-output.log`), {
       flags: "a"
     });
 
-    logger.info(`[${projectName}] Starting Vite build in ${projectPath}`);
-    // 注意：确保 vite 是全局安装的，或者在模板的 package.json 中作为 devDependency
+    logger.info(`[${projectName}] Starting Vite build in template directory, outputting to: ${outputPath}`);
 
-    const buildProcess = exec("npm install && npm run build", { cwd: projectPath });
+    // 直接在模板目录中执行构建，不需要每次都安装依赖
+    // 如果模板依赖有更新，可以手动在模板目录中执行 pnpm install
+    const buildProcess = exec("pnpm run build", { cwd: templatePath });
 
     buildProcess.stdout.on("data", data => {
       logger.info(`[${projectName}-stdout] ${data.toString().trim()}`);
@@ -68,9 +129,24 @@ function runViteBuild(projectPath, projectName) {
 
     buildProcess.on("close", code => {
       logStream.end();
+
+      // 构建完成后，恢复原始的 vite.config.js
+      const viteConfigPath = path.join(templatePath, "vite.config.js");
+      const backupConfigPath = path.join(templatePath, "vite.config.js.backup");
+
+      try {
+        if (fs.existsSync(backupConfigPath)) {
+          fs.copyFileSync(backupConfigPath, viteConfigPath);
+          fs.removeSync(backupConfigPath);
+          logger.info(`[${projectName}] Restored original vite.config.js`);
+        }
+      } catch (err) {
+        logger.error(`[${projectName}] Error restoring vite.config.js: ${err.message}`);
+      }
+
       if (code === 0) {
         logger.info(`[${projectName}] Vite build successful.`);
-        resolve(path.join(projectPath, "dist")); // Vite 构建输出目录
+        resolve(outputPath); // 直接返回输出目录
       } else {
         logger.error(`[${projectName}] Vite build failed with code ${code}.`);
         reject(new Error(`Vite build failed for ${projectName}. Check logs.`));
@@ -127,7 +203,9 @@ async function buildProject(projectName, schemaData) {
     updateStatus({ status: "zipping_output" });
     const zipFileName = `${buildId}.zip`;
     const zipFilePath = path.join(BUILD_OUTPUT_DIR, zipFileName);
-    await zipDirectory(buildOutputDir, zipFilePath, buildId);
+    const buildOutputDirs = path.join(VITE_TEMPLATE_DIR, buildOutputDir);
+    logger.info(`[Build ${buildId}] Project output directory: ${buildOutputDirs}`);
+    await zipDirectory(buildOutputDirs, zipFilePath, buildId);
 
     updateStatus({
       status: "completed",

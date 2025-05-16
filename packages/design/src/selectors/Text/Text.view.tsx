@@ -28,8 +28,9 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
         tagName="h2"
         style={{
           ...style,
+          fontSize: parseInt(style?.fontSize as string) + "px",
           textShadow: `0px 0px 2px rgba(0,0,0,${shadow || 0})`,
-          width: "max-content"
+          width: "100%"
         }}
       />
     </ElementBoxView>

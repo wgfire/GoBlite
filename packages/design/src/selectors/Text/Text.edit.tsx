@@ -25,7 +25,6 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
       resizable={false}
       scalaText={true}
       style={{
-        width: "max-content",
         userSelect: "none",
         ...customStyle
       }}
@@ -41,7 +40,7 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
           ...style,
           fontSize: parseInt(style?.fontSize as string) + "px",
           textShadow: `0px 0px 2px rgba(0,0,0,${shadow || 0})`,
-          width: "max-content"
+          width: "100%"
         }}
       />
     </ElementBox>

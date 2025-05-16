@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from "react";
-import { useNode, UserComponent, ROOT_NODE } from "@craftjs/core";
+import { useNode, UserComponent } from "@craftjs/core";
 import { ContainerSettings } from "./ContainerSettings";
 import { ContainerProps } from "./type";
 import { ContainerSettingsFast } from "./ContainerSettingsFast";
@@ -22,8 +22,8 @@ export const defaultProps: ContainerProps = {
   },
   events: {},
   customStyle: {
-    width: "100%",
-    height: "auto"
+    width: "10%",
+    height: "10%"
   },
   animation: []
 };
@@ -79,8 +79,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
         gap: gap ?? 0,
         flex: fillSpace ? 1 : "unset",
         ...styleBg,
-        ...styled,
-        ...(id === ROOT_NODE ? { overflowX: "hidden" } : {})
+        ...styled
       }}
     >
       {children}
