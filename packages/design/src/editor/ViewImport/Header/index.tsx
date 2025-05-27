@@ -2,7 +2,19 @@ import { useEditor } from "@craftjs/core";
 import { DeviceType } from "@/context/Provider";
 import { useDesignContext } from "@/context/useDesignContext";
 import { Button, Toast } from "@go-blite/shadcn";
-import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Download, Loader } from "lucide-react";
+import {
+  Smartphone,
+  Tablet,
+  Monitor,
+  ArrowLeft,
+  ArrowRight,
+  Eye,
+  Download,
+  Loader,
+  Trash,
+  Save,
+  Upload
+} from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -194,6 +206,10 @@ export const Header: React.FC = () => {
 
       {/* 右侧预览和部署按钮 */}
       <div className="flex space-x-2">
+        <Button size="sm" onClick={() => {}}>
+          <Trash className="mr-1 h-3 w-3" />
+          清空
+        </Button>
         <Button
           size="sm"
           onClick={() => {
@@ -208,6 +224,14 @@ export const Header: React.FC = () => {
         <Button size="sm" onClick={DownloadHandle} disabled={isDownloading}>
           {isDownloading ? <Loader className="mr-1 h-3 w-3 animate-spin" /> : <Download className="mr-1 h-3 w-3" />}
           下载
+        </Button>
+        <Button size="sm" onClick={() => {}}>
+          <Save className="mr-1 h-3 w-3" />
+          保存
+        </Button>
+        <Button size="sm" onClick={() => {}}>
+          <Upload className="mr-1 h-3 w-3" />
+          部署
         </Button>
       </div>
     </div>

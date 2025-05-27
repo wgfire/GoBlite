@@ -23,14 +23,20 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "lucide-react": "^0.439.0",
+    "react": "^18",
+    "react-dom": "^18",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@figma/eslint-plugin-figma-plugins": "0.15.0",
     "@figma/plugin-typings": "1.99.0",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "@vitejs/plugin-react-swc": "^3.5.0",
+    "eslint": "^8",
     "globals": "^15.9.0",
+    "typescript": "^5",
     "vite": "^5.4.1",
     "vite-plugin-html": "^3.2.2"
   }

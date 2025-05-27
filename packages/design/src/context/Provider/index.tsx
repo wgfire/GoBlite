@@ -86,16 +86,20 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
   children,
   initialProps = {} as DesignContextProps
 }) => {
+  console.log('DesignProvider - initialProps:', initialProps);
   const defaultProps = useMemo(() => {
     // 根据 publish 属性选择合适的默认 resolver
     const isPublish = initialProps.publish || false;
     const baseResolver = isPublish ? defaultViewResolver : defaultEditResolver;
 
-    return {
+    // 确保 schema 被正确初始化
+    const schema = initialProps.schema || {};
+
+    const result = {
       publish: isPublish,
       // 合并用户提供的 resolver 和默认 resolver
       resolver: mergeResolvers(baseResolver, initialProps.resolver),
-      schema: initialProps.schema,
+      schema: schema, // 确保 schema 被正确设置
       assets: initialProps.assets || [],
       onRender: initialProps.onRender,
       device: initialProps.device,
@@ -107,6 +111,8 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
       showSidebar: initialProps.showSidebar || false,
       syncResponse: initialProps.syncResponse || false
     };
+    
+    return result;
   }, [initialProps]);
 
   const [state, updateState] = useImmer(defaultProps as DesignContextProps);

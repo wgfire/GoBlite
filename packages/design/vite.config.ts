@@ -20,6 +20,7 @@ export default defineConfig({
   },
   build: {
     cssMinify: "esbuild",
+    cssCodeSplit: false,
 
     rollupOptions: {
       external: [
@@ -34,7 +35,7 @@ export default defineConfig({
       ],
       treeshake: true,
       preserveEntrySignatures: "strict",
-      input: ["src/index.ts", "src/styles/tailwind.css"],
+      input: ["src/index.ts"],
       output: [
         {
           dir: "dist/esm",
@@ -42,9 +43,9 @@ export default defineConfig({
           sourcemap: false,
           entryFileNames: "[name].js",
           chunkFileNames: "vendor/[name].js",
-          assetFileNames: "styles/[name].[ext]",
-          preserveModules: true, // 保持原始的模块结构
-          preserveModulesRoot: "src" // 设置相对路径起点
+          assetFileNames: "styles/index.css",
+          preserveModules: true,
+          preserveModulesRoot: "src"
         },
         {
           dir: "dist/lib",
@@ -52,7 +53,7 @@ export default defineConfig({
           sourcemap: false,
           entryFileNames: "[name].js",
           chunkFileNames: "vendor/[name].js",
-          assetFileNames: "styles/[name].[ext]",
+          assetFileNames: "styles/index.css",
           preserveModules: true,
           preserveModulesRoot: "src"
         }

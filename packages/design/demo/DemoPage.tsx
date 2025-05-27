@@ -3969,10 +3969,6 @@ const devices: Devices = [
     }
   }
 ];
-const schema = localStorage.getItem("mobile");
-if (schema) {
-  //devices[1].languagePageMap["zh"].schema = JSON.parse(schema!);
-}
 
 const DemoContent: React.FC = () => {
   const contextData = useDesignContext();
