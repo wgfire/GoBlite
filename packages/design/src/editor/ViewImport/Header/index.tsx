@@ -1,20 +1,13 @@
 import { useEditor } from "@craftjs/core";
 import { DeviceType } from "@/context/Provider";
 import { useDesignContext } from "@/context/useDesignContext";
-import { Button, Toast } from "@go-blite/shadcn";
-import {
-  Smartphone,
-  Tablet,
-  Monitor,
-  ArrowLeft,
-  ArrowRight,
-  Eye,
-  Download,
-  Loader,
-  Trash,
-  Save,
-  Upload
-} from "lucide-react";
+import { Button } from "@go-blite/shadcn";
+import { useToast } from "@go-blite/shadcn/hooks/use-toast";
+import { useSchemaOperations } from "@/hooks/useSchemaOperations";
+import { DEVICES, languages } from "@/constant";
+import { useState } from "react";
+import { BusinessEvents } from "@/utils/BusinessEvents";
+import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Upload, Loader, Trash, Save } from "lucide-react";
 import {
   Select,
   SelectTrigger,
@@ -24,17 +17,15 @@ import {
   SelectLabel,
   SelectItem
 } from "@go-blite/shadcn";
-import { useSaveSchema } from "@/hooks/useSaveSchema";
-import { Devices, languages } from "@/constant";
-import { useState } from "react";
 
 export const Header: React.FC = () => {
+  const { toast } = useToast();
+  const { clearCurrentSchema, saveCurrentSchema } = useSchemaOperations();
   const { enabled, actions, query } = useEditor(state => ({
     enabled: state.options.enabled
   }));
 
   const { updateContext, currentInfo, findSchema, device } = useDesignContext();
-  const { saveCurrentSchema } = useSaveSchema();
   // 下载状态管理
   const [isDownloading, setIsDownloading] = useState(false);
   const handleDeviceChange = (newDevice: DeviceType) => {
@@ -44,6 +35,9 @@ export const Header: React.FC = () => {
       draft.currentInfo.device = newDevice;
       draft.schema = newDeviceData?.languagePageMap[draft.currentInfo.language]?.schema;
     });
+
+    // 触发设备切换事件
+    BusinessEvents.emit("onDeviceChange", { device: newDevice });
   };
 
   const handleLanguageChange = (newLanguage: string) => {
@@ -55,13 +49,16 @@ export const Header: React.FC = () => {
       draft.schema = newSchema ?? oldSchema;
       draft.currentInfo.language = newLanguage;
     });
+
+    // 触发语言切换事件
+    BusinessEvents.emit("onLanguageChange", { language: newLanguage });
   };
   /**
    * 将当前设备端的数据同步到其他设备端
    */
   const syncResponse = () => {
     const syncSchema = query.getSerializedNodes();
-    const syncDevice = Devices.filter(d => d !== currentInfo.device) as DeviceType[];
+    const syncDevice = DEVICES.filter(d => d !== currentInfo.device) as DeviceType[];
     const syncLanguage = currentInfo.language;
 
     if (!syncSchema) return;
@@ -82,6 +79,9 @@ export const Header: React.FC = () => {
         }
       });
     });
+
+    // 触发同步事件
+    BusinessEvents.emit("onSave", { data: { syncDevice, syncLanguage } });
   };
 
   const DeviceButton = ({ device, icon: Icon }: { device: DeviceType; icon: React.ElementType }) => {
@@ -98,62 +98,20 @@ export const Header: React.FC = () => {
     );
   };
 
-  // 开始构建
+  // 处理上传/下载按钮点击
   const DownloadHandle = async () => {
     try {
       setIsDownloading(true);
-
-      const result = await fetch("http://localhost:3002/api/build", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          projectName: "test",
-          schema: JSON.stringify(device)
-        })
-      });
-
-      const data = await result.json();
-      console.log(data, "结果");
-
-      if (data.buildId) {
-        await downloadZip(data.buildId);
-      } else {
-        Toast({
-          title: "获取构建ID失败"
-        });
-      }
+      BusinessEvents.emit("onDownload", { device });
     } catch (error) {
-      console.log(error, "下载失败");
+      console.error("触发下载事件失败:", error);
+      toast({
+        title: "操作失败",
+        description: "触发下载事件时出错，请稍后重试。",
+        variant: "destructive"
+      });
     } finally {
       setIsDownloading(false);
-    }
-  };
-
-  // 下载 zip 文件
-  const downloadZip = async (buildId: string) => {
-    try {
-      const response = await fetch(`http://localhost:3002/api/build/download/${buildId}`);
-
-      if (!response.ok) {
-        throw new Error(`下载失败: ${response.status} ${response.statusText}`);
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `build-${buildId}.zip`;
-      document.body.appendChild(a);
-      a.click();
-
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 0);
-    } catch (error) {
-      console.log(error, "下载失败");
     }
   };
   return (
@@ -206,7 +164,7 @@ export const Header: React.FC = () => {
 
       {/* 右侧预览和部署按钮 */}
       <div className="flex space-x-2">
-        <Button size="sm" onClick={() => {}}>
+        <Button size="sm" onClick={clearCurrentSchema}>
           <Trash className="mr-1 h-3 w-3" />
           清空
         </Button>
@@ -214,7 +172,14 @@ export const Header: React.FC = () => {
           size="sm"
           onClick={() => {
             saveCurrentSchema(true);
-            actions.setOptions(options => (options.enabled = !enabled));
+            const newMode = !enabled;
+            actions.setOptions(options => (options.enabled = newMode));
+            // 触发预览/编辑模式切换事件
+            if (newMode) {
+              BusinessEvents.emit("onPreviewExit", {});
+            } else {
+              BusinessEvents.emit("onPreview", {});
+            }
           }}
         >
           <Eye className="mr-1 h-3 w-3" />
@@ -222,16 +187,27 @@ export const Header: React.FC = () => {
         </Button>
 
         <Button size="sm" onClick={DownloadHandle} disabled={isDownloading}>
-          {isDownloading ? <Loader className="mr-1 h-3 w-3 animate-spin" /> : <Download className="mr-1 h-3 w-3" />}
-          下载
+          {isDownloading ? <Loader className="mr-1 h-3 w-3 animate-spin" /> : <Upload className="mr-1 h-3 w-3" />}
+          上传
         </Button>
-        <Button size="sm" onClick={() => {}}>
+        <Button
+          size="sm"
+          onClick={() => {
+            try {
+              // 触发保存事件
+              BusinessEvents.emit("onSave", {});
+              saveCurrentSchema(true);
+            } catch (error) {
+              BusinessEvents.emit("onSaveError", { error });
+              toast({
+                title: "保存失败",
+                variant: "destructive"
+              });
+            }
+          }}
+        >
           <Save className="mr-1 h-3 w-3" />
           保存
-        </Button>
-        <Button size="sm" onClick={() => {}}>
-          <Upload className="mr-1 h-3 w-3" />
-          部署
         </Button>
       </div>
     </div>

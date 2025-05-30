@@ -8,9 +8,16 @@ import { defineConfig } from "vite";
 import typescript from "vite-plugin-dts";
 import componentCssPlugin from "./scripts/vite-plugin-component-css";
 export default async () => {
-  const files = await globby(["src/components/**/*.tsx"], {
+  // 获取组件和hooks文件
+  const componentFiles = await globby(["src/components/**/*.tsx"], {
     // ignore: ["src/components/index.tsx"]
   });
+
+  const hookFiles = await globby(["src/hooks/**/*.ts"], {
+    ignore: []
+  });
+
+  const files = [...componentFiles, ...hookFiles];
   console.log(files, "files");
   return defineConfig({
     plugins: [
@@ -56,6 +63,19 @@ export default async () => {
             chunkFileNames: "vendor/[name].js",
             assetFileNames: "style/[name].[ext]",
             entryFileNames: chunk => {
+              // 处理文件路径
+              const filePath = chunk.facadeModuleId || "";
+
+              // 处理hooks文件
+              if (filePath.includes("/hooks/")) {
+                const hookName = path.basename(filePath, path.extname(filePath));
+                if (hookName === "index") {
+                  return "hooks/index.js";
+                }
+                return `hooks/${hookName}.js`;
+              }
+
+              // 处理组件文件
               if (chunk.name === "index") {
                 return "components/index.js";
               }

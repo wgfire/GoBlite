@@ -21,7 +21,7 @@ export function ItemInput<T>({ label, placeholder, type, propKey }: ItemInputPro
         value={inputValue as string}
         onChange={e => {
           if (propKey) {
-            console.log(e.target.value, "宽度");
+            console.log(e.target.value);
             setProp(p => {
               set(p as object, propKey as string, e.target.value);
             });

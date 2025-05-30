@@ -1,10 +1,15 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
-const morgan = require("morgan");
-const logger = require("./utils/logger");
-const buildRoutes = require("./routes/build");
-const path = require("path");
+import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import cors from "cors";
+import morgan from "morgan";
+import logger from "./utils/logger.js";
+import buildRoutes from "./routes/build.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,7 +27,8 @@ app.use("/api/build", buildRoutes);
 app.use("/logs", express.static(path.join(__dirname, "..", "logs")));
 
 // Basic error handler
-app.use((err, req, res) => {
+app.use((err, req, res, _next) => {
+  // Renamed next to _next as it's required by Express signature but not used
   logger.error(`Unhandled application error: ${err.message}`);
   logger.error(err.stack);
   res.status(500).send({ message: "Something broke!", error: err.message });

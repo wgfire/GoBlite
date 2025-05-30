@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const { buildProject, getBuildStatus } = require("../services/viteBuilder");
-const logger = require("../utils/logger");
-const path = require("path");
-const fs = require("fs-extra");
+import { buildProject, getBuildStatus } from "../services/viteBuilder.js";
+import logger from "../utils/logger.js";
+import path from "path";
+import fs from "fs-extra";
 
 // POST /api/build - 启动构建
 router.post("/", async (req, res) => {
@@ -78,4 +78,4 @@ router.get("/download/:buildId", async (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

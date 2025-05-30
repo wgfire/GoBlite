@@ -10,6 +10,16 @@
     "autoIndex": "node ./scripts/autoIndexImport.js"
   },
   "exports": {
+    "./hooks": {
+      "import": "./dist/hooks/index.js",
+      "require": "./dist/hooks/index.js",
+      "types": "./dist/hooks/index.d.ts"
+    },
+    "./hooks/*": {
+      "import": "./dist/hooks/*.js",
+      "require": "./dist/hooks/*.js",
+      "types": "./dist/hooks/*/index.d.ts"
+    },
     "./style": {
       "import": "./dist/components/style.css",
       "require": "./dist/components/style.css"

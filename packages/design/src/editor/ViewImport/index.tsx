@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useEditor } from "@craftjs/core";
 import clsx from "clsx";
 import { Header } from "./Header";
+import { Toaster } from "@go-blite/shadcn";
 // import { Sidebar } from "./Sidebar";
 import { Toolbox } from "./Toolbox";
 import { useDesignContext } from "@/context/useDesignContext";
@@ -43,6 +44,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
 
   return (
     <div className="viewport h-screen overflow-hidden">
+      <Toaster />
       <div className={clsx("flex h-full flex-row w-full relative")}>
         <Toolbox />
         <div className="page-container flex flex-1 h-full flex-col overflow-hidden pb-3 bg-gray-100">

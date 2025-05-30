@@ -1,9 +1,14 @@
-const { exec } = require("child_process");
-const fs = require("fs-extra");
-const path = require("path");
-const archiver = require("archiver");
-const { v4: uuidv4 } = require("uuid");
-const logger = require("../utils/logger");
+import { exec } from "child_process";
+import fs from "fs-extra";
+import path from "path";
+import archiver from "archiver";
+import { v4 as uuidv4 } from "uuid";
+import { fileURLToPath } from "url";
+import { promisify } from "util";
+import logger from "../utils/logger.js"; // Assuming logger.js will also be an ES module or has a compatible default export
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const TEMP_SCHEMA_DIR = process.env.TEMP_SCHEMA_DIR || path.join(__dirname, "..", "..", "schemas");
 const BUILD_OUTPUT_DIR = process.env.BUILD_OUTPUT_DIR || path.join(__dirname, "..", "..", "build_outputs");
@@ -17,6 +22,30 @@ fs.ensureDirSync(BUILD_OUTPUT_DIR);
 // 简单的内存缓存，用于跟踪构建状态和结果
 // 生产环境应使用 Redis 或数据库
 const buildCache = new Map();
+
+function sanitizeFileName(name) {
+  if (!name || typeof name !== "string") {
+    return "default_project_name";
+  }
+  let saneName = name.trim();
+  // eslint-disable-next-line no-control-regex
+  saneName = saneName.replace(/[<>:"/\\|?*\x00-\x1F]|(\.\.)+/g, "_");
+  saneName = saneName.replace(/_{2,}/g, "_");
+  saneName = saneName.replace(/^[_.]+|[_.]+$/g, "");
+  if (saneName === "" || /^\.+$/.test(saneName)) {
+    saneName = "default_project_name";
+  }
+  // Limit length to avoid overly long filenames
+  const maxLength = 100;
+  if (saneName.length > maxLength) {
+    saneName = saneName.substring(0, maxLength).replace(/[_.]+$/g, ""); // Ensure it doesn't end with _ or . after truncation
+  }
+  if (saneName === "") {
+    // Final fallback if truncation results in empty string
+    saneName = "default_project_name";
+  }
+  return saneName;
+}
 
 // 初始化模板目录，确保依赖已安装
 async function initializeTemplateDir() {
@@ -32,7 +61,8 @@ async function initializeTemplateDir() {
   if (!fs.existsSync(nodeModulesPath)) {
     logger.info("Installing dependencies in template directory...");
     try {
-      const { stdout, stderr } = await require("util").promisify(exec)("pnpm install", {
+      const execAsync = promisify(exec);
+      const { stdout, stderr } = await execAsync("pnpm install", {
         cwd: VITE_TEMPLATE_DIR
       });
       logger.info("Template dependencies installed successfully.");
@@ -53,103 +83,109 @@ initializeTemplateDir().catch(err => {
   process.exit(1);
 });
 
-async function createProjectFromTemplate(projectName, schemaData) {
-  const outputPath = path.join(BUILD_OUTPUT_DIR, projectName);
-  const templateSchemaPath = path.join(VITE_TEMPLATE_DIR, "src", "schema.json");
+async function createProjectFromTemplate(buildId, schemaData) {
+  // Create a unique temporary directory for this specific build
+  const tempProjectRootPath = path.join(BUILD_OUTPUT_DIR, `${buildId}_temp_project`);
 
-  logger.info(`[${projectName}] Preparing build for project ${projectName}`);
+  // Add these logs (after tempProjectRootPath is defined):
+  logger.info(`[Debug Paths] VITE_TEMPLATE_DIR: ${VITE_TEMPLATE_DIR}`);
+  logger.info(`[Debug Paths] BUILD_OUTPUT_DIR: ${BUILD_OUTPUT_DIR}`);
+  logger.info(`[Debug Paths] tempProjectRootPath: ${tempProjectRootPath}`);
+  const buildArtifactsDirName = "dist"; // Standard output directory for Vite builds
+  const finalBuildOutputPath = path.join(tempProjectRootPath, buildArtifactsDirName);
 
-  // 确保输出目录存在
-  if (await fs.pathExists(outputPath)) {
-    logger.warn(`[${projectName}] Output path already exists. Cleaning up: ${outputPath}`);
-    await fs.remove(outputPath);
-  }
-  await fs.ensureDir(outputPath);
+  logger.info(`[Build ${buildId}] Creating isolated project directory: ${tempProjectRootPath}`);
 
   try {
-    // 写入 schema 数据到模板目录
-    await fs.writeJson(templateSchemaPath, schemaData, { spaces: 2 });
-    logger.info(`[${projectName}] Schema data written to template: ${templateSchemaPath}`);
+    // Clean up any pre-existing temp directory for this buildId (should not happen with UUIDs)
+    if (await fs.pathExists(tempProjectRootPath)) {
+      logger.warn(`[Build ${buildId}] Temporary project path already exists. Cleaning up: ${tempProjectRootPath}`);
+      await fs.remove(tempProjectRootPath);
+    }
+    // Copy the entire base template directory to the temporary location
+    await fs.copy(VITE_TEMPLATE_DIR, tempProjectRootPath);
+    logger.info(`[Build ${buildId}] Copied template from ${VITE_TEMPLATE_DIR} to ${tempProjectRootPath}`);
 
-    // 创建临时的 vite.config.js 来覆盖输出目录
-    const viteConfigPath = path.join(VITE_TEMPLATE_DIR, "vite.config.js");
-    const originalViteConfig = await fs.readFile(viteConfigPath, "utf-8");
+    // Define paths within the new temporary project directory
+    const tempSchemaPath = path.join(tempProjectRootPath, "src", "schema.json");
+    const tempViteConfigPath = path.join(tempProjectRootPath, "vite.config.js");
 
-    // 保存原始配置
-    const backupConfigPath = path.join(VITE_TEMPLATE_DIR, "vite.config.js.backup");
-    await fs.writeFile(backupConfigPath, originalViteConfig);
+    // Write schema data into the temporary project's schema file
+    await fs.writeJson(tempSchemaPath, schemaData, { spaces: 2 });
+    logger.info(`[Build ${buildId}] Schema data written to temporary project: ${tempSchemaPath}`);
 
-    // 修改 vite.config.js 以输出到指定目录
-    const newViteConfig = `
-    import { defineConfig } from "vite";
-    import react from "@vitejs/plugin-react";
-    import path from "path";
-    export default defineConfig({
-      plugins: [react()],
-      base: "./",
-      build: {
-        outDir: "${outputPath.replace(/\\/g, "\\\\")}"
-      }
-    });
+    // Generate a vite.config.js specifically for this build, outputting to its 'dist' subdir
+    // Note: outDir is relative to the root of the tempProjectRootPath
+    const viteConfigContent = `
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  base: './', // Ensures assets are linked relatively
+  build: {
+    outDir: '${buildArtifactsDirName}', // Output to 'dist' folder within the isolated project
+    emptyOutDir: true // Clean the output directory before build
+  },
+  server: {
+    // Port for dev server, not critical for build but good practice to include
+    port: 3003 
+  }
+});
 `;
+    await fs.writeFile(tempViteConfigPath, viteConfigContent);
+    logger.info(`[Build ${buildId}] Generated vite.config.js in temporary project: ${tempViteConfigPath}`);
 
-    await fs.writeFile(viteConfigPath, newViteConfig);
-    logger.info(`[${projectName}] Updated vite.config.js to output to: ${outputPath}`);
-
-    return VITE_TEMPLATE_DIR;
+    // Return the path to the root of this isolated temporary project and its expected output dir
+    return { isolatedPath: tempProjectRootPath, buildOutputPath: finalBuildOutputPath };
   } catch (error) {
-    logger.error(`[${projectName}] Error preparing build: ${error.message}`);
+    logger.error(`[Build ${buildId}] Error creating isolated project: ${error.message}`);
+    // Attempt to clean up if project creation failed mid-way
+    if (await fs.pathExists(tempProjectRootPath)) {
+      await fs
+        .remove(tempProjectRootPath)
+        .catch(cleanupErr =>
+          logger.error(`[Build ${buildId}] Failed to cleanup partially created temp project: ${cleanupErr.message}`)
+        );
+    }
     throw error;
   }
 }
 
-function runViteBuild(templatePath, projectName) {
+function runViteBuild(isolatedProjectPath, buildId, expectedBuildOutputPath) {
   return new Promise((resolve, reject) => {
-    const buildId = buildCache.get(projectName)?.buildId || projectName;
-    const outputPath = path.join(BUILD_OUTPUT_DIR, buildId);
-    const logStream = fs.createWriteStream(path.join(__dirname, "..", "..", "logs", `${buildId}-build-output.log`), {
-      flags: "a"
-    });
+    // buildId is now passed directly
+    // const outputPath = path.join(BUILD_OUTPUT_DIR, buildId); // This line is no longer needed and was causing a lint error.
+    const logStream = fs.createWriteStream(path.join(BUILD_OUTPUT_DIR, `${buildId}.log`), { flags: "a" });
 
-    logger.info(`[${projectName}] Starting Vite build in template directory, outputting to: ${outputPath}`);
+    logger.info(`[Build ${buildId}] Starting Vite build in: ${isolatedProjectPath}`);
 
     // 直接在模板目录中执行构建，不需要每次都安装依赖
     // 如果模板依赖有更新，可以手动在模板目录中执行 pnpm install
-    const buildProcess = exec("pnpm run build", { cwd: templatePath });
+    const buildProcess = exec("pnpm run build", { cwd: isolatedProjectPath });
 
     buildProcess.stdout.on("data", data => {
-      logger.info(`[${projectName}-stdout] ${data.toString().trim()}`);
+      logger.info(`[Build ${buildId}-stdout] ${data.toString().trim()}`);
       logStream.write(data);
     });
 
     buildProcess.stderr.on("data", data => {
-      logger.error(`[${projectName}-stderr] ${data.toString().trim()}`);
+      logger.error(`[Build ${buildId}-stderr] ${data.toString().trim()}`);
       logStream.write(data);
     });
 
     buildProcess.on("close", code => {
       logStream.end();
 
-      // 构建完成后，恢复原始的 vite.config.js
-      const viteConfigPath = path.join(templatePath, "vite.config.js");
-      const backupConfigPath = path.join(templatePath, "vite.config.js.backup");
-
-      try {
-        if (fs.existsSync(backupConfigPath)) {
-          fs.copyFileSync(backupConfigPath, viteConfigPath);
-          fs.removeSync(backupConfigPath);
-          logger.info(`[${projectName}] Restored original vite.config.js`);
-        }
-      } catch (err) {
-        logger.error(`[${projectName}] Error restoring vite.config.js: ${err.message}`);
-      }
+      // No need to restore vite.config.js as we are in a temporary, isolated directory
+      // This entire directory will be deleted later.
 
       if (code === 0) {
-        logger.info(`[${projectName}] Vite build successful.`);
-        resolve(outputPath); // 直接返回输出目录
+        logger.info(`[Build ${buildId}] Vite build successful. Output at: ${expectedBuildOutputPath}`);
+        resolve(expectedBuildOutputPath); // Return the path to the actual built artifacts
       } else {
-        logger.error(`[${projectName}] Vite build failed with code ${code}.`);
-        reject(new Error(`Vite build failed for ${projectName}. Check logs.`));
+        logger.error(`[Build ${buildId}] Vite build failed with code ${code}.`);
+        reject(new Error(`Vite build failed for build ${buildId}. Check logs.`));
       }
     });
   });
@@ -176,52 +212,80 @@ function zipDirectory(sourceDir, outPath, projectName) {
 
 async function buildProject(projectName, schemaData) {
   const buildId = uuidv4();
+  const sanitizedProjectName = sanitizeFileName(projectName);
+  let isolatedProjectPath = null; // To store the path for cleanup
   const status = {
     buildId,
-    projectName,
+    projectName: sanitizedProjectName, // Store/report the sanitized name
+    originalProjectName: projectName, // Keep original for logs if needed
     status: "pending",
     startTime: new Date(),
     logs: [],
     zipPath: null,
     error: null
   };
-  buildCache.set(buildId, status); // 使用 buildId 作为 key
+  buildCache.set(buildId, status); // Use buildId as the primary key for the cache
 
   const updateStatus = update => {
     const current = buildCache.get(buildId);
     buildCache.set(buildId, { ...current, ...update });
-    logger.info(`[Build ${buildId}] Status updated: ${update.status || current.status}`);
+    logger.info(`[Build ${buildId} (${projectName})}] Status updated: ${update.status || current.status}`);
   };
 
   try {
-    updateStatus({ status: "creating_project" });
-    const projectPath = await createProjectFromTemplate(buildId, schemaData); // 使用 buildId 作为项目目录名避免冲突
+    updateStatus({ status: "creating_project_environment" });
+    // Create an isolated project environment. This returns paths to the isolated root and its expected build output dir.
+    const { isolatedPath, buildOutputPath } = await createProjectFromTemplate(buildId, schemaData);
+    isolatedProjectPath = isolatedPath; // Store for cleanup
 
-    updateStatus({ status: "installing_dependencies_and_building" });
-    const buildOutputDir = await runViteBuild(projectPath, buildId);
+    updateStatus({ status: "building_project" });
+    // Run the Vite build within the isolated environment.
+    // runViteBuild now expects the path to the isolated project, the buildId, and the expected output path.
+    const actualBuiltArtifactsPath = await runViteBuild(isolatedProjectPath, buildId, buildOutputPath);
 
     updateStatus({ status: "zipping_output" });
-    const zipFileName = `${buildId}.zip`;
-    const zipFilePath = path.join(BUILD_OUTPUT_DIR, zipFileName);
-    const buildOutputDirs = path.join(VITE_TEMPLATE_DIR, buildOutputDir);
-    logger.info(`[Build ${buildId}] Project output directory: ${buildOutputDirs}`);
-    await zipDirectory(buildOutputDirs, zipFilePath, buildId);
+    const zipFileName = `${sanitizedProjectName}.zip`;
+    const zipFilePath = path.join(BUILD_OUTPUT_DIR, zipFileName); // Zip file will be in the main BUILD_OUTPUT_DIR
+
+    // The source for zipping is the 'dist' (or equivalent) directory within the isolated project.
+    const sourceDirectoryForZip = actualBuiltArtifactsPath;
+    logger.info(`[Build ${buildId} (${projectName})] Source directory for zipping: ${sourceDirectoryForZip}`);
+
+    await zipDirectory(sourceDirectoryForZip, zipFilePath, buildId);
 
     updateStatus({
       status: "completed",
       zipPath: zipFilePath,
       endTime: new Date()
     });
-    logger.info(`[Build ${buildId}] Project built and zipped successfully: ${zipFilePath}`);
+    logger.info(
+      `[Build ${buildId} (${projectName})] Project built and zipped successfully as ${zipFileName}: ${zipFilePath}`
+    );
     return { buildId, zipPath: zipFilePath, message: "Build successful" };
   } catch (error) {
-    logger.error(`[Build ${buildId}] Build process failed for ${projectName}: ${error.message}`);
+    logger.error(`[Build ${buildId} (${projectName})] Build process failed: ${error.message}`);
+    logger.error(error.stack);
     updateStatus({
       status: "failed",
       error: error.message,
       endTime: new Date()
     });
-    throw error; // Re-throw for the route handler
+    throw error;
+  } finally {
+    // Cleanup: Remove the temporary isolated project directory after build attempt
+    if (isolatedProjectPath) {
+      try {
+        logger.info(
+          `[Build ${buildId} (${projectName})] Cleaning up temporary project directory: ${isolatedProjectPath}`
+        );
+        await fs.remove(isolatedProjectPath);
+        logger.info(`[Build ${buildId} (${projectName})] Temporary project directory cleaned up successfully.`);
+      } catch (cleanupError) {
+        logger.error(
+          `[Build ${buildId} (${projectName})] Error cleaning up temporary project directory ${isolatedProjectPath}: ${cleanupError.message}`
+        );
+      }
+    }
   }
 }
 
@@ -229,7 +293,4 @@ function getBuildStatus(buildId) {
   return buildCache.get(buildId);
 }
 
-module.exports = {
-  buildProject,
-  getBuildStatus
-};
+export { buildProject, getBuildStatus };

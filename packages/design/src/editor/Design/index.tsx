@@ -4,7 +4,7 @@ import { RenderNode } from "../RenderNode";
 
 import { useDesignContext } from "@/context/useDesignContext";
 import { EditorContent } from "./EditorContent";
-export { defaultDevice, defaultNode } from "./EditorContent";
+import { Toaster } from "@go-blite/shadcn";
 
 export const Design: React.FC = React.memo(() => {
   // 使用 useDesignContext 获取上下文，不再传入 initialProps
@@ -27,18 +27,21 @@ export const Design: React.FC = React.memo(() => {
   const renderCallback = useMemo(() => onRender || RenderNode, [onRender]);
 
   return (
-    <Editor
-      resolver={resolver}
-      enabled={true}
-      onRender={renderCallback}
-      onNodesChange={onNodesChange}
-      indicator={{
-        success: "opacity: 0",
-        error: "opacity: 1"
-      }}
-    >
-      <EditorContent schema={schema} />
-    </Editor>
+    <>
+      <Toaster />
+      <Editor
+        resolver={resolver}
+        enabled={true}
+        onRender={renderCallback}
+        onNodesChange={onNodesChange}
+        indicator={{
+          success: "opacity: 0",
+          error: "opacity: 1"
+        }}
+      >
+        <EditorContent schema={schema} />
+      </Editor>
+    </>
   );
 });
 

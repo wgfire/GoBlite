@@ -11,6 +11,7 @@ import { Section } from "@/components/Settings/Section";
 import { FlexLayout } from "@/components/Settings/FlexLayout";
 import { GridLayout } from "@/components/Settings/GridLayout";
 import { ItemName } from "./ItemName";
+import { ItemUpload } from "@/components/Settings/ItemUpload";
 
 export interface SettingsProps<T> {
   defaultValue: T;
@@ -23,6 +24,7 @@ export interface SettingsComponent<T> extends React.FC<SettingsProps<T>> {
   ItemColor: typeof ItemColor<T>;
   ItemSlide: typeof ItemSlide<T>;
   ItemName: typeof ItemName<T>;
+  ItemUpload: typeof ItemUpload<T>;
   Layout: typeof Layout;
   Content: typeof Content;
   Section: typeof Section;
@@ -53,6 +55,7 @@ function createSettings<T>(): SettingsComponent<T> {
   Settings.ItemColor = ItemColor;
   Settings.ItemSlide = ItemSlide;
   Settings.ItemName = ItemName;
+  Settings.ItemUpload = ItemUpload;
   Settings.Layout = Layout;
   Settings.Content = Content;
   Settings.Section = Section;

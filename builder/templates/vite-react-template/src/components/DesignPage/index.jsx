@@ -1,6 +1,6 @@
 import { DesignProvider, Preview } from "@go-blite/design";
 import { useEffect, useState } from "react";
-import "@go-blite/design/styles/tailwind";
+import "@go-blite/design/styles";
 
 const DesignPage = ({ initialData }) => {
   const [schemaData, setSchemaData] = useState(initialData);

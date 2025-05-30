@@ -1,7 +1,7 @@
 import React from "react";
 import { Editor, Frame, useEditor, SerializedNodes } from "@craftjs/core";
 import { useDesignContext } from "@/context/useDesignContext";
-import { defaultNode } from "../Design/EditorContent";
+import { defaultNode } from "@/constant";
 
 // 内部组件，用于处理 schema 变化
 const PreviewContent: React.FC<{ schema: SerializedNodes | string | undefined }> = React.memo(({ schema }) => {

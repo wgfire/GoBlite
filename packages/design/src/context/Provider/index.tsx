@@ -67,6 +67,14 @@ export interface DesignContextProps {
   showSidebar?: boolean;
   /** 多端数据同步 */
   syncResponse?: boolean;
+  /** 模板 */
+  templates?: {
+    type: string;
+    list: {
+      name: string;
+      devices: Devices;
+    }[];
+  }[];
 }
 
 const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {
@@ -86,7 +94,7 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
   children,
   initialProps = {} as DesignContextProps
 }) => {
-  console.log('DesignProvider - initialProps:', initialProps);
+  console.log("DesignProvider - initialProps:", initialProps);
   const defaultProps = useMemo(() => {
     // 根据 publish 属性选择合适的默认 resolver
     const isPublish = initialProps.publish || false;
@@ -109,9 +117,10 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
         language: "zh"
       },
       showSidebar: initialProps.showSidebar || false,
-      syncResponse: initialProps.syncResponse || false
+      syncResponse: initialProps.syncResponse || false,
+      templates: initialProps.templates || []
     };
-    
+
     return result;
   }, [initialProps]);
 
