@@ -14,7 +14,9 @@ export const ContainerSettingsComponentFast: React.FC<SettingsComponentProps<Con
         {/* 布局方向切换 */}
 
         <Settings.GridLayout label="快速排列" justifyKey="customStyle.justifySelf" alignKey="customStyle.alignSelf" />
-        <Settings.ItemSlide propKey="style.gap" min={0} max={100} step={1} label="内部间距" />
+        <Settings.Section defaultOpen title={"内边距"}>
+          <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
+        </Settings.Section>
         <Settings.ItemColor propKey="style.background" label="背景颜色" />
         {/* <Settings.ItemSelect propKey="style.backgroundImage" label="背景" options={assetsOptions}></Settings.ItemSelect> */}
       </div>

@@ -20,12 +20,13 @@ import {
 
 export const Header: React.FC = () => {
   const { toast } = useToast();
-  const { clearCurrentSchema, saveCurrentSchema } = useSchemaOperations();
+  const { clearCurrentSchema, saveCurrentSchema, findSchema } = useSchemaOperations();
   const { enabled, actions, query } = useEditor(state => ({
     enabled: state.options.enabled
   }));
 
-  const { updateContext, currentInfo, findSchema, device } = useDesignContext();
+  // 从 useDesignContext 移除 findSchema
+  const { updateContext, currentInfo, device } = useDesignContext();
   // 下载状态管理
   const [isDownloading, setIsDownloading] = useState(false);
   const handleDeviceChange = (newDevice: DeviceType) => {
@@ -86,6 +87,7 @@ export const Header: React.FC = () => {
 
   const DeviceButton = ({ device, icon: Icon }: { device: DeviceType; icon: React.ElementType }) => {
     const hasSchema = findSchema({ device });
+    console.log(hasSchema, "hasSchema");
     return (
       <Button
         variant="ghost"
@@ -164,7 +166,12 @@ export const Header: React.FC = () => {
 
       {/* 右侧预览和部署按钮 */}
       <div className="flex space-x-2">
-        <Button size="sm" onClick={clearCurrentSchema}>
+        <Button
+          size="sm"
+          onClick={() => {
+            clearCurrentSchema();
+          }}
+        >
           <Trash className="mr-1 h-3 w-3" />
           清空
         </Button>

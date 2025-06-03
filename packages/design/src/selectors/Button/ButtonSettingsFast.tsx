@@ -24,6 +24,7 @@ export const ButtonSettingsComponentFast: React.FC<SettingsComponentProps<Button
           ]}
         />
         <Settings.ItemColor propKey="style.color" label="字体颜色" />
+        <Settings.GridLayout label="快速排列" justifyKey="customStyle.justifySelf" alignKey="customStyle.alignSelf" />
       </div>
     </Settings>
   );

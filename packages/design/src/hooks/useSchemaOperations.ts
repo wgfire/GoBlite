@@ -5,6 +5,12 @@ import { defaultNode } from "@/constant";
 import { useDesignContext } from "@/context/useDesignContext";
 import { BusinessEvents } from "@/utils/BusinessEvents";
 import { SerializedNodes } from "@craftjs/core";
+import { DeviceType } from "@/context/Provider"; // 新增导入
+
+interface FindSchemaParams {
+  device?: DeviceType;
+  language?: string;
+}
 
 /**
  * 提供与 schema 操作相关的功能
@@ -13,7 +19,8 @@ import { SerializedNodes } from "@craftjs/core";
 export const useSchemaOperations = () => {
   const { toast } = useToast();
   const { actions, query } = useEditor();
-  const { updateContext, currentInfo } = useDesignContext();
+
+  const { updateContext, currentInfo, device } = useDesignContext();
 
   /**
    * 清空当前设备和语言下的 schema 数据
@@ -125,9 +132,30 @@ export const useSchemaOperations = () => {
     [actions, updateContext]
   );
 
+  const findSchema = useCallback(
+    ({ device: findDevice, language }: FindSchemaParams): boolean => {
+      if (!findDevice || !device) {
+        return false;
+      }
+      const deviceData = device.find(d => d.type === findDevice);
+      if (!deviceData) {
+        return false;
+      }
+      if (language) {
+        // 如果指定了语言，检查该设备下特定语言的 schema
+        const schema = deviceData.languagePageMap[language]?.schema as SerializedNodes;
+        return schema && schema["ROOT"].nodes.length >= 1;
+      } else {
+        // 如果只指定了设备，检查该设备下是否有任何语言的 schema
+        return Object.values(deviceData.languagePageMap).some(lang => Object.keys(lang.schema).length > 1);
+      }
+    },
+    [device]
+  );
   return {
     clearCurrentSchema,
     saveCurrentSchema,
-    loadSchema
+    loadSchema,
+    findSchema
   };
 };

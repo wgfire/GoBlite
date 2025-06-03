@@ -14,7 +14,7 @@ export const ContextMenuHoc = React.memo((props: ContextMenuHocProps) => {
   const { showSidebar, updateContext } = useDesignContext();
   return (
     <div
-      className="bg-white border border-gray-200 rounded shadow-lg p-4 w-64"
+      className="bg-white border border-gray-200 rounded shadow-lg p-4 w-68"
       style={{
         position: "absolute",
         left: position.x,

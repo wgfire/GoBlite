@@ -12,13 +12,15 @@ import { FlexLayout } from "@/components/Settings/FlexLayout";
 import { GridLayout } from "@/components/Settings/GridLayout";
 import { ItemName } from "./ItemName";
 import { ItemUpload } from "@/components/Settings/ItemUpload";
+import { ItemSInput } from "@/components/Settings/ItemSInput";
+import { Margins } from "@/components/Settings/Margins";
 
-export interface SettingsProps<T> {
+export interface SettingsProps<T extends Record<string, any>> {
   defaultValue: T;
   children: React.ReactNode;
 }
 
-export interface SettingsComponent<T> extends React.FC<SettingsProps<T>> {
+export interface SettingsComponent<T extends Record<string, any>> extends React.FC<SettingsProps<T>> {
   ItemInput: typeof ItemInput<T>;
   ItemSelect: typeof ItemSelect<T>;
   ItemColor: typeof ItemColor<T>;
@@ -30,10 +32,12 @@ export interface SettingsComponent<T> extends React.FC<SettingsProps<T>> {
   Section: typeof Section;
   FlexLayout: typeof FlexLayout<T>;
   GridLayout: typeof GridLayout<T>;
+  ItemSInput: typeof ItemSInput<T>;
+  Margins: typeof Margins<T>;
 }
 
-function createSettings<T>(): SettingsComponent<T> {
-  const Settings: React.FC<SettingsProps<T>> & SettingsComponent<T> = ({ defaultValue, children }) => {
+function createSettings<T extends Record<string, any>>(): SettingsComponent<T> {
+  const Settings: SettingsComponent<T> = ({ defaultValue, children }) => {
     const {
       actions: { setProp, setCustom }
     } = useNode();
@@ -44,7 +48,7 @@ function createSettings<T>(): SettingsComponent<T> {
         setProp,
         value: defaultValue
       }),
-      [defaultValue]
+      [defaultValue, setProp, setCustom] // Corrected dependencies
     );
 
     return <SettingsContext.Provider value={contextValue}>{children}</SettingsContext.Provider>;
@@ -61,14 +65,16 @@ function createSettings<T>(): SettingsComponent<T> {
   Settings.Section = Section;
   Settings.FlexLayout = FlexLayout;
   Settings.GridLayout = GridLayout;
+  Settings.ItemSInput = ItemSInput;
+  Settings.Margins = Margins;
   return Settings;
 }
 
-export interface SettingsComponentProps<T> {
+export interface SettingsComponentProps<T extends Record<string, any>> {
   Settings: SettingsComponent<T>;
 }
 
-function SettingsHOC<T>(Component: React.ComponentType<SettingsComponentProps<T>>) {
+function SettingsHOC<T extends Record<string, any>>(Component: React.ComponentType<SettingsComponentProps<T>>) {
   const WrappedComponent: React.FC = () => {
     const Settings = useMemo(() => createSettings<T>(), []);
     return <Component Settings={Settings} />;

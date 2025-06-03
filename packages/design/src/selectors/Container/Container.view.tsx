@@ -40,16 +40,14 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   const { backgroundImage, background } = style;
   const styleBg = useMemo(() => {
     // 如果backgroundImage存在，则设置size
-    return {
-      ...(backgroundImage && backgroundImage !== "none"
-        ? {
-            backgroundImage: `url(${backgroundImage})`,
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-            backgroundSize: "100% 100%"
-          }
-        : { background: background || "rgba(255, 255, 255, 1)" })
-    };
+    return backgroundImage && backgroundImage !== "none"
+      ? {
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "100% 100%"
+        }
+      : { background: background || "rgba(255, 255, 255, 1)" };
   }, [background, backgroundImage]);
 
   useEffect(() => {

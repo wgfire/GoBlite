@@ -1,11 +1,6 @@
-import { useContext, useCallback } from "react";
-import { DesignContext, DeviceType } from "./Provider";
-import { SerializedNodes } from "@craftjs/core";
-
-interface FindSchemaParams {
-  device?: DeviceType;
-  language?: string;
-}
+import { useContext } from "react";
+import { DesignContext } from "./Provider"; // DeviceType 和 SerializedNodes 不再直接在此处使用
+// FindSchemaParams 已移至 useSchemaOperations.ts
 
 /**
  * 使用设计上下文钩子
@@ -20,27 +15,7 @@ export const useDesignContext = () => {
   }
 
   const { state, updateContext } = context;
+  // findSchema 已移至 useSchemaOperations.ts
 
-  const findSchema = useCallback(
-    ({ device, language }: FindSchemaParams): boolean => {
-      if (!device || !state.device) {
-        return false;
-      }
-      const deviceData = state.device.find(d => d.type === device);
-      if (!deviceData) {
-        return false;
-      }
-      if (language) {
-        // 如果指定了语言，检查该设备下特定语言的 schema
-        const schema = deviceData.languagePageMap[language]?.schema as SerializedNodes;
-        return schema && schema["ROOT"].nodes.length >= 1;
-      } else {
-        // 如果只指定了设备，检查该设备下是否有任何语言的 schema
-        return Object.values(deviceData.languagePageMap).some(lang => Object.keys(lang.schema).length > 1);
-      }
-    },
-    [state.device]
-  );
-
-  return { ...state, updateContext, findSchema };
+  return { ...state, updateContext }; // 从返回中移除 findSchema
 };
