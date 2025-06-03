@@ -16,6 +16,7 @@ export const ImageSettingsComponentFast: React.FC<SettingsComponentProps<ImagePr
     <Settings defaultValue={props}>
       <div className="container-settings-fast space-y-4">
         <Settings.ItemSelect propKey="src" label="图片选择" options={assetsOptions}></Settings.ItemSelect>
+        <Settings.GridLayout label="快速排列" justifyKey="customStyle.justifySelf" alignKey="customStyle.alignSelf" />
       </div>
     </Settings>
   );

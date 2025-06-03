@@ -24,9 +24,19 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<AppProps>> = (
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
           </Settings.Section>
           <Settings.Section title="尺寸" defaultOpen={true}>
-            <div className="grid grid-cols-2 gap-2">
-              <Settings.ItemInput propKey="style.width" type="text" />
-              <Settings.ItemInput propKey="style.height" type="text" />
+            <div className="grid grid-cols-1 gap-4">
+              <Settings.ItemSInput
+                label="宽度"
+                propKey="style.width"
+                units={["px", "%", "auto", "vw", "vh"]}
+                slider={true}
+              />
+              <Settings.ItemSInput
+                label="高度"
+                propKey="style.height"
+                units={["px", "%", "auto", "vw", "vh"]}
+                slider={true}
+              />
             </div>
           </Settings.Section>
           {/* <Settings.Section defaultOpen title={"布局"}>
@@ -60,11 +70,8 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<AppProps>> = (
             </div>
           </Settings.Section> */}
 
-          <Settings.Section defaultOpen title={"边距"}>
-            <div className="grid grid-cols-2 gap-4">
-              <Settings.ItemSlide propKey="style.margin" min={0} max={100} step={1} label="外边距" />
-              <Settings.ItemSlide propKey="style.padding" min={0} max={100} step={1} label="内边距" />
-            </div>
+          <Settings.Section defaultOpen title={"内边距"}>
+            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
           </Settings.Section>
         </Settings.Content>
 

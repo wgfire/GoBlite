@@ -21,6 +21,7 @@ const NonFarmSettingsFastComponent: React.FC<SettingsComponentProps<NonFarmProps
               <Settings.ItemInput propKey="time" type="text" />
             </div>
           </Settings.Section>
+          <Settings.GridLayout label="快速排列" justifyKey="customStyle.justifySelf" alignKey="customStyle.alignSelf" />
         </Settings.Content>
 
         <Settings.Content>

@@ -15,12 +15,12 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
     value: key.name //key.handler
   }));
 
-  const sizeOptions = [
-    { value: "default", label: "默认" },
-    { value: "sm", label: "小" },
-    { value: "lg", label: "大" },
-    { value: "icon", label: "无边距" }
-  ];
+  // const sizeOptions = [
+  //   { value: "default", label: "默认" },
+  //   { value: "sm", label: "小" },
+  //   { value: "lg", label: "大" },
+  //   { value: "icon", label: "无边距" }
+  // ];
 
   return (
     <Settings defaultValue={props}>
@@ -33,7 +33,18 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
             <Settings.ItemInput propKey="text" placeholder="输入按钮文本" />
           </Settings.Section>
           <Settings.Section defaultOpen title={"尺寸设置"}>
-            <Settings.ItemSelect propKey="size" options={sizeOptions} />
+            <Settings.ItemSInput
+              label="宽度"
+              propKey="customStyle.width"
+              units={["px", "%", "auto", "vw", "vh"]}
+              slider={true}
+            />
+            <Settings.ItemSInput
+              label="高度"
+              propKey="customStyle.height"
+              units={["px", "%", "auto", "vw", "vh"]}
+              slider={true}
+            />
           </Settings.Section>
           <Settings.Section defaultOpen title={"变体"}>
             <Settings.ItemSelect
@@ -48,6 +59,15 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
                 { value: "link", label: "链接" }
               ]}
             />
+          </Settings.Section>
+          <Settings.Section title={"外边距"}>
+            <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section title={"内边距"}>
+            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section title={"定位"}>
+            <Settings.ItemPosition propKeyPrefix="customStyle" />
           </Settings.Section>
         </Settings.Content>
 

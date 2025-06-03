@@ -48,7 +48,7 @@ export function ItemSInput<T>({
   propKey,
   units = ["px", "%"],
   min = 0,
-  max = 100,
+  max = 1000,
   step = 1,
   slider = true,
   className

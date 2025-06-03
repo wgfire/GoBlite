@@ -10,18 +10,20 @@ import { useUpdateEffect } from "ahooks";
 
 export const defaultProps: Partial<ButtonProps> = {
   style: {
-    margin: 0,
-    color: "rgba(255,255,255,1)",
-    borderRadius: 10,
-    fontSize: 14,
     width: "100%",
     height: "100%"
   },
+  customStyle: {
+    width: 64,
+    height: 35,
+    margin: 0,
+    color: "rgba(255,255,255,1)",
+    borderRadius: 10,
+    fontSize: 14
+  },
   variant: "default",
   size: "default",
-  text: "Button",
-
-  customStyle: {}
+  text: "Button"
 };
 
 export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle, events, ...props }) => {
@@ -64,7 +66,6 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
       data-id={id}
       style={{
         position: "relative",
-        width: "max-content",
         ...customStyle
       }}
     >

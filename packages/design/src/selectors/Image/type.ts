@@ -5,6 +5,7 @@ export interface ImageStyle extends BaseStyle {
 }
 
 export interface ImageProps extends CommonComponentProps {
+  customStyle: BaseStyle;
   style: ImageStyle;
   src: string;
   alt?: string;

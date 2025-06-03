@@ -33,9 +33,19 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
           </Settings.Section>
           <Settings.Section defaultOpen title={"图片设置"}>
-            <div className="grid grid-cols-2 gap-2">
-              <Settings.ItemInput propKey="style.width" type="text" />
-              <Settings.ItemInput propKey="style.height" type="text" />
+            <div className="grid grid-cols-1 gap-4">
+              <Settings.ItemSInput
+                label="宽度"
+                propKey="customStyle.width"
+                units={["px", "%", "auto", "vw", "vh"]}
+                slider={true}
+              />
+              <Settings.ItemSInput
+                label="高度"
+                propKey="customStyle.height"
+                units={["px", "%", "auto", "vw", "vh"]}
+                slider={true}
+              />
             </div>
             <Settings.ItemSelect
               propKey="style.objectFit"
@@ -58,6 +68,12 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
             />
             <Settings.ItemInput propKey="src" label="图片地址" placeholder="输入图片URL" />
             <Settings.ItemInput propKey="alt" label="替代文本" placeholder="输入提示文案" />
+          </Settings.Section>
+          <Settings.Section defaultOpen title={"外边距"}>
+            <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section defaultOpen title={"内边距"}>
+            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
           </Settings.Section>
         </Settings.Content>
         <Settings.Content>

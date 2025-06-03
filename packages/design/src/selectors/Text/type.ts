@@ -10,6 +10,7 @@ export interface TextStyle extends BaseStyle {
 }
 
 export interface TextProps extends CommonComponentProps {
+  customStyle: BaseStyle;
   style: TextStyle;
   text?: string;
 }

@@ -49,11 +49,21 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
               ]}
             />
           </Settings.Section>
-          <Settings.Section defaultOpen title={"边距"}>
-            <div className="grid grid-cols-2 gap-4">
-              <Settings.ItemSlide propKey="style.margin" min={0} max={100} step={1} label="外边距" />
-              <Settings.ItemSlide propKey="style.padding" min={0} max={100} step={1} label="内边距" />
-            </div>
+          <Settings.Section defaultOpen title={"外边距"}>
+            <Settings.Margins
+              propKeyPrefix="customStyle.margin"
+              label="外边距"
+              units={["px", "%", "vw"]}
+              slider={false}
+            />
+          </Settings.Section>
+          <Settings.Section defaultOpen title={"内边距"}>
+            <Settings.Margins
+              propKeyPrefix="customStyle.padding"
+              label="内边距"
+              units={["px", "%", "vw"]}
+              slider={false}
+            />
           </Settings.Section>
         </Settings.Content>
 

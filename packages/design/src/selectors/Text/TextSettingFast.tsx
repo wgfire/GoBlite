@@ -15,6 +15,7 @@ export const TextSettingsComponentFast: React.FC<SettingsComponentProps<TextProp
 
         <Settings.ItemSlide propKey="style.fontSize" label="字体大小" min={1} max={100} step={1} />
         <Settings.ItemColor propKey="style.color" label="字体颜色" />
+        <Settings.GridLayout label="快速排列" justifyKey="customStyle.justifySelf" alignKey="customStyle.alignSelf" />
       </div>
     </Settings>
   );
