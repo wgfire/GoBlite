@@ -1,0 +1,20 @@
+{
+  "name": "@go-blite/builder",
+  "$schema": "../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "builder/src",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "dev"
+      }
+    },
+    "start": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "start"
+      }
+    }
+  }
+}

@@ -49,3 +49,6 @@ response.md
 /builder/logs/
 /builder/build_outputs/
 /packages/**/.build-cache
+
+#nx
+.nx

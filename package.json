@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "dev:web-site":"nx dev @go-blite/web-site",
+    "dev:design":"nx dev @go-blite/design",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "husky",
     "pre-commit": "lint-staged",
@@ -32,6 +34,7 @@
     "eslint-plugin-react-refresh": "^0.4.9",
     "husky": "^9.1.6",
     "lint-staged": "^15.2.10",
+    "nx": "^21.1.2",
     "postcss": "^8",
     "prettier": "^3.3.3",
     "prettier-plugin-classnames": "^0.7.3",
