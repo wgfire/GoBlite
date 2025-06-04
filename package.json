@@ -5,6 +5,8 @@
   "scripts": {
     "dev:web-site":"nx dev @go-blite/web-site",
     "dev:design":"nx dev @go-blite/design",
+    "build:web-site":"nx build @go-blite/web-site",
+    "build:design":"nx build @go-blite/design",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "prepare": "husky",
     "pre-commit": "lint-staged",
@@ -39,7 +41,9 @@
     "prettier": "^3.3.3",
     "prettier-plugin-classnames": "^0.7.3",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^6.3.5",
+    "@vitejs/plugin-react-swc": "^3.10.1"
   },
   "config": {
     "commitizen": {

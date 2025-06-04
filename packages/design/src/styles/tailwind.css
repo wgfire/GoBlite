@@ -1,6 +1,10 @@
 @import "@go-blite/shadcn/style";
 @import "tailwindcss/utilities";
 
+:root {
+  --safe-area-bottom: env(safe-area-inset-bottom, 34px);
+}
+
 @layer utilities {
   .clear-child-borders > * {
     border: none !important;

@@ -9,6 +9,7 @@ import { ContainerSettingsFast } from "./AppSettingsFast";
 import { omit } from "lodash-es";
 import { AppProps } from "./type";
 import { useUpdateAppHeight } from "@/hooks/useUpdateAppHeight";
+import { executeUserScript } from "@/utils/script/scriptRunner";
 
 export const defaultProps: AppProps = {
   style: {
@@ -47,7 +48,7 @@ export const App: UserComponent<Partial<React.PropsWithChildren<AppProps>>> = pr
   const { display, fillSpace, background, backgroundImage, gap } = style;
   useEffect(() => {
     if (events?.onLoad) {
-      eval(events.onLoad);
+      executeUserScript(events.onLoad);
     }
   }, [events]);
 

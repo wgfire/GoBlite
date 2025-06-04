@@ -3,6 +3,7 @@ import { useNode, UserComponent } from "@craftjs/core";
 import { ContainerProps } from "./type";
 import { ElementBoxView } from "@/components/ElementBox";
 import { omit } from "lodash-es";
+import { executeUserScript } from "@/utils/script/scriptRunner";
 
 const defaultProps: ContainerProps = {
   style: {
@@ -52,7 +53,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
 
   useEffect(() => {
     if (events?.onLoad) {
-      eval(events.onLoad);
+      executeUserScript(events.onLoad);
     }
   }, [events]);
 

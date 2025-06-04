@@ -56,7 +56,7 @@ export function ItemPosition<T = any>({ label, propKeyPrefix, className }: ItemP
       const styleObj = get(allProps, propKeyPrefix);
       setProp(props => {
         const newStyle = { ...styleObj };
-        delete newStyle.gridArea;
+        newStyle.gridArea = "auto";
         set(props as object, propKeyPrefix, newStyle);
       });
     } else {

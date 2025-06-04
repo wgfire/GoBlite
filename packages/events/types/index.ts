@@ -9,6 +9,8 @@ export interface EventContext {
   target: HTMLElement;
   // 事件附带的数据
   data?: unknown;
+  // window
+  window?: Window;
 }
 
 // 事件脚本接口

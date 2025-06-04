@@ -347,7 +347,8 @@ export const devices: Devices = [
               },
               variant: "default",
               size: "default",
-              text: "立即领取"
+              text: "立即领取",
+              useSafeArea: true
             },
             displayName: "Button",
             custom: {
@@ -404,7 +405,7 @@ export const devices: Devices = [
             },
             parent: "ROOT",
             hidden: false,
-            nodes: ["CoOjF29WZw", "MraV7wvaD_", "GjV7tOrznU", "-uy_wcBVmT", "8fhkV-liws"],
+            nodes: ["CoOjF29WZw", "MraV7wvaD_", "GjV7tOrznU", "-uy_wcBVmT"],
             linkedNodes: {}
           },
           GjV7tOrznU: {
@@ -1435,7 +1436,8 @@ export const devices: Devices = [
               },
               variant: "default",
               size: "default",
-              text: "1手黄金利润都是$1800"
+              text: "1手黄金利润都是$1800",
+              useSafeArea: true
             },
             displayName: "Button",
             custom: {
@@ -2173,7 +2175,8 @@ export const devices: Devices = [
               },
               variant: "destructive",
               size: "sm",
-              text: "领取USD100"
+              text: "领取USD100",
+              useSafeArea: true
             },
             displayName: "Button",
             custom: {
@@ -3439,43 +3442,6 @@ export const devices: Devices = [
               displayName: "Text"
             },
             parent: "2wJ9W8BB0B",
-            hidden: false,
-            nodes: [],
-            linkedNodes: {}
-          },
-          "8fhkV-liws": {
-            type: {
-              resolvedName: "Container"
-            },
-            isCanvas: true,
-            props: {
-              style: {
-                display: "grid",
-                padding: 0,
-                margin: 0,
-                background: "rgba(255, 255, 255, 0.8)",
-                backgroundImage: "none",
-                gridArea: "1 / 1 / 2 / 2",
-                gridTemplateRows: "minmax(0px, 100%)",
-                gridTemplateColumns: "minmax(0px, 1fr)",
-                flexDirection: "row",
-                maxHeight: 100000,
-                maxWidth: 100000,
-                border: "1px solid rgba(0, 0, 0, 0.3)",
-                height: "50px"
-              },
-              events: {},
-              customStyle: {
-                width: "10%",
-                height: "10%"
-              },
-              animation: []
-            },
-            displayName: "Container",
-            custom: {
-              displayName: "Container"
-            },
-            parent: "baXw3ioiNX",
             hidden: false,
             nodes: [],
             linkedNodes: {}

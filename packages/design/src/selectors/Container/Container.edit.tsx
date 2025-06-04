@@ -6,6 +6,7 @@ import { ContainerSettingsFast } from "./ContainerSettingsFast";
 import { omit } from "lodash-es";
 import ElementBox from "@/components/ElementBox";
 import { useUpdateAppHeight } from "@/hooks/useUpdateAppHeight";
+import { executeUserScript } from "@/utils/script/scriptRunner";
 export const defaultProps: ContainerProps = {
   style: {
     display: "grid",
@@ -43,7 +44,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   const { display, fillSpace, background, backgroundImage, gap } = style;
   useEffect(() => {
     if (events?.onLoad) {
-      eval(events.onLoad);
+      executeUserScript(events.onLoad);
     }
   }, [events]);
 

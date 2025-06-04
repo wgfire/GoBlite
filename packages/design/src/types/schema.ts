@@ -88,7 +88,7 @@ interface CommonComponentProps {
   // 自定义样式 跟布局相关
   customStyle?: CSSProperties;
   events?: {
-    onClick?: () => void | EventConfig;
+    onClick?: string | EventConfig;
     onLoad?: string;
   };
 }

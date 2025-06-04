@@ -53,7 +53,7 @@ export const Sidebar: React.FC = () => {
           <TabsTrigger value="props">属性配置</TabsTrigger>
           <TabsTrigger value="build">部署信息</TabsTrigger>
         </TabsList>
-        <TabsContent value="props" className="h-[calc(100vh-60px)] overflow-auto mt-0">
+        <TabsContent value="props" className="h-full overflow-auto mt-0">
           <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="">
             <Settings />
           </SidebarItem>

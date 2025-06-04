@@ -23,7 +23,8 @@ export const defaultProps: Partial<ButtonProps> = {
   },
   variant: "default",
   size: "default",
-  text: "Button"
+  text: "Button",
+  useSafeArea: true
 };
 
 export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle, events, ...props }) => {
@@ -50,11 +51,18 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
   }, [variant]);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    console.log(events, "按钮点击事件", eventScripts);
     if (events?.onClick) {
-      const handler = eventScripts[events.onClick.name]?.handler;
+      const eventValue = Object.values(eventScripts);
+      const event = eventValue.find(item => {
+        return item.name === events.onClick;
+      });
+      if (event) {
+        const handler = event.handler;
 
-      if (handler) {
-        handler({ target: e.currentTarget, eventName: events.onClick.name, data: "携带的数据" });
+        if (handler) {
+          handler({ target: e.currentTarget, eventName: event.name as string, data: "携带的数据", window });
+        }
       }
     }
   };

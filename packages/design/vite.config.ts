@@ -23,16 +23,7 @@ export default defineConfig({
     cssCodeSplit: false,
 
     rollupOptions: {
-      external: [
-        "react",
-        "react-dom",
-        "react/jsx-runtime",
-        "@go-blite/events",
-        "@go-blite/shadcn",
-        "loadsh-es",
-        "use-immer",
-        "clsx"
-      ],
+      external: ["react", "react-dom", "react/jsx-runtime", "@go-blite/shadcn", "loadsh-es", "use-immer", "clsx"],
       treeshake: true,
       preserveEntrySignatures: "strict",
       input: ["src/index.ts"],

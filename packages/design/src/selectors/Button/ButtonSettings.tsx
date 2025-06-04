@@ -3,24 +3,21 @@ import { ButtonProps } from "./type";
 import { useNode } from "@craftjs/core";
 import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
 import events from "@go-blite/events";
+import { Label, Switch } from "@go-blite/shadcn";
+import { useDesignContext } from "@/context";
 
 const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = ({ Settings }) => {
-  const { props, displayName } = useNode(node => ({
+  const { props, displayName, setProp } = useNode(node => ({
     props: node.data.props as ButtonProps,
     displayName: node.data.custom.displayName
   }));
+
+  const { currentInfo } = useDesignContext();
 
   const eventOptions = [{ url: "none", name: "无" }, ...Object.values(events)].map(key => ({
     label: key.name,
     value: key.name //key.handler
   }));
-
-  // const sizeOptions = [
-  //   { value: "default", label: "默认" },
-  //   { value: "sm", label: "小" },
-  //   { value: "lg", label: "大" },
-  //   { value: "icon", label: "无边距" }
-  // ];
 
   return (
     <Settings defaultValue={props}>
@@ -78,8 +75,48 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
               label={<span className="text-sm text-gray-400">背景颜色</span>}
             />
             <Settings.ItemColor propKey="style.color" label={<span className="text-sm text-gray-400">文字颜色</span>} />
-            <Settings.ItemSlide propKey="style.borderRadius" label="圆角" min={0} max={100} step={1} />
           </Settings.Section>
+          <Settings.ItemSlide propKey="style.borderRadius" label="圆角" min={0} max={100} step={1} />
+
+          {/* 安全区域设置，仅在移动设备模式下显示 */}
+          {currentInfo.device === "mobile" && (
+            <Settings.Section title={"安全区域设置"} defaultOpen>
+              <div className="flex items-center space-x-2 py-2">
+                <Switch
+                  id="safe-area-switch"
+                  checked={props.useSafeArea}
+                  onCheckedChange={checked => {
+                    setProp(props => {
+                      // 直接设置顶层useSafeArea属性
+                      props.useSafeArea = checked;
+                      const newStyle = props.customStyle ?? {};
+                      if (checked) {
+                        // 当启用安全区域时，添加margin计算
+                        const currentMargin = typeof newStyle.marginBottom === "string" ? newStyle.marginBottom : "0px";
+                        newStyle.marginBottom = `calc(var(--safe-area-bottom) + ${currentMargin})`;
+                      } else {
+                        // 移除安全区域margin
+                        if (
+                          typeof newStyle.marginBottom === "string" &&
+                          newStyle.marginBottom.includes("--safe-area-bottom")
+                        ) {
+                          newStyle.marginBottom = newStyle.marginBottom.replace(
+                            /calc\(var\(--safe-area-bottom\) \+ (.+)\)/,
+                            "$1"
+                          );
+                        }
+                      }
+                      props.customStyle = newStyle;
+                    });
+                  }}
+                />
+                <Label htmlFor="safe-area-switch" className="text-sm text-gray-400">
+                  启用底部安全区域
+                </Label>
+                <div className="text-xs text-gray-400 ml-1">(适用于iOS设备底部导航栏)</div>
+              </div>
+            </Settings.Section>
+          )}
         </Settings.Content>
 
         <Settings.Content>

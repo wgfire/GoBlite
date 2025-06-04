@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useNode, UserComponent } from "@craftjs/core";
 import { AppProps } from "./type";
+import { executeUserScript } from "@/utils/script/scriptRunner";
 
 const defaultProps: AppProps = {
   style: {
@@ -35,7 +36,7 @@ export const App: UserComponent<Partial<React.PropsWithChildren<AppProps>>> = pr
   console.log(options, "style");
   useEffect(() => {
     if (events?.onLoad) {
-      eval(events.onLoad);
+      executeUserScript(events.onLoad);
     }
   }, [events]);
 

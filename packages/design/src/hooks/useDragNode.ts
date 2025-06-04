@@ -15,6 +15,7 @@ interface DragState {
   };
   // currentParentId?: string; // 当前未使用，移除
   target: HTMLElement | null;
+  deltaMouseX?: number;
 }
 
 export const useDragNode = (): HookConfig => {
@@ -41,8 +42,7 @@ export const useDragNode = (): HookConfig => {
     dragState.current = {
       mode: "fixed",
       target: target,
-      initialRect: rect, // mousedown 时 target.getBoundingClientRect() 的结果
-      // initialMousePos 不再存储于此, 假设由 mouseDrag 事件提供 mouseX, mouseY (初始鼠标位置)
+      initialRect: rect,
       initialTransform: {
         tx: parsedTransform.x,
         ty: parsedTransform.y,
@@ -79,6 +79,7 @@ export const useDragNode = (): HookConfig => {
     // 鼠标移动的差量
     const deltaMouseX = x - mouseX;
     const deltaMouseY = y - mouseY;
+    dragState.current.deltaMouseX = deltaMouseX;
 
     // 计算元素未应用 transform 时的新的左上角位置
     // initialRect.left 是视觉上的 left, 它已经包含了 initialTransform.tx
@@ -125,6 +126,10 @@ export const useDragNode = (): HookConfig => {
   };
 
   const resetToTranslate = () => {
+    const { deltaMouseX } = dragState.current;
+
+    if (!deltaMouseX) return;
+
     const { target, initialTransform } = dragState.current; // 获取 initialTransform
     const targetId = target?.dataset.id;
     const element = target;
@@ -172,7 +177,8 @@ export const useDragNode = (): HookConfig => {
       mode: "translate",
       initialRect: undefined,
       initialTransform: undefined, // 清除 initialTransform
-      target: null
+      target: null,
+      deltaMouseX: undefined
     };
   };
 

@@ -17,12 +17,11 @@ export const devices = [
                 gridTemplateColumns: "1fr",
                 gridAutoRows: "minmax(0px,100%)",
                 padding: 0,
-                height: "3354px",
+                height: "3358px",
                 minHeight: "100%",
                 minWidth: "100%",
                 width: "auto",
                 flexDirection: "column",
-                background: "rgba(0, 8, 25, 1)",
                 alignContent: "flex-start",
                 position: "relative",
                 margin: 0
@@ -89,7 +88,7 @@ export const devices = [
               events: {},
               customStyle: {
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "3px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -164,9 +163,6 @@ export const devices = [
                 height: "100%",
                 backgroundColor: "rgba(5, 99, 237)"
               },
-              variant: "default",
-              size: "default",
-              text: "立即领取",
               customStyle: {
                 position: "relative",
                 left: "14px",
@@ -180,6 +176,13 @@ export const devices = [
                 maxHeight: 176,
                 width: "93px",
                 height: "36px"
+              },
+              variant: "default",
+              size: "default",
+              text: "立即领取",
+              useSafeArea: true,
+              events: {
+                onClick: "跳转卡券中心"
               }
             },
             displayName: "Button",
@@ -211,7 +214,8 @@ export const devices = [
                 flexDirection: "row",
                 maxHeight: 100000,
                 maxWidth: 100000,
-                borderRadius: 12
+                borderRadius: 12,
+                paddingLeft: "0px"
               },
               events: {},
               customStyle: {
@@ -226,7 +230,7 @@ export const devices = [
                 width: "100%",
                 height: "232px",
                 maxWidth: 430,
-                maxHeight: 898
+                maxHeight: 3354
               },
               animation: []
             },
@@ -295,8 +299,8 @@ export const devices = [
               text: "美国非农业人口就业数据，由美国劳工部在每月第一个星期五公布，<br>是反应美国经济好坏的重要数据指标，<br>可能引发金融市场在短时间内剧烈波动，<br>它被认为是全球经济数据中极重要的讯息",
               customStyle: {
                 position: "relative",
-                left: "22px",
-                top: "84px",
+                left: "18px",
+                top: "85px",
                 transform: "none",
                 zIndex: "auto",
                 justifySelf: "start",
@@ -327,14 +331,16 @@ export const devices = [
                 margin: 0,
                 background: "linear-gradient(270deg, #192678 0%, #1942BD 100%)",
                 width: "10%",
-                height: "93px",
+                height: "94px",
                 backgroundImage: "none",
                 gridArea: "1 / 1 / 2 / 2",
                 gridTemplateRows: "minmax(0px, 100%)",
                 gridTemplateColumns: "minmax(0px, 1fr)",
                 flexDirection: "row",
                 maxHeight: 100000,
-                maxWidth: 100000
+                maxWidth: 100000,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
@@ -347,7 +353,7 @@ export const devices = [
                 alignSelf: "start",
                 willChange: "none",
                 width: "100%",
-                height: "50px",
+                height: "44px",
                 maxWidth: 430,
                 maxHeight: 898
               },
@@ -380,7 +386,7 @@ export const devices = [
               text: "非农公布倒计时",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "",
                 top: "13px",
                 transform: "none",
                 zIndex: "auto",
@@ -412,7 +418,7 @@ export const devices = [
                 margin: 0,
                 background: "rgba(255, 255, 255, 1)",
                 width: "10%",
-                height: "543px",
+                height: "542px",
                 backgroundImage: "none",
                 gridArea: "1 / 1 / 2 / 2",
                 gridTemplateRows: "minmax(0px, 100%)",
@@ -434,7 +440,7 @@ export const devices = [
                 maxWidth: 430,
                 maxHeight: 3354,
                 width: "100%",
-                height: "543px"
+                height: "541px"
               },
               animation: []
             },
@@ -497,12 +503,14 @@ export const devices = [
                 gridTemplateColumns: "minmax(0px, 1fr)",
                 flexDirection: "row",
                 maxHeight: 100000,
-                maxWidth: 100000
+                maxWidth: 100000,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "1130px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -543,17 +551,17 @@ export const devices = [
               },
               customStyle: {
                 width: "46px",
-                height: "39px",
+                height: "40px",
                 position: "relative",
-                left: "369px",
+                left: "",
                 top: "4px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 willChange: "none",
-                maxWidth: 430,
-                maxHeight: 50
+                maxWidth: 420,
+                maxHeight: 44
               }
             },
             displayName: "Image",
@@ -584,12 +592,14 @@ export const devices = [
                 gridTemplateColumns: "minmax(0px, 1fr)",
                 flexDirection: "row",
                 maxHeight: 100000,
-                maxWidth: 100000
+                maxWidth: 100000,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "1080px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -630,7 +640,7 @@ export const devices = [
               text: "非农如何影响市场",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "",
                 top: "13px",
                 transform: "none",
                 zIndex: "auto",
@@ -670,11 +680,11 @@ export const devices = [
                 width: "46px",
                 height: "39px",
                 position: "relative",
-                left: "369px",
+                left: "",
                 top: "4px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -716,7 +726,7 @@ export const devices = [
                 width: "326px",
                 height: "73px",
                 position: "relative",
-                left: "15px",
+                left: "",
                 top: "20px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -801,9 +811,9 @@ export const devices = [
                 width: "326px",
                 height: "69px",
                 position: "relative",
-                left: "81px",
+                left: "",
                 top: "142px",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 willChange: "none",
@@ -880,11 +890,11 @@ export const devices = [
                 width: "382px",
                 height: "252px",
                 position: "relative",
-                left: "25px",
+                left: "",
                 top: "247px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -966,12 +976,14 @@ export const devices = [
                 gridTemplateColumns: "minmax(0px, 1fr)",
                 flexDirection: "row",
                 maxHeight: 100000,
-                maxWidth: 100000
+                maxWidth: 100000,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "1686px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -1012,7 +1024,7 @@ export const devices = [
               text: "交易黄金或外汇优势",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "",
                 top: "13px",
                 transform: "none",
                 zIndex: "auto",
@@ -1052,11 +1064,11 @@ export const devices = [
                 width: "46px",
                 height: "39px",
                 position: "relative",
-                left: "369px",
+                left: "",
                 top: "4px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1092,11 +1104,11 @@ export const devices = [
                 width: "100%",
                 height: "156px",
                 position: "relative",
-                left: "-1px",
+                left: "",
                 top: "24px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1170,11 +1182,11 @@ export const devices = [
                 width: "100%",
                 height: "156px",
                 position: "relative",
-                left: "0px",
+                left: "",
                 top: "252px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1208,11 +1220,11 @@ export const devices = [
               text: "在低价买入黄金",
               customStyle: {
                 position: "relative",
-                left: "159px",
+                left: "",
                 top: "438px",
                 transform: "none",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1243,14 +1255,11 @@ export const devices = [
                 height: "100%",
                 backgroundColor: "rgba(0, 108, 246, 0.03)"
               },
-              variant: "default",
-              size: "default",
-              text: "1手黄金利润都是$1800",
               customStyle: {
                 position: "relative",
-                left: "34px",
+                left: "",
                 top: "470px",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 willChange: "none",
@@ -1259,7 +1268,11 @@ export const devices = [
                 maxHeight: 536,
                 width: "82.55813953488372%",
                 height: "36px"
-              }
+              },
+              variant: "default",
+              size: "default",
+              text: "1手黄金利润都是$1800",
+              useSafeArea: true
             },
             displayName: "Button",
             custom: {
@@ -1296,7 +1309,7 @@ export const devices = [
                 width: "100%",
                 height: "368px",
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "2357px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -1336,12 +1349,16 @@ export const devices = [
                 gridTemplateColumns: "minmax(0px, 1fr)",
                 flexDirection: "row",
                 maxHeight: 100000,
-                maxWidth: 100000
+                maxWidth: 100000,
+                marginLeft: "0px",
+                marginRight: "0px",
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "2305px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -1382,7 +1399,7 @@ export const devices = [
               text: "利用杠杆原理",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "",
                 top: "13px",
                 transform: "none",
                 zIndex: "auto",
@@ -1422,11 +1439,11 @@ export const devices = [
                 width: "46px",
                 height: "39px",
                 position: "relative",
-                left: "369px",
+                left: "",
                 top: "4px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1576,11 +1593,11 @@ export const devices = [
                 width: "381px",
                 height: "210px",
                 position: "relative",
-                left: "18px",
+                left: "",
                 top: "143px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1615,7 +1632,9 @@ export const devices = [
                 maxHeight: 100000,
                 maxWidth: 100000,
                 width: "10%",
-                height: "447px"
+                height: "491px",
+                paddingLeft: "10%",
+                paddingRight: "10%"
               },
               events: {},
               customStyle: {
@@ -1662,12 +1681,14 @@ export const devices = [
                 gridTemplateColumns: "minmax(0px, 1fr)",
                 flexDirection: "row",
                 maxHeight: 100000,
-                maxWidth: 100000
+                maxWidth: 100000,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "2748px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -1708,7 +1729,7 @@ export const devices = [
               text: "值得信赖的国际平台",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "",
                 top: "13px",
                 transform: "none",
                 zIndex: "auto",
@@ -1748,11 +1769,11 @@ export const devices = [
                 width: "46px",
                 height: "39px",
                 position: "relative",
-                left: "369px",
+                left: "",
                 top: "4px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 willChange: "none",
                 maxWidth: 430,
@@ -1786,7 +1807,7 @@ export const devices = [
               text: "2024-最透明交易平台",
               customStyle: {
                 position: "relative",
-                left: "28px",
+                left: "",
                 top: "31px",
                 transform: "none",
                 zIndex: "auto",
@@ -1824,7 +1845,7 @@ export const devices = [
               text: "2024-最透明交易平台",
               customStyle: {
                 position: "relative",
-                left: "26px",
+                left: "",
                 top: "71px",
                 transform: "none",
                 zIndex: "auto",
@@ -1862,7 +1883,7 @@ export const devices = [
               text: "2024-最透明交易平台",
               customStyle: {
                 position: "relative",
-                left: "27px",
+                left: "",
                 top: "108px",
                 transform: "none",
                 zIndex: "auto",
@@ -1900,7 +1921,7 @@ export const devices = [
               text: "2024-最透明交易平台",
               customStyle: {
                 position: "relative",
-                left: "25px",
+                left: "",
                 top: "145px",
                 transform: "none",
                 zIndex: "auto",
@@ -1938,9 +1959,9 @@ export const devices = [
               },
               customStyle: {
                 width: "100%",
-                height: "210px",
+                height: "254px",
                 position: "relative",
-                left: "0",
+                left: "0px",
                 top: "187px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -1973,23 +1994,24 @@ export const devices = [
                 width: "100%",
                 height: "100%"
               },
-              variant: "destructive",
-              size: "sm",
-              text: "领取USD100",
               customStyle: {
                 position: "relative",
-                left: "28px",
-                top: "3241px",
+                left: "",
+                top: "3245px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
-                justifySelf: "start",
+                justifySelf: "center",
                 alignSelf: "start",
                 willChange: "none",
                 width: "81.86046511627907%",
                 maxWidth: 430,
-                maxHeight: 3353,
+                maxHeight: 3358,
                 height: "63px"
-              }
+              },
+              variant: "destructive",
+              size: "sm",
+              text: "领取USD100",
+              useSafeArea: true
             },
             displayName: "Button",
             custom: {
@@ -2017,10 +2039,10 @@ export const devices = [
                 maxWidth: "100vw"
               },
               customStyle: {
-                width: "372px",
+                width: "90%",
                 height: "35px",
                 position: "relative",
-                left: "22.5px",
+                left: "17.5px",
                 top: "173px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
@@ -2057,17 +2079,17 @@ export const devices = [
                 maxWidth: "100vw"
               },
               customStyle: {
-                width: "372px",
+                width: "90%",
                 height: "35px",
                 position: "relative",
-                left: "24.5px",
-                top: "34px",
+                left: "16.5px",
+                top: "36px",
                 transform: "matrix(1, 0, 0, 1, 0, 0)",
                 zIndex: "auto",
                 justifySelf: "start",
                 alignSelf: "start",
                 willChange: "none",
-                maxWidth: 430,
+                maxWidth: 429,
                 maxHeight: 232
               }
             },
@@ -2086,9 +2108,13 @@ export const devices = [
             },
             isCanvas: false,
             props: {
+              style: {
+                background: "rgba(139, 95, 63, 1)"
+              },
+              events: {},
               customStyle: {
                 position: "relative",
-                left: "50px",
+                left: "58.1875px",
                 top: "13px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -2096,11 +2122,17 @@ export const devices = [
                 willChange: "none",
                 zIndex: "auto",
                 maxWidth: 420,
-                maxHeight: 324
-              }
+                maxHeight: 533
+              },
+              animation: [],
+              time: "2025-06-04T20:30:00",
+              timeText: "非农公布倒计时",
+              dayText: "天"
             },
             displayName: "NonFarm",
-            custom: {},
+            custom: {
+              displayName: "NonFarm"
+            },
             parent: "4yxYoZXyt6",
             hidden: false,
             nodes: [],
@@ -2126,7 +2158,8 @@ export const devices = [
                 maxWidth: 100000,
                 width: "10%",
                 height: "83px",
-                borderRadius: 6
+                borderRadius: 6,
+                paddingLeft: "10px"
               },
               events: {},
               customStyle: {
@@ -2172,7 +2205,7 @@ export const devices = [
               text: "10月4日",
               customStyle: {
                 position: "relative",
-                left: "21px",
+                left: "",
                 top: "9px",
                 transform: "none",
                 zIndex: "auto",
@@ -2212,7 +2245,9 @@ export const devices = [
                 maxWidth: 100000,
                 width: "10%",
                 height: "178px",
-                borderRadius: 20
+                borderRadius: 20,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
@@ -2258,15 +2293,16 @@ export const devices = [
               text: "新增25.4万",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "0px",
                 top: "17px",
                 justifySelf: "start",
                 alignSelf: "start",
                 transform: "none",
                 willChange: "none",
                 zIndex: "auto",
-                maxWidth: 407,
-                maxHeight: 189
+                maxWidth: 397,
+                maxHeight: 151,
+                marginLeft: "10px"
               }
             },
             displayName: "Text",
@@ -2304,7 +2340,7 @@ export const devices = [
                 width: "41.76904176904177%",
                 height: "18.51851851851852%",
                 position: "relative",
-                left: "13px",
+                left: "",
                 top: "53px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -2436,9 +2472,9 @@ export const devices = [
                 width: "41.76904176904177%",
                 height: "18.51851851851852%",
                 position: "relative",
-                left: "191px",
+                left: "",
                 top: "55px",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 transform: "none",
                 willChange: "none",
@@ -2568,7 +2604,7 @@ export const devices = [
                 width: "41.76904176904177%",
                 height: "18.51851851851852%",
                 position: "relative",
-                left: "15px",
+                left: "",
                 top: "100px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -2780,7 +2816,9 @@ export const devices = [
                 maxWidth: 100000,
                 width: "10%",
                 height: "178px",
-                borderRadius: 20
+                borderRadius: 20,
+                paddingLeft: "10px",
+                paddingRight: "10px"
               },
               events: {},
               customStyle: {
@@ -2834,7 +2872,7 @@ export const devices = [
                 width: "41.76904176904177%",
                 height: "18.51851851851852%",
                 position: "relative",
-                left: "13px",
+                left: "",
                 top: "53px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -2958,7 +2996,7 @@ export const devices = [
               text: "新增1.2万",
               customStyle: {
                 position: "relative",
-                left: "16px",
+                left: "0px",
                 top: "17px",
                 justifySelf: "start",
                 alignSelf: "start",
@@ -2966,7 +3004,8 @@ export const devices = [
                 willChange: "none",
                 zIndex: "auto",
                 maxWidth: 407,
-                maxHeight: 189
+                maxHeight: 189,
+                marginLeft: "10px"
               }
             },
             displayName: "Text",
@@ -3004,9 +3043,9 @@ export const devices = [
                 width: "41.76904176904177%",
                 height: "18.51851851851852%",
                 position: "relative",
-                left: "191px",
+                left: "",
                 top: "55px",
-                justifySelf: "start",
+                justifySelf: "end",
                 alignSelf: "start",
                 transform: "none",
                 willChange: "none",
@@ -3136,7 +3175,7 @@ export const devices = [
                 width: "41.76904176904177%",
                 height: "18.51851851851852%",
                 position: "relative",
-                left: "15px",
+                left: "",
                 top: "100px",
                 justifySelf: "start",
                 alignSelf: "start",

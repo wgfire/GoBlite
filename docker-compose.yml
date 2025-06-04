@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  # 生产环境
+  web-production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_ENV: production
+    ports:
+      - "8080:80"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+
+  # 测试环境
+  web-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_ENV: test
+    ports:
+      - "8081:80"
+    environment:
+      - NODE_ENV=test
+    restart: unless-stopped
+
+  # 预发布环境
+  web-stage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILD_ENV: stage
+    ports:
+      - "8082:80"
+    environment:
+      - NODE_ENV=stage
+    restart: unless-stopped

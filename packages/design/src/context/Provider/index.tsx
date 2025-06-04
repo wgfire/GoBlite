@@ -75,6 +75,9 @@ export interface DesignContextProps {
       devices: Devices;
     }[];
   }[];
+  metadata?: {
+    [key: string]: unknown;
+  };
 }
 
 const mergeResolvers = (oldResolver: Resolver, newResolver?: Resolver): Resolver => {

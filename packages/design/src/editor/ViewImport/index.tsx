@@ -2,8 +2,6 @@ import React, { useEffect } from "react";
 import { useEditor } from "@craftjs/core";
 import clsx from "clsx";
 import { Header } from "./Header";
-import { Toaster } from "@go-blite/shadcn";
-// import { Sidebar } from "./Sidebar";
 import { Toolbox } from "./Toolbox";
 import { useDesignContext } from "@/context/useDesignContext";
 import { Canvas } from "./Canvas";
@@ -44,7 +42,6 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
 
   return (
     <div className="viewport h-screen overflow-hidden">
-      <Toaster />
       <div className={clsx("flex h-full flex-row w-full relative")}>
         <Toolbox />
         <div className="page-container flex flex-1 h-full flex-col overflow-hidden pb-3 bg-gray-100">
@@ -56,6 +53,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
               "w-[750px]": currentInfo.device === "tablet",
               "w-[100%]": currentInfo.device === "desktop"
             })}
+            style={{ transform: "translateZ(0)" }}
           >
             <Canvas className="h-full w-full overflow-y-auto overflow-x-hidden hidden-scroll">{children}</Canvas>
           </div>
