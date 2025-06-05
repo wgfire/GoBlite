@@ -19,7 +19,8 @@ export const useUploadService = (options?: UploadServiceOptions) => {
         title: "开始构建",
         description: "正在准备您的设计稿..."
       });
-      const buildResponse = await fetch("http://localhost:3002/api/build", {
+      const builderApiUrl = import.meta.env.VITE_BUILDER_API_URL || "http://localhost:3002/api/build"; // Fallback for safety
+      const buildResponse = await fetch(builderApiUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

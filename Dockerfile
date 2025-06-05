@@ -13,6 +13,7 @@ COPY packages/design/package.json ./packages/design/
 COPY packages/shadcn/package.json ./packages/shadcn/
 COPY packages/events/package.json ./packages/events/
 COPY web-site/package.json ./web-site/
+COPY builder/package.json ./builder/
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile
@@ -35,14 +36,24 @@ RUN if [ "$BUILD_ENV" = "demo" ]; then \
 # 生产环境阶段
 FROM nginx:alpine AS production
 
-# 从构建阶段复制构建产物
+
+RUN apk update && apk add --no-cache nodejs npm tini
+
+WORKDIR /app
+
+
 COPY --from=builder /app/web-site/dist /usr/share/nginx/html
 
-# 复制 nginx 配置
+
+COPY --from=builder /app/builder ./builder
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# 暴露端口
-EXPOSE 80
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
-# 启动 nginx
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 80
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Set the command to run the start script
+CMD ["/start.sh"]
