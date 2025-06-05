@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks: {
             design: ["@go-blite/design"],
-            shadcn: ["@go-blite/shadcn"],
+            // shadcn: ["@go-blite/shadcn"],
             "react-vendor": ["react", "react-dom"],
             vendor: ["ahooks", "lodash-es", "use-immer"]
           },
