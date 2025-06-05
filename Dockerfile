@@ -11,7 +11,7 @@ RUN corepack enable pnpm
 COPY package.json pnpm-workspace.yaml nx.json ./
 COPY packages/design/package.json ./packages/design/
 COPY packages/shadcn/package.json ./packages/shadcn/
-COPY package/events/package.json ./packages/events/
+COPY packages/events/package.json ./packages/events/
 COPY web-site/package.json ./web-site/
 
 # 安装依赖
@@ -24,8 +24,8 @@ COPY . .
 ARG BUILD_ENV=production
 
 # 构建 web-site (Nx 会自动构建所有依赖)
-RUN if [ "$BUILD_ENV" = "test" ]; then \
-      pnpm run build:web-site -- --mode test; \
+RUN if [ "$BUILD_ENV" = "demo" ]; then \
+      pnpm run build:web-site -- --mode demo; \
     elif [ "$BUILD_ENV" = "stage" ]; then \
       pnpm run build:web-site -- --mode stage; \
     else \
