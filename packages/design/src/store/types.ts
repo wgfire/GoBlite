@@ -154,8 +154,10 @@ export interface ProjectState {
   assets: Asset[];
   /** 项目可用模板列表 */
   templates: ProjectTemplateGroup[];
-  /** 项目元数据，用于存储其他自定义信息 */
+  /** (可选) 项目元数据，用于存储版本、描述等附加信息 */
   metadata: { [key: string]: unknown };
+  /** (可选) 全局初始化脚本，在页面渲染环境加载时执行 */
+  globalInitializationScript?: string;
 }
 
 /**
@@ -193,6 +195,8 @@ export interface ProjectActions {
     templates?: ProjectTemplateGroup[];
     metadata?: { [key: string]: unknown };
   }) => void;
+  /** 设置全局初始化脚本 */
+  setGlobalInitializationScript: (script: string) => void;
 }
 
 // EditorSettings Slice
@@ -287,6 +291,28 @@ export interface HistoryActions {
   // addSnapshot 通常是内部操作，由其他改变状态的action触发
 }
 
+// --- External Context Slice ---
+/**
+ * 外部上下文状态接口
+ * 管理从外部注入的上下文数据
+ */
+export interface ExternalContextState {
+  /** 从外部注入的上下文对象，可为 null */
+  context: Record<string, any> | null;
+}
+
+/**
+ * 外部上下文操作接口
+ * 定义了用于更新 ExternalContextState 的方法
+ */
+export interface ExternalContextActions {
+  /**
+   * 设置外部上下文数据。
+   * @param context 包含任意键值对的上下文对象，或 null 以清除上下文。
+   */
+  setExternalContext: (context: Record<string, any> | null) => void;
+}
+
 /**
  * 完整的Zustand Store类型，组合了所有State和Actions接口
  */
@@ -297,4 +323,6 @@ export type FullStore = UiState &
   EditorSettingsState &
   EditorSettingsActions &
   HistoryState &
-  HistoryActions;
+  HistoryActions &
+  ExternalContextState &
+  ExternalContextActions;

@@ -12,7 +12,12 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
     displayName: node.data.custom.displayName
   }));
 
-  const { currentInfo } = useDesignContext();
+  const designContext = useDesignContext();
+  if (!designContext) {
+    // console.error("Design context is not available in ButtonSettingsComponent");
+    return null;
+  }
+  const { currentInfo } = designContext;
 
   const eventOptions = [{ url: "none", name: "无" }, ...Object.values(events)].map(key => ({
     label: key.name,

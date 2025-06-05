@@ -1,2 +1,2 @@
-export { DesignProvider, type DesignContextProps } from "./Provider";
+export * from "./Provider";
 export { useDesignContext } from "./useDesignContext";

@@ -8,10 +8,15 @@ import { defaultNode } from "@/constant";
 export const EditorContent: React.FC<{ schema: string | SerializedNodes | undefined }> = memo(({ schema }) => {
   const { actions } = useEditor();
   const [loading, setLoading] = useState(true);
-  const contextData = useDesignContext();
-  const {
-    currentInfo: { device }
-  } = contextData;
+  const designContext = useDesignContext();
+
+  if (!designContext) {
+    return <Loading loading={loading} />;
+  }
+
+  const { currentInfo } = designContext;
+  const { device } = currentInfo;
+
   useEffect(() => {
     console.log(schema, "schema");
     if (schema && Object.keys(schema).length > 0) {

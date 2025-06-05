@@ -9,7 +9,11 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
     props: node.data.props as ContainerProps,
     displayName: node.data.custom.displayName
   }));
-  const { assets } = useDesignContext();
+  const designContext = useDesignContext();
+  if (!designContext) {
+    return null;
+  }
+  const { assets } = designContext;
 
   const assetsOptions = [{ url: "none", name: "无" }, ...(assets ?? [])].map(asset => ({
     label: asset.name,

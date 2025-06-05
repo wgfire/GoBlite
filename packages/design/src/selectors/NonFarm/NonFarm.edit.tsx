@@ -20,7 +20,7 @@ export const defaultProps: NonFarmProps = {
     maxWidth: 100000,
     padding: 0,
     margin: 0,
-    width: "10%",
+    width: "max-content",
     height: "auto"
   },
   animation: [],

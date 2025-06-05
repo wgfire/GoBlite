@@ -18,7 +18,12 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
   } = useEditor(state => ({
     enabled: state.options.enabled
   }));
-  const { currentInfo, showSidebar } = useDesignContext();
+  const designContext = useDesignContext();
+  if (!designContext) {
+    // console.error("Design context is not available in ViewImport");
+    return null;
+  }
+  const { currentInfo, showSidebar } = designContext;
 
   useEffect(() => {
     if (typeof window !== "undefined") {

@@ -13,7 +13,7 @@ interface DesignPageClientProps {
 const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates }) => {
   const { processDownloadAndUpload } = useUploadService();
   const initialProps = useMemo<Partial<DesignContextProps>>(() => {
-    if (!devices || devices.length === 0 || !devices[0]?.languagePageMap?.["zh"]?.schema) {
+    if (!devices || devices.length === 0) {
       return {
         device: devices || [],
         schema: {} // Default to empty schema

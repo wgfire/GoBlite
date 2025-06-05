@@ -8,7 +8,7 @@ WORKDIR /app
 RUN corepack enable pnpm
 
 # 复制 package.json 和 pnpm-lock.yaml（如果存在）
-COPY package.json pnpm-workspace.yaml nx.json ./
+COPY package.json pnpm-workspace.yaml nx.json pnpm-lock.yaml ./
 COPY packages/design/package.json ./packages/design/
 COPY packages/shadcn/package.json ./packages/shadcn/
 COPY packages/events/package.json ./packages/events/

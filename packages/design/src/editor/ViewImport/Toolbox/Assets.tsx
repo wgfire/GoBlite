@@ -25,7 +25,8 @@ interface AssetItem {
 }
 
 export const Assets: React.FC = () => {
-  const { assets } = useDesignContext();
+  const context = useDesignContext();
+  const assets = context.assets;
 
   const renderAssetItem = (item: AssetItem) => {
     switch (item.type) {
@@ -67,6 +68,7 @@ export const Assets: React.FC = () => {
             <TooltipTrigger asChild>
               <Button variant="outline" className="flex items-center justify-center">
                 <BookImage className="w-4 h-4 mr-0" />
+                <span className="text-xs text-center truncate w-full">资源</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">媒体资源</TooltipContent>

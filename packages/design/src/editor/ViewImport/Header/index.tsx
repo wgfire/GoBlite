@@ -25,8 +25,13 @@ export const Header: React.FC = () => {
     enabled: state.options.enabled
   }));
 
-  // 从 useDesignContext 移除 findSchema
-  const { updateContext, currentInfo, device } = useDesignContext();
+  const designContext = useDesignContext();
+  if (!designContext) {
+    return null;
+  }
+  const { updateContext } = designContext;
+  const { currentInfo } = designContext;
+
   // 下载状态管理
   const [isDownloading, setIsDownloading] = useState(false);
   const handleDeviceChange = (newDevice: DeviceType) => {
@@ -100,7 +105,7 @@ export const Header: React.FC = () => {
   const downloadHandle = async () => {
     try {
       setIsDownloading(true);
-      BusinessEvents.emit("onDownload", { device });
+      BusinessEvents.emit("onDownload", { device: currentInfo.device });
     } catch (error) {
       console.error("触发下载事件失败:", error);
       toast({

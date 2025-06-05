@@ -13,16 +13,10 @@ const DemoContent: React.FC = () => {
 };
 
 export const DemoPage: React.FC = () => {
-  const Login = () => <div>Login</div>;
-
   const initialProps = useMemo<Partial<DesignContextProps>>(
     () => ({
       device: devices,
       schema: devices[0].languagePageMap["zh"].schema,
-      resolver: {
-        Login: Login
-      },
-
       assets: [
         {
           name: "icon",

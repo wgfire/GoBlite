@@ -18,7 +18,12 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
     label: key.name,
     value: key.name //key.handler
   }));
-  const { assets } = useDesignContext();
+  const designContext = useDesignContext();
+  if (!designContext) {
+    // console.error("Design context is not available in ImageSettingsComponent");
+    return null;
+  }
+  const { assets } = designContext;
 
   const assetsOptions = [{ url: "none", name: "无" }, ...(assets ?? [])].map(asset => ({
     label: asset.name,

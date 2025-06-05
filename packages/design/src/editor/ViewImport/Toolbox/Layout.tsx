@@ -72,6 +72,7 @@ export const Layout: React.FC = () => {
             <TooltipTrigger asChild>
               <Button variant="outline" className="flex items-center justify-center">
                 <PanelsRightBottom className="w-4 h-4 mr-0" />
+                <span className="text-xs text-center truncate w-full">模版</span>
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right">页面模版</TooltipContent>
