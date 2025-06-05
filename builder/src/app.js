@@ -14,12 +14,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+console.log("VITE_TEMPLATE_DIR", process.env.VITE_TEMPLATE_DIR);
+console.log("BUILD_OUTPUT_DIR", process.env.BUILD_OUTPUT_DIR);
+console.log("TEMP_SCHEMA_DIR", process.env.TEMP_SCHEMA_DIR);
+console.log("process.env.PORT", process.env.PORT);
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: "50mb" })); // 允许较大的 schema JSON
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(morgan("combined", { stream: { write: message => logger.info(message.trim()) } }));
-
 // Routes
 app.use("/api/build", buildRoutes);
 
