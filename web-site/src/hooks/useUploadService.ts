@@ -19,7 +19,23 @@ export const useUploadService = (options?: UploadServiceOptions) => {
         title: "开始构建",
         description: "正在准备您的设计稿..."
       });
-      const builderApiUrl = import.meta.env.VITE_BUILDER_API_URL || "http://localhost:3002/api/build"; // Fallback for safety
+      const rawBuilderApiUrl = import.meta.env.VITE_BUILDER_API_URL;
+      let builderApiUrl;
+
+      if (rawBuilderApiUrl.startsWith("http")) {
+        builderApiUrl = rawBuilderApiUrl;
+      } else {
+        const origin = window.location.origin;
+
+        if (rawBuilderApiUrl.startsWith("/") && origin.endsWith("/")) {
+          builderApiUrl = `${origin.slice(0, -1)}${rawBuilderApiUrl}`;
+        } else if (!rawBuilderApiUrl.startsWith("/") && !origin.endsWith("/")) {
+          builderApiUrl = `${origin}/${rawBuilderApiUrl}`;
+        } else {
+          builderApiUrl = `${origin}${rawBuilderApiUrl}`;
+        }
+      }
+
       const buildResponse = await fetch(builderApiUrl, {
         method: "POST",
         headers: {
