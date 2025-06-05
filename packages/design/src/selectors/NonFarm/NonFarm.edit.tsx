@@ -44,11 +44,11 @@ export const NonFarm: UserComponent<Partial<React.PropsWithChildren<NonFarmProps
   };
   const { time, style, customStyle } = options;
 
-  const { days, hours, minutes, seconds, isEnd } = useDateSubtr(time);
+  const { days, hours, minutes, seconds } = useDateSubtr(time);
 
   return (
     <ElementBox ref={node => node && connect(node)} id={id} data-id={id} style={{ ...customStyle }}>
-      {!isEnd && (
+      {
         <div
           className="flex justify-around items-center h-full gap-1"
           style={{
@@ -118,7 +118,7 @@ export const NonFarm: UserComponent<Partial<React.PropsWithChildren<NonFarmProps
             {seconds}
           </div>
         </div>
-      )}
+      }
     </ElementBox>
   );
 };

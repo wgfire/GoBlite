@@ -1,40 +1,56 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DesignPageClient from "./components/DesignPageClient";
 import { devices } from "./data/mock";
 import { DesignContextProps, Loading } from "@go-blite/design";
 import { getTemplates, Templates } from "./api/getTemplates";
+import { useMount } from "ahooks";
 const App: React.FC = () => {
   const [templates, setTemplates] = useState<NonNullable<DesignContextProps["templates"]>>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [devicesData, setDevicesData] = useState<DesignContextProps["device"]>([]);
   const getTemplatesData = async () => {
+    setIsLoading(true);
     const res = await getTemplates();
-    const result = await res.json();
-    const data = result.value.templateTypeList as Array<Templates>;
-    const templatesData = data.map(item => {
-      const type = item.name;
-      const list = item.templateList.map(el => {
+    try {
+      const result = await res.json();
+      const data = result.value.templateTypeList as Array<Templates>;
+      const templatesData = data.map(item => {
+        const type = item.name;
+        const list = item.templateList.map(el => {
+          return {
+            name: el.name,
+            devices: JSON.parse(el.content)
+          };
+        });
         return {
-          name: el.name,
-          devices: JSON.parse(el.content)
+          type,
+          list
         };
       });
-      return {
-        type,
-        list
-      };
-    });
-    setTemplates(templatesData);
-    setIsLoading(false);
+      setTemplates(templatesData);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("获取模板数据失败:", error);
+      setIsLoading(false);
+    }
   };
-  useEffect(() => {
+  const getDevicesData = () => {
+    const schema = localStorage.getItem("schema");
+    if (schema) {
+      return JSON.parse(schema);
+    }
+    return devices;
+  };
+  useMount(() => {
     getTemplatesData();
-  }, []);
+    const devicesData = getDevicesData();
+    setDevicesData(devicesData);
+  });
 
-  const validDevices = Array.isArray(devices) ? devices : [];
-  if (isLoading || templates.length === 0) {
+  if (isLoading) {
     return <Loading loading={isLoading} />;
   }
-  return <DesignPageClient devices={validDevices as unknown as DesignContextProps["device"]} templates={templates} />;
+  return <DesignPageClient devices={devicesData} templates={templates} />;
 };
 
 export default App;

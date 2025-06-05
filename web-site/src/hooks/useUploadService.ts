@@ -106,6 +106,7 @@ export const useUploadService = (options?: UploadServiceOptions) => {
         variant: "default"
       });
       options?.onSuccess?.(result);
+      return result;
     } catch (error) {
       console.error("处理下载和上传过程中发生错误:", error);
       toast({
@@ -117,6 +118,7 @@ export const useUploadService = (options?: UploadServiceOptions) => {
     } finally {
       setIsProcessing(false);
     }
+    return null;
   };
 
   return {

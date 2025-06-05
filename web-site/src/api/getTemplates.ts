@@ -10,5 +10,5 @@ export interface Templates {
 }
 
 export const getTemplates = () => {
-  return fetch("https://demo-admin.mitrade.com/mt-activity-service/admin/topic_config_template_list");
+  return fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/topic_config_template_list`);
 };

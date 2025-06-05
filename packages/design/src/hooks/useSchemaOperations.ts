@@ -67,36 +67,40 @@ export const useSchemaOperations = () => {
    * @returns 是否保存成功
    */
   const saveCurrentSchema = useCallback(
-    (isImmediately = false) => {
+    (isImmediately = false): { success: boolean; updatedDevice: any[] | null } => {
       const currentSchema = query.getSerializedNodes();
       // 对默认的 schema 不进行保存
-      if (Object.keys(currentSchema).length < 1) return false;
+      if (Object.keys(currentSchema).length < 1) return { success: false, updatedDevice: null };
+
+      let updatedDeviceData: any[] | null = null;
 
       updateContext(draft => {
-        const currentDevice = draft.device.find(device => device.type === draft.currentInfo.device);
-        if (currentDevice) {
-          currentDevice.languagePageMap[draft.currentInfo.language] = {
-            ...currentDevice.languagePageMap[draft.currentInfo.language],
+        const deviceToUpdate = draft.device.find(d => d.type === currentInfo.device);
+        if (deviceToUpdate) {
+          deviceToUpdate.languagePageMap[currentInfo.language] = {
+            ...deviceToUpdate.languagePageMap[currentInfo.language],
             schema: currentSchema
           };
         } else {
           // 第一次点击
           draft.device.push({
-            type: draft.currentInfo.device,
-            pageTemplate: draft.currentInfo.pageTemplate,
+            type: currentInfo.device,
+            pageTemplate: currentInfo.pageTemplate,
             languagePageMap: {
-              [draft.currentInfo.language]: { schema: currentSchema }
+              [currentInfo.language]: { schema: currentSchema }
             }
           });
         }
         if (isImmediately) {
           draft.schema = currentSchema;
         }
+        // 深拷贝以获取更新后的值，确保返回的是一个新对象，而不是 Immer 的 draft 代理
+        updatedDeviceData = JSON.parse(JSON.stringify(draft.device));
       });
 
-      return true;
+      return { success: true, updatedDevice: updatedDeviceData };
     },
-    [query, updateContext]
+    [query, updateContext, currentInfo]
   );
 
   /**

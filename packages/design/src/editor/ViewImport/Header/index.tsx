@@ -5,7 +5,7 @@ import { Button } from "@go-blite/shadcn";
 import { useToast } from "@go-blite/shadcn/hooks/use-toast";
 import { useSchemaOperations } from "@/hooks/useSchemaOperations";
 import { DEVICES, languages } from "@/constant";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { BusinessEvents } from "@/utils/BusinessEvents";
 import { Smartphone, Tablet, Monitor, ArrowLeft, ArrowRight, Eye, Upload, Loader, Trash, Save } from "lucide-react";
 import {
@@ -80,14 +80,10 @@ export const Header: React.FC = () => {
         }
       });
     });
-
-    // 触发同步事件
-    BusinessEvents.emit("onSave", { data: { syncDevice, syncLanguage } });
   };
 
   const DeviceButton = ({ device, icon: Icon }: { device: DeviceType; icon: React.ElementType }) => {
     const hasSchema = findSchema({ device });
-    console.log(hasSchema, "hasSchema");
     return (
       <Button
         variant="ghost"
@@ -101,7 +97,7 @@ export const Header: React.FC = () => {
   };
 
   // 处理上传/下载按钮点击
-  const DownloadHandle = async () => {
+  const downloadHandle = async () => {
     try {
       setIsDownloading(true);
       BusinessEvents.emit("onDownload", { device });
@@ -116,6 +112,25 @@ export const Header: React.FC = () => {
       setIsDownloading(false);
     }
   };
+
+  const saveHandle = useCallback(() => {
+    const { success, updatedDevice } = saveCurrentSchema(); // 调用修改后的函数
+    if (success && updatedDevice) {
+      BusinessEvents.emit("onSave", { data: { device: updatedDevice } }); // 使用更新后的 device
+      localStorage.setItem("schema", JSON.stringify(updatedDevice));
+      toast({
+        title: "保存本地成功",
+        description: "下次打开时，会自动加载。"
+      });
+    } else {
+      // schema 为空或其他保存失败的情况
+      toast({
+        title: "保存操作未执行",
+        description: "内容为空或无法保存。",
+        variant: "default" // 或者 "warning"
+      });
+    }
+  }, [saveCurrentSchema]);
   return (
     <div className="w-full h-12 z-50 relative px-4 flex items-center justify-between bg-card shadow-sm">
       {/* 左侧设备切换 */}
@@ -193,26 +208,11 @@ export const Header: React.FC = () => {
           {enabled ? "预览" : "编辑"}
         </Button>
 
-        <Button size="sm" onClick={DownloadHandle} disabled={isDownloading}>
+        <Button size="sm" onClick={downloadHandle} disabled={isDownloading}>
           {isDownloading ? <Loader className="mr-1 h-3 w-3 animate-spin" /> : <Upload className="mr-1 h-3 w-3" />}
           上传
         </Button>
-        <Button
-          size="sm"
-          onClick={() => {
-            try {
-              // 触发保存事件
-              BusinessEvents.emit("onSave", {});
-              saveCurrentSchema(true);
-            } catch (error) {
-              BusinessEvents.emit("onSaveError", { error });
-              toast({
-                title: "保存失败",
-                variant: "destructive"
-              });
-            }
-          }}
-        >
+        <Button size="sm" onClick={saveHandle}>
           <Save className="mr-1 h-3 w-3" />
           保存
         </Button>
