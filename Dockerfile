@@ -41,7 +41,7 @@ RUN pnpm --filter @go-blite/builder deploy /app/builder_deploy --prod --legacy
 FROM nginx:alpine AS production
 
 
-RUN apk update && apk add --no-cache nodejs npm tini
+RUN apk update && apk add --no-cache nodejs npm tini && npm install -g pnpm
 
 WORKDIR /app
 

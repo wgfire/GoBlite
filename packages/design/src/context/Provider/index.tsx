@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react"; // Import useEffect
 import { useImmer, Updater } from "use-immer";
 import { internalBusinessComponents } from "@/selectors";
 import { DesignContextProps } from "./type";
@@ -43,10 +43,15 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
       templates: initialProps.templates || []
     };
 
-    return result;
+    // 确保返回的是 DesignContextProps 兼容的类型
+    return result as DesignContextProps;
   }, [initialProps]);
 
-  const [state, updateState] = useImmer(defaultProps as DesignContextProps);
+  const [state, updateState] = useImmer<DesignContextProps>(defaultProps);
+
+  useEffect(() => {
+    updateState(defaultProps);
+  }, [defaultProps, updateState]);
 
   const contextValue = useMemo(() => ({ state, updateContext: updateState }), [state, updateState]);
 

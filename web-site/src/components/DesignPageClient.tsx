@@ -12,16 +12,20 @@ interface DesignPageClientProps {
 
 const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates }) => {
   const { processDownloadAndUpload } = useUploadService();
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
   const initialProps = useMemo<Partial<DesignContextProps>>(() => {
     if (!devices || devices.length === 0) {
       return {
         device: devices || [],
-        schema: {} // Default to empty schema
+        schema: {},
+        templates
       };
     }
+    const firstLanguage = Object.keys(devices[0].languagePageMap)[0];
 
     // 确保 schema 正确传递
-    const schema = devices[0].languagePageMap["zh"].schema;
+    const schema = devices[0].languagePageMap[firstLanguage].schema;
     console.log("Schema being passed to DesignProvider:", schema);
 
     return {
@@ -33,20 +37,11 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates 
       currentInfo: {
         device: "mobile",
         pageTemplate: "static-download",
-        language: "zh"
+        language: firstLanguage
       }
     };
   }, [devices, templates]);
 
-  if (!devices || devices.length === 0) {
-    return <div>Loading devices or no devices configured...</div>;
-  }
-
-  if (!initialProps.schema || Object.keys(initialProps.schema).length === 0) {
-    if (devices && devices.length > 0) {
-      return <div>Error: Could not derive a valid schema from the provided devices.</div>;
-    }
-  }
   console.log(initialProps, "initialProps");
   const handleDownloadEvent = async (data: { device: DesignContextProps["device"] }) => {
     try {
@@ -54,7 +49,7 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates 
       console.log(result, "result");
       const zipPath = result.value[0].path;
       saveSource({
-        id: 0,
+        id: Number(id),
         content: JSON.stringify(data.device),
         zipPath
       });

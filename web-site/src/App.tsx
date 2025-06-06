@@ -2,12 +2,15 @@ import { useState } from "react";
 import DesignPageClient from "./components/DesignPageClient";
 import { devices } from "./data/mock";
 import { DesignContextProps, Loading } from "@go-blite/design";
-import { getTemplates, Templates } from "./api/getTemplates";
+import { getTemplates, getTopicConfig, Templates } from "./api/getTemplates";
 import { useMount } from "ahooks";
 const App: React.FC = () => {
   const [templates, setTemplates] = useState<NonNullable<DesignContextProps["templates"]>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [devicesData, setDevicesData] = useState<DesignContextProps["device"]>([]);
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  console.log(id, "模版id");
   const getTemplatesData = async () => {
     setIsLoading(true);
     const res = await getTemplates();
@@ -34,6 +37,29 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
+  const getTopicData = async () => {
+    setIsLoading(true);
+    const res = await getTopicConfig(Number(id));
+    try {
+      const result = await res.json();
+      const data = result.value;
+      console.log(data, "专题配置");
+      const devicesData: DesignContextProps["device"] = [
+        {
+          type: "mobile",
+          pageTemplate: data.pageTemplate,
+          languagePageMap: {
+            [data.langCode]: { schema: JSON.parse(data.content) }
+          }
+        }
+      ];
+      setDevicesData(devicesData);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("获取专题配置失败:", error);
+      setIsLoading(false);
+    }
+  };
   const getDevicesData = () => {
     const schema = localStorage.getItem("schema");
     if (schema) {
@@ -43,8 +69,12 @@ const App: React.FC = () => {
   };
   useMount(() => {
     getTemplatesData();
-    const devicesData = getDevicesData();
-    setDevicesData(devicesData);
+    if (id) {
+      getTopicData();
+    } else {
+      const devicesData = getDevicesData();
+      setDevicesData(devicesData);
+    }
   });
 
   if (isLoading) {
