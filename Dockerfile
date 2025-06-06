@@ -14,7 +14,6 @@ COPY packages/shadcn/package.json ./packages/shadcn/
 COPY packages/events/package.json ./packages/events/
 COPY web-site/package.json ./web-site/
 COPY builder/package.json ./builder/
-COPY .npmrc ./
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile

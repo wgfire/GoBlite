@@ -23,7 +23,6 @@ packages/**/dist
 # misc
 .DS_Store
 *.pem
-.npmrc
 packages/**/word.md
 
 # debug
