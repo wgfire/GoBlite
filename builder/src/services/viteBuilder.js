@@ -69,7 +69,14 @@ async function initializeTemplateDir() {
       logger.debug(`stdout: ${stdout}`);
       if (stderr) logger.warn(`stderr: ${stderr}`);
     } catch (error) {
-      logger.error(`Failed to install template dependencies: ${error.message}`);
+      let detailedErrorMessage = `Failed to install template dependencies: ${error.message}\n`;
+      if (error.stdout) {
+        detailedErrorMessage += `STDOUT: ${error.stdout}\n`;
+      }
+      if (error.stderr) {
+        detailedErrorMessage += `STDERR: ${error.stderr}\n`;
+      }
+      logger.error(detailedErrorMessage);
       throw error;
     }
   } else {

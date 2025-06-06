@@ -44,8 +44,12 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates 
 
   console.log(initialProps, "initialProps");
   const handleDownloadEvent = async (data: { device: DesignContextProps["device"] }) => {
+    const params = {
+      device: data.device,
+      projectName: "mt-goblite-web" + id
+    };
     try {
-      const result = await processDownloadAndUpload(data);
+      const result = await processDownloadAndUpload(params);
       console.log(result, "result");
       const zipPath = result.value[0].path;
       saveSource({
