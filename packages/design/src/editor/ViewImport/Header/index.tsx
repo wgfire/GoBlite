@@ -29,8 +29,7 @@ export const Header: React.FC = () => {
   if (!designContext) {
     return null;
   }
-  const { updateContext } = designContext;
-  const { currentInfo } = designContext;
+  const { updateContext, currentInfo, device } = designContext;
 
   // 下载状态管理
   const [isDownloading, setIsDownloading] = useState(false);
@@ -105,7 +104,7 @@ export const Header: React.FC = () => {
   const downloadHandle = async () => {
     try {
       setIsDownloading(true);
-      BusinessEvents.emit("onDownload", { device: currentInfo.device });
+      BusinessEvents.emit("onDownload", { device: device });
     } catch (error) {
       console.error("触发下载事件失败:", error);
       toast({
