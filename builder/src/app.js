@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 console.log("VITE_TEMPLATE_DIR", process.env.VITE_TEMPLATE_DIR);
 console.log("BUILD_OUTPUT_DIR", process.env.BUILD_OUTPUT_DIR);

@@ -33,6 +33,10 @@ RUN if [ "$BUILD_ENV" = "demo" ]; then \
       pnpm run build:web-site; \
     fi
 
+# 为 @go-blite/builder 包创建一个可部署的版本
+# 这会在 /app/builder_deploy 目录下创建一个包含解除引用的 node_modules 的副本
+RUN pnpm --filter @go-blite/builder deploy /app/builder_deploy --prod
+
 # 生产环境阶段
 FROM nginx:alpine AS production
 
@@ -45,7 +49,9 @@ WORKDIR /app
 COPY --from=builder /app/web-site/dist /usr/share/nginx/html
 
 
-COPY --from=builder /app/builder ./builder
+COPY --from=builder /app/builder_deploy ./builder
+
+COPY --from=builder /app/builder/.env ./builder/.env
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 

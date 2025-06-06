@@ -11,14 +11,14 @@
   },
   "exports": {
     "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.js",
-      "require": "./dist/hooks/index.js",
-      "types": "./dist/hooks/index.d.ts"
+      "require": "./dist/hooks/index.js"
     },
     "./hooks/*": {
+      "types": "./dist/hooks/*/index.d.ts",
       "import": "./dist/hooks/*.js",
-      "require": "./dist/hooks/*.js",
-      "types": "./dist/hooks/*/index.d.ts"
+      "require": "./dist/hooks/*.js"
     },
     "./style": {
       "import": "./dist/components/style.css",
