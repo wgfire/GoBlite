@@ -14,6 +14,7 @@ COPY packages/shadcn/package.json ./packages/shadcn/
 COPY packages/events/package.json ./packages/events/
 COPY web-site/package.json ./web-site/
 COPY builder/package.json ./builder/
+COPY .npmrc ./
 
 # 安装依赖
 RUN pnpm install --frozen-lockfile
@@ -35,7 +36,7 @@ RUN if [ "$BUILD_ENV" = "demo" ]; then \
 
 # 为 @go-blite/builder 包创建一个可部署的版本
 # 这会在 /app/builder_deploy 目录下创建一个包含解除引用的 node_modules 的副本
-RUN pnpm --filter @go-blite/builder deploy /app/builder_deploy --prod
+RUN pnpm --filter @go-blite/builder deploy /app/builder_deploy --prod --legacy
 
 # 生产环境阶段
 FROM nginx:alpine AS production
