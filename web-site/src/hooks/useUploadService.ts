@@ -72,7 +72,7 @@ export const useUploadService = (options?: UploadServiceOptions) => {
       });
 
       // 2. 下载 zip 文件
-      const downloadResponse = await fetch(`http://localhost:3002/api/build/download/${buildData.buildId}`);
+      const downloadResponse = await fetch(`${builderApiUrl}/download/${buildData.buildId}`);
 
       if (!downloadResponse.ok) {
         throw new Error(`下载构建文件失败: ${downloadResponse.status} ${downloadResponse.statusText}`);
@@ -98,7 +98,7 @@ export const useUploadService = (options?: UploadServiceOptions) => {
       const formData = new FormData();
       formData.append("file", file, fileName);
 
-      const uploadResponse = await fetch("https://demo-resource.mistorebox.com/api/op/resource/v1/file/upload-zip", {
+      const uploadResponse = await fetch(import.meta.env.VITE_UPLOAD_API_URL, {
         method: "POST",
         body: formData
       });

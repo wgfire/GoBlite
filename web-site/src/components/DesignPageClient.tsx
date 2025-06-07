@@ -2,8 +2,8 @@ import React, { useMemo, useEffect } from "react";
 import { Design, DesignProvider, DesignContextProps } from "@go-blite/design";
 import { BusinessEvents } from "@go-blite/design";
 import { assets } from "../data/assets";
-import { useUploadService } from "../hooks/useUploadService";
-import { saveSource } from "../api/saveSource";
+import { useUploadService } from "@/hooks/useUploadService";
+import { saveSource } from "@/api/module/topic/saveSource";
 import { toast } from "@go-blite/shadcn/hooks";
 interface DesignPageClientProps {
   devices: DesignContextProps["device"];
@@ -46,7 +46,7 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates 
   const handleDownloadEvent = async (data: { device: DesignContextProps["device"] }) => {
     const params = {
       device: data.device,
-      projectName: "mt-goblite-web" + id
+      projectName: "mt-goblite-web-" + id
     };
     try {
       const result = await processDownloadAndUpload(params);
@@ -61,7 +61,8 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates 
       console.error("处理下载和上传过程中发生错误:", error);
     }
   };
-  const handleSaveEvent = () => {
+  const handleSaveEvent = (data: { device: DesignContextProps["device"] }) => {
+    console.log(data, "data");
     toast({
       title: "保存本地成功",
       description: "下次进来，会加载您保存的数据",
@@ -71,11 +72,11 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates 
 
   useEffect(() => {
     BusinessEvents.on("onDownload", handleDownloadEvent as unknown as (data: unknown) => void);
-    BusinessEvents.on("onSave", handleSaveEvent);
+    BusinessEvents.on("onSave", handleSaveEvent as unknown as (data: unknown) => void);
 
     return () => {
       BusinessEvents.off("onDownload", handleDownloadEvent as unknown as (data: unknown) => void);
-      BusinessEvents.off("onSave", handleSaveEvent);
+      BusinessEvents.off("onSave", handleSaveEvent as unknown as (data: unknown) => void);
     };
   }, []);
 

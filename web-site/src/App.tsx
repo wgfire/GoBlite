@@ -2,7 +2,7 @@ import { useState } from "react";
 import DesignPageClient from "./components/DesignPageClient";
 import { devices } from "./data/mock";
 import { DesignContextProps, Loading } from "@go-blite/design";
-import { getTemplates, getTopicConfig, Templates } from "./api/getTemplates";
+import { getTemplates, getTopicConfig, Templates } from "@/api/module/topic/getTemplates";
 import { useMount } from "ahooks";
 const App: React.FC = () => {
   const [templates, setTemplates] = useState<NonNullable<DesignContextProps["templates"]>>([]);
@@ -42,17 +42,9 @@ const App: React.FC = () => {
     const res = await getTopicConfig(Number(id));
     try {
       const result = await res.json();
-      const data = result.value;
-      console.log(data, "专题配置");
-      const devicesData: DesignContextProps["device"] = [
-        {
-          type: "mobile",
-          pageTemplate: data.pageTemplate,
-          languagePageMap: {
-            [data.langCode]: { schema: JSON.parse(data.content) }
-          }
-        }
-      ];
+      const data = result.value.TopicConfigInfo;
+      const devicesData: DesignContextProps["device"] = JSON.parse(data.content);
+      console.log(devicesData, "专题配置");
       setDevicesData(devicesData);
       setIsLoading(false);
     } catch (error) {

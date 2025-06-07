@@ -9,6 +9,17 @@ export interface Templates {
   }[];
 }
 
+export interface TopicConfig {
+  TopicConfigInfo: {
+    content: string;
+    h5Title: number;
+    langCode: string;
+    langName: number;
+    id: string;
+    topicCode: string;
+  };
+}
+
 export const getTemplates = () => {
   return fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/topic_config_template_list`);
 };

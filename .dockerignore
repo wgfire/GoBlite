@@ -1,0 +1,45 @@
+# Git
+.git
+
+# Node modules - These are reinstalled inside the container
+node_modules
+**/node_modules
+
+# Nx cache - Can be very large and is not needed in the image
+.nx/cache
+
+# OS generated files
+.DS_Store
+
+# Common build output folders
+build/
+dist/
+.next/
+.nuxt/
+out/
+
+# Log files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Coverage reports
+coverage/
+.nyc_output/
+
+# IDEs and editors (optional, uncomment if not needed in image context for any reason)
+# .idea
+# .vscode
+
+# Environment variable files (unless it's an example)
+# .env
+# .env.*
+# !*.env.example
+
+# Temporary files and caches
+# .tmp/
+# .cache/
+
+# 添加其他你确认不需要在镜像中的文件/目录
