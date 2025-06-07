@@ -258,6 +258,9 @@ export function useConversation() {
           messages: [],
           createdAt: now,
           updatedAt: now,
+          metadata: {
+            timestamp: now,
+          },
         };
 
         // 如果有系统提示词，添加系统消息
@@ -266,7 +269,9 @@ export function useConversation() {
             id: crypto.randomUUID(),
             role: MessageRole.SYSTEM,
             content: systemPrompt,
-            timestamp: now,
+            metadata: {
+              timestamp: now,
+            },
           });
         }
 
@@ -416,7 +421,6 @@ export function useConversation() {
       const fullMessage: Message = {
         id: crypto.randomUUID(),
         ...message,
-        timestamp: now,
       };
       console.log(`创建了新消息，ID: ${fullMessage.id}`);
 
@@ -492,6 +496,42 @@ export function useConversation() {
     },
     [conversations, saveConversationToDB, setConversations]
   );
+
+  /**
+   * 更新会话的模板上下文
+   */
+  const updateConversationTemplateContext = useMemoizedFn(async (conversationId: string, templateContext: any) => {
+    try {
+      // 获取当前会话
+      const currentConversation = conversations[conversationId];
+      if (!currentConversation) {
+        throw new Error(`会话不存在: ${conversationId}`);
+      }
+
+      // 更新会话元数据中的模板上下文
+      const updatedMetadata = {
+        timestamp: Date.now(),
+        templateContext: templateContext,
+      };
+
+      currentConversation.metadata = updatedMetadata;
+
+      // 更新状态
+      setConversations((prev) => ({
+        ...prev,
+        [conversationId]: currentConversation,
+      }));
+
+      // 保存到IndexedDB
+      await saveConversationToDB(currentConversation);
+
+      return true;
+    } catch (err) {
+      console.error("更新会话模板上下文失败:", err);
+      setError(err instanceof Error ? err.message : "更新会话模板上下文失败");
+      return false;
+    }
+  });
 
   /**
    * 清空所有会话
@@ -588,6 +628,7 @@ export function useConversation() {
     switchConversation,
     addMessage,
     updateConversationTitle,
+    updateConversationTemplateContext,
     clearAllConversations,
   };
 }

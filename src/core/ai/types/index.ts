@@ -124,11 +124,12 @@ export interface MessageMetadata {
     appliedToFileSystem?: boolean;
     appliedAt?: number;
   };
-  // 如果消息是模板选择
-  templateSelection?: {
+  // 模板上下文
+  templateContext?: {
     templateId: string;
     templateName: string;
-    document: any;
+    loadResult?: any;
+    langChainResult?: any;
   };
   /** 时间戳 */
   timestamp: number;

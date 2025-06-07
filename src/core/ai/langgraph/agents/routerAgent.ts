@@ -6,14 +6,12 @@ import { z } from "zod";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { createTemplateAgent } from "./templateAgent";
 import { getRouterAnalysisPrompt } from "../prompts/routerPrompts";
-import { getGeneralChatPrompt } from "../prompts/generalChatPrompts";
 import { invokeModel } from "../utils/modelUtils";
 import { Template, TemplateLoadResult } from "@/template/types";
 import { DocumentLoadResult } from "@/core/ai";
 // 定义意图类型
 export enum IntentType {
   TEMPLATE_CREATION = "template_creation", // 用户想要基于模板创建代码
-  TEMPLATE_QUERY = "template_query", // 用户想要查询模板信息
   DOCUMENT_ANALYSIS = "document_analysis", // 用户想要分析上传的文档
   IMAGE_ANALYSIS = "image_analysis", // 用户想要分析上传的图片
   GENERAL_CHAT = "general_chat", // 用户想要进行一般对话
@@ -91,8 +89,7 @@ const RouterState = Annotation.Root({
   }),
 });
 
-
-export type RouterStateType = typeof RouterState.State
+export type RouterStateType = typeof RouterState.State;
 
 /**
  * 用户输入处理节点
@@ -153,23 +150,13 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
     console.log("routerAnalysisNode 没有消息历史，返回空结果");
     return {
       error: "没有消息历史",
-      next: "generalChat", // 默认到通用对话
+      next: null, // 由于 generalChat 已被移除，直接返回 null
     };
   }
 
   try {
     // 创建结构化输出解析器
     const parser = StructuredOutputParser.fromZodSchema(routerOutputSchema);
-
-    // 获取最后一条用户消息
-    const lastUserMessage = messages[messages.length - 1];
-    if (lastUserMessage.getType() !== "human") {
-      return {
-        error: "最后一条消息不是用户消息",
-        next: "generalChat", // 默认到通用对话
-      };
-    }
-
     // 过滤掉错误消息后再发送给模型
     const filteredMessages = filterMessages(messages);
     const limitedMessages = filteredMessages.slice(-10); // 只取最近的10条消息，避免上下文过长
@@ -203,6 +190,8 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
       routerAnalysis: parsedOutput,
       messages: [...messages],
       next: parsedOutput.next,
+      hasResponse: false,
+      error: "",
     };
   } catch (error) {
     console.error("routerAnalysisNode 处理失败:", error);
@@ -214,7 +203,7 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
     };
     return {
       error: `路由分析失败: ${error instanceof Error ? error.message : String(error)}`,
-      next: "generalChat", // 出错时默认到通用对话
+      next: null, // 由于 generalChat 已被移除，直接返回 null
       messages: [...messages, errorMessage],
     };
   }
@@ -228,7 +217,9 @@ const routerDecisionNode = async (state: RouterStateType) => {
   const analysis = state.routerAnalysis;
 
   if (!analysis) {
-    return { next: "generalChat" }; // 默认到通用对话
+    // 由于 generalChat 已被移除，直接返回 null
+    // routerDecision 节点会将 null 视为直接结束
+    return { next: null };
   }
 
   // 根据分析的意图决定下一步
@@ -239,19 +230,34 @@ const routerDecisionNode = async (state: RouterStateType) => {
       return { next: "documentAnalysis" };
     case IntentType.IMAGE_ANALYSIS:
       return { next: "imageAnalysis" };
-    case IntentType.TEMPLATE_QUERY:
-      return { next: "templateQuery" };
     default:
-      return { next: "generalChat" };
+      return { next: null };
   }
 };
 
+// 缓存模板代理实例，避免重复创建
+let cachedTemplateAgent: ReturnType<typeof createTemplateAgent> | null = null;
+
 /**
  * 模板代理处理节点
- * 处理模板创建请求和模板查询请求
+ * 统一处理所有模板相关请求，包括模板创建和模板查询
+ * 模板代理内部会根据用户意图决定具体操作
  */
-const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig) => {
-  console.log(`[RouterAgent] templateAgentNode 开始处理模板相关请求`);
+const templateAgentNode = async (
+  state: RouterStateType,
+  config?: RunnableConfig
+): Promise<{
+  messages?: BaseMessage[];
+  generatedCode?: string | null;
+  fileOperations?: Array<{
+    path: string;
+    content: string;
+    action: string;
+    language?: string;
+  }>;
+  error?: string;
+}> => {
+  console.log(`[RouterAgent] templateAgentNode 开始统一处理模板相关请求`);
 
   // 获取消息历史和模板上下文
   const messages = state.messages;
@@ -280,23 +286,32 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
   try {
     // 过滤掉错误消息后再发送给模型
     const filteredMessages = filterMessages(messages);
-    const limitedMessages = filteredMessages.slice(-10); // 只取最近的10条消息
+
+    // 只取最近的消息，优化上下文长度
+    // 对于模板操作，通常只需要最近的几条消息就足够了
+    const limitedMessages = filteredMessages.slice(-5); // 减少到5条消息，提高效率
 
     // 获取模板文档信息
     const templateDocuments = templateContext?.langChainResult?.documents || [];
-    console.log(`[RouterAgent] templateAgentNode 模板文档数量: ${templateDocuments}`);
+    console.log(`[RouterAgent] templateAgentNode 模板文档数量: ${templateDocuments.length}`);
 
+    // 创建或获取缓存的模板代理
+    // 使用模块级缓存，避免重复创建模板代理实例
+    if (!cachedTemplateAgent) {
+      console.log(`[RouterAgent] 首次创建模板代理并缓存`);
+      cachedTemplateAgent = createTemplateAgent();
+    } else {
+      console.log(`[RouterAgent] 使用缓存的模板代理实例`);
+    }
 
-    // 创建模板代理
-    console.log(`[RouterAgent] 创建模板代理`);
-    const templateAgent = createTemplateAgent();
+    const templateAgent = cachedTemplateAgent;
 
     // 准备模板代理的初始状态
     const templateAgentState = {
       messages: limitedMessages,
-      userInput: state.userInput,
+      userInput: state.userInput || undefined, // 使用undefined而不是null，以匹配templateAgent的类型
       templateContext: templateContext,
-      templateParams: null,
+      fileOperations: [], // 添加fileOperations字段
       generatedCode: null,
     };
 
@@ -317,6 +332,7 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
     return {
       messages: result.messages,
       generatedCode: result.generatedCode,
+      fileOperations: result.fileOperations || [], // 添加文件操作
     };
   } catch (error) {
     console.error(`[RouterAgent] templateAgentNode 处理失败:`, error);
@@ -328,72 +344,6 @@ const templateAgentNode = async (state: RouterStateType, config?: RunnableConfig
     };
     return {
       error: `处理模板请求失败: ${error instanceof Error ? error.message : String(error)}`,
-      messages: [...messages, errorMessage],
-    };
-  }
-};
-
-/**
- * 通用对话处理节点
- * 处理一般对话请求
- */
-const generalChatNode = async (state: RouterStateType, config?: RunnableConfig) => {
-  console.log(`[RouterAgent] generalChatNode 开始处理一般对话请求`, state.messages);
-
-  // 获取消息历史
-  const messages = state.messages;
-
-  // 如果没有消息，返回错误
-  if (!messages || messages.length === 0) {
-    return state;
-  }
-
-  try {
-    // 过滤掉错误消息后再发送给模型
-    const filteredMessages = filterMessages(messages);
-    console.log(` generalChatNode 过滤后的消息历史有 ${filteredMessages.length} 条消息`);
-    const limitedMessages = filteredMessages.slice(-10); // 只取最近10条消息，避免上下文过长
-
-    // 检查是否有模板上下文
-    const hasTemplateContext = state.templateContext !== null;
-    console.log(`[RouterAgent] generalChatNode 是否有模板上下文: ${hasTemplateContext}`);
-
-    // 准备提示词
-    let prompt = getGeneralChatPrompt();
-
-    // 如果有模板上下文，添加模板信息到提示词
-    if (hasTemplateContext && state.templateContext) {
-      const templateInfo = state.templateContext.template ?
-        `模板名称: ${state.templateContext.template.name}\n模板描述: ${state.templateContext.template.description || '无描述'}` :
-        '有模板上下文但缺少模板信息';
-
-      // 扩展提示词，添加模板信息
-      prompt = `${prompt}\n\n当前已加载模板信息:\n${templateInfo}\n\n请在回答用户问题时考虑这个模板的上下文。`;
-      console.log(`[RouterAgent] generalChatNode 添加了模板信息到提示词`);
-    }
-
-    // 使用工具函数调用模型
-    console.log(`[RouterAgent] generalChatNode 调用模型处理对话`);
-    const response = await invokeModel(limitedMessages, prompt, config);
-
-    // 创建AI回复消息
-    const responseMessage = new AIMessage({
-      content: typeof response.content === "string" ? response.content : JSON.stringify(response.content),
-    });
-
-    return {
-      messages: [...messages, responseMessage],
-    };
-  } catch (error) {
-    console.error(`[RouterAgent] generalChatNode 处理失败:`, error);
-    const errorMessage = new AIMessage({
-      content: `处理对话失败: ${error instanceof Error ? error.message : String(error)}`,
-    });
-    errorMessage.additional_kwargs = {
-      metadata: { isError: true },
-    };
-    return {
-      error: `处理对话失败: ${error instanceof Error ? error.message : String(error)}`,
       messages: [...messages, errorMessage],
     };
   }
@@ -415,9 +365,7 @@ export function createRouterAgent() {
       .addNode("processUserInput", userInputNode)
       .addNode("analysis", routerAnalysisNode)
       .addNode("routerDecision", routerDecisionNode)
-      .addNode("templateCreation", templateAgentNode)
-      .addNode("templateQuery", templateAgentNode)
-      .addNode("generalChat", generalChatNode)
+      .addNode("templateAgent", templateAgentNode)
       .addNode("resetInitializing", () => {
         return { isInitializing: false };
       })
@@ -447,15 +395,22 @@ export function createRouterAgent() {
         }
         return "routerDecision";
       })
-      .addConditionalEdges("routerDecision", (state) => state.next || "generalChat", {
-        templateCreation: "templateCreation",
-        generalChat: "generalChat",
-        templateQuery: "templateQuery",
-        // 其他节点可以在这里添加
-      })
-      .addEdge('templateQuery', END)
-      .addEdge("templateCreation", END) // 从模板创建到结束
-      .addEdge("generalChat", END); // 从通用对话到结束
+      .addConditionalEdges(
+        "routerDecision",
+        (state) => {
+          console.log(state.next, "下一步操作节点");
+          if (!state.next) {
+            return END;
+          }
+          return state.next;
+        },
+        {
+          // 所有模板相关操作都路由到统一的templateAgent节点
+          templateCreation: "templateAgent",
+          // 其他节点可以在这里添加
+        }
+      )
+      .addEdge("templateAgent", END); // 从模板代理到结束
 
     // 编译工作流但不执行任何节点
     const app = workflow.compile({

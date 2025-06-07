@@ -8,24 +8,25 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { Template, TemplateLoadResult } from "@/template/types";
 import { DocumentLoadResult } from "@/core/ai";
 import { invokeModel } from "../utils";
-// 定义模板类型
-export enum TemplateType {
-  REACT_COMPONENT = "react_component",
-  VUE_COMPONENT = "vue_component",
-  HTML_PAGE = "html_page",
-  CSS_STYLESHEET = "css_stylesheet",
-  JAVASCRIPT_MODULE = "javascript_module",
-  TYPESCRIPT_MODULE = "typescript_module",
-  CUSTOM = "custom",
-}
-
-// 已移除templateInfoSchema定义
+import { FileOperationType, FileOperation } from "../../types/templateResponse";
+import { extractFileOperationsFromCodeBlocks } from "../../utils/fileOperationTools";
 
 // 定义响应类型结构
 const responseTypeSchema = z.object({
   responseType: z.enum(["TEMPLATE_INFO", "CODE_GENERATION"]).describe("响应类型，表明是提供模板信息还是生成代码"),
   explanation: z.string().describe("选择该响应类型的原因说明"),
   content: z.string().describe("响应内容"),
+  fileOperations: z
+    .array(
+      z.object({
+        path: z.string().describe("文件路径"),
+        content: z.string().describe("文件内容"),
+        action: z.enum(["create", "update", "delete"]).describe("操作类型"),
+        language: z.string().optional().describe("文件语言"),
+      })
+    )
+    .optional()
+    .describe("文件操作列表，仅在CODE_GENERATION类型时使用"),
 });
 
 // 定义错误消息元数据类型
@@ -59,6 +60,11 @@ const TemplateAgentState = Annotation.Root({
   // 生成的代码
   generatedCode: Annotation<string | null>({
     reducer: (_, y) => y,
+  }),
+  // 文件操作列表
+  fileOperations: Annotation<FileOperation[]>({
+    reducer: (_, y) => y,
+    default: () => [],
   }),
   // 错误信息
   error: Annotation<string | null>({
@@ -104,10 +110,11 @@ const userInputNode = async (state: TemplateAgentStateType) => {
 
 /**
  * 模板信息查询节点
- * 查询模板信息并将文档传递给大模型，区分是回答模板问题还是生成代码
+ * 只负责分析用户意图和模板信息，判断是回答模板问题还是生成代码
+ * 不负责实际生成代码，只做意图判断和模板信息提供
  */
 const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: RunnableConfig) => {
-  console.log(`[TemplateAgent] queryTemplateInfoNode 开始查询模板信息`);
+  console.log(`[TemplateAgent] queryTemplateInfoNode 开始分析用户意图和模板信息`);
 
   // 获取消息历史
   const messages = state.messages;
@@ -116,7 +123,7 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
   if (!messages || messages.length === 0) {
     console.log(`[TemplateAgent] queryTemplateInfoNode 没有消息历史，返回错误`);
     return {
-      error: "没有消息历史，无法查询模板信息",
+      error: "没有消息历史，无法分析用户意图",
     };
   }
 
@@ -136,59 +143,61 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
     // 获取模板上下文（如果有）
     const templateContext = state.templateContext;
 
-
-
     // 创建响应类型解析器
     const responseTypeParser = StructuredOutputParser.fromZodSchema(responseTypeSchema);
 
     // 提取模板文档内容（如果有）
     let documentContents = "";
     if (templateContext?.langChainResult?.documents && templateContext.langChainResult.documents.length > 0) {
-      documentContents = templateContext.langChainResult.documents.map((doc: any) => {
-        const source = doc.metadata?.source || "未知文件";
-        const content = doc.pageContent ? doc.pageContent : "无内容";
-        return `文件: ${source}\n内容:\n${content}`;
-      }).join('\n\n====================\n\n');
+      documentContents = templateContext.langChainResult.documents
+        .map((doc: { metadata?: { source?: string }; pageContent?: string }) => {
+          const source = doc.metadata?.source || "未知文件";
+          const content = doc.pageContent ? doc.pageContent : "无内容";
+          return `文件: ${source}\n内容:\n${content}`;
+        })
+        .join("\n\n====================\n\n");
     }
 
+    // 创建系统提示 - 专注于意图分析，不生成代码
+    const systemPrompt = `你是一个专业的前端开发模板分析专家。你的任务是分析用户的请求，判断用户意图：
 
+      1. 如果用户想了解模板信息，请提供详细的模板解释，帮助用户理解模板里的前端组件功能，不需要关注前端代码层面的实现细节
+      2. 如果用户想要生成代码，请简要说明你理解的需求，并标记为需要代码生成，但不要在这个阶段生成实际代码
 
-    // 创建系统提示
-    const systemPrompt =
-      `你是一个专业的前端开发模板专家。你的任务有两个可能的目标：
-
-      1. 回答用户关于模板的问题，帮助用户理解模板的结构和用途
-      2. 根据模板和用户需求生成代码
-
-      请根据用户的提问，判断用户是想了解模板信息还是想要你生成代码。
+      请注意：你的任务是判断用户意图并提供分析，不是生成代码。如果用户需要代码生成，另一个专门的代码生成专家会处理。
 
       ${responseTypeParser.getFormatInstructions()}
 
       ${documentContents ? `模板文件内容：\n${documentContents}` : "无可用的模板文件内容"}
-
-      请首先判断用户的意图，然后提供相应的帮助。如果用户想了解模板信息，请详细解释；如果用户想要生成代码，请表明你将帮助用户生成代码。`
-
+`;
 
     // 过滤掉其他的系统消息，只保留用户和助手的消息
     const filteredMessages = messages.filter((msg) => msg.getType() === "human" || msg.getType() === "ai");
 
     // 准备发送给模型的消息
-    const promptMessages = [
-      ...filteredMessages.slice(-5), // 只取最近的5条消息
-    ];
-
+    const promptMessages = filteredMessages.slice(-5);
     // 调用模型
     console.log(`[TemplateAgent] queryTemplateInfoNode 调用模型处理请求`);
     const response = await invokeModel(promptMessages, systemPrompt, config);
-
 
     // 提取模型回复内容
     const content = typeof response.content === "string" ? response.content : JSON.stringify(response.content);
     console.log(`[TemplateAgent] 模型回复内容长度: ${content.length} 字符`);
 
     try {
+      // 预处理内容，处理可能包含的代码块
+      console.log(`[TemplateAgent] 预处理响应内容`);
+      // const preprocessedContent = preprocessContentWithCodeBlocks(content);
+
       // 尝试解析响应类型
-      const parsedResponse = await responseTypeParser.parse(content);
+      let parsedResponse;
+      try {
+        parsedResponse = await responseTypeParser.parse(content);
+      } catch (preprocessError) {
+        console.warn(`[TemplateAgent] 预处理后解析仍然失败，尝试直接解析原始内容:`, preprocessError);
+        // 如果预处理后仍然解析失败，尝试直接解析原始内容
+        parsedResponse = await responseTypeParser.parse(content);
+      }
 
       console.log(`[TemplateAgent] 解析到的响应类型:`, parsedResponse);
       // 创建AI回复消息
@@ -199,15 +208,16 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
       return {
         messages: [...messages, responseMessage],
         // 添加一个标记，指示是否继续进行代码生成
-        shouldGenerateCode: parsedResponse.responseType === "CODE_GENERATION"
+        shouldGenerateCode: parsedResponse.responseType === "CODE_GENERATION",
       };
     } catch (parseError) {
       console.warn(`[TemplateAgent] 解析响应类型失败，默认视为模板信息响应:`, parseError);
+      console.log(`[TemplateAgent] 原始内容:`, content);
 
       // 使用默认值不生成代码
       return {
         messages: [...messages, content],
-        shouldGenerateCode: false
+        shouldGenerateCode: false,
       };
     }
   } catch (error) {
@@ -221,14 +231,15 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
     return {
       error: `查询模板信息失败: ${error instanceof Error ? error.message : String(error)}`,
       messages: [...messages, errorMessage],
-      shouldGenerateCode: false
+      shouldGenerateCode: false,
     };
   }
 };
 
 /**
  * 代码生成节点
- * 根据解析的参数生成代码
+ * 专门负责根据用户需求和模板信息生成高质量代码
+ * 这个节点只在用户需要生成代码时被调用
  */
 const generateCodeNode = async (state: TemplateAgentStateType, config?: RunnableConfig) => {
   console.log(`[TemplateAgent] generateCodeNode 开始生成代码`);
@@ -242,22 +253,23 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
     return { error: state.error };
   }
 
-
   try {
-    // 使用ModelFactory创建模型
-    const modelConfigStr = localStorage.getItem("ai_current_model");
-    const modelConfig = modelConfigStr ? JSON.parse(modelConfigStr) : {};
-    const model = ModelFactory.createModel(modelConfig);
-
-    if (!model) {
-      console.error(`[TemplateAgent] generateCodeNode 无法创建模型，返回错误消息`);
-      return {
-        error: "无法创建 AI 模型",
-      };
+    const responseTypeParser = StructuredOutputParser.fromZodSchema(responseTypeSchema);
+    // 获取模板上下文（如果有）
+    const templateContext = state.templateContext;
+    let documentContents = "";
+    if (templateContext?.langChainResult?.documents && templateContext.langChainResult.documents.length > 0) {
+      documentContents = templateContext.langChainResult.documents
+        .map((doc: { metadata?: { source?: string }; pageContent?: string }) => {
+          const source = doc.metadata?.source || "未知文件";
+          const content = doc.pageContent ? doc.pageContent : "无内容";
+          return `文件: ${source}\n内容:\n${content}`;
+        })
+        .join("\n\n====================\n\n");
     }
-    // 创建系统提示
-    const systemPrompt = new SystemMessage(
-      `你是一个专业的前端开发代码生成专家。你的任务是根据提供的模板和用户需求生成高质量的代码。
+
+    // 创建专门的代码生成系统提示
+    const systemPrompt = `你是一个专业的前端开发代码生成专家。你的任务是根据提供的模板和用户需求生成高质量的代码。
 
       请遵循以下原则：
       1. 代码应该遵循最佳实践和设计模式
@@ -265,52 +277,77 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
       3. 代码应该包含适当的注释
       4. 代码应该考虑性能和可扩展性
 
-      请生成完整的代码，不要省略任何部分。代码应该可以直接复制粘贴使用。`
-    );
+      请以文件操作的形式返回代码，每个文件应该包含完整的代码，格式如下：
 
-    // 获取模板上下文（如果有）
-    const templateContext = state.templateContext;
-    let contextPrompt = "";
+      ${responseTypeParser.getFormatInstructions()}
 
-    if (templateContext && Object.keys(templateContext).length > 0) {
-      contextPrompt = `\n\n额外上下文信息：\n${JSON.stringify(templateContext, null, 2)}`;
-    }
+      你可以生成多个文件，每个文件都应该使用上述格式。
+      请确保生成的代码是完整的，可以直接使用的。
+      ${documentContents ? `代码模板文件内容：\n${documentContents}` : "无可用的模板文件内容"}
+      `;
 
-    // 准备发送给模型的消息
-    const promptMessages = [systemPrompt];
-
-    if (contextPrompt) {
-      promptMessages.push(new SystemMessage(contextPrompt));
-    }
-
-    // 添加最后一条用户消息，以便模型了解具体需求
-    const lastUserMessage = messages.filter((m) => m.getType() === "human").pop();
-    if (lastUserMessage) {
-      promptMessages.push(lastUserMessage);
-    }
+    // 添加用户消息，以便模型了解具体需求
+    const lastUserMessage = messages.filter((m) => m.getType() === "human");
 
     // 调用模型
     console.log(`[TemplateAgent] generateCodeNode 调用模型生成代码`);
-    const response = await model.invoke(promptMessages, config);
+    const response = await invokeModel(lastUserMessage!, systemPrompt, config);
 
     // 提取代码
     const content = typeof response.content === "string" ? response.content : JSON.stringify(response.content);
 
-    // 尝试从回复中提取代码块
-    const codeBlockRegex = /```(?:jsx|tsx|vue|html|css|javascript|typescript)?\n([\s\S]*?)\n```/;
-    const match = content.match(codeBlockRegex);
-    const generatedCode = match ? match[1] : content;
+    // 从回复中提取文件操作
+    const responseData = await responseTypeParser.parse(content);
+    const fileOperations = responseData.fileOperations ?? [];
+    // extractFileOperationsFromCodeBlocks(content);
+
+    console.log(`[TemplateAgent] 提取到 ${fileOperations.length} 个文件操作`);
+
+    // 如果没有提取到文件操作，尝试从代码块中提取
+    let generatedCode = "";
+    if (fileOperations.length === 0) {
+      // 尝试从回复中提取代码块
+      const codeBlockRegex = /```(?:jsx|tsx|vue|html|css|javascript|typescript)?\n([\s\S]*?)\n```/;
+      const match = content.match(codeBlockRegex);
+      generatedCode = match ? match[1] : content;
+
+      // 如果提取到代码，创建一个默认的文件操作
+      if (generatedCode) {
+        fileOperations.push({
+          path: "generated_code.js", // 默认文件名
+          content: generatedCode,
+          action: FileOperationType.CREATE,
+          language: "javascript",
+        });
+      }
+    } else {
+      // 使用第一个文件操作的内容作为生成的代码
+      generatedCode = fileOperations[0].content;
+    }
 
     console.log(`[TemplateAgent] 生成的代码长度: ${generatedCode.length} 字符`);
 
+    // 创建文件操作描述
+    const fileOperationsDescription = fileOperations
+      .map((op) => `- ${op.action === FileOperationType.CREATE ? "创建" : op.action === FileOperationType.UPDATE ? "更新" : "删除"} 文件: ${op.path}`)
+      .join("\n");
+
     // 创建AI回复消息
     const responseMessage = new AIMessage({
-      content: `我已根据您的需求生成了以下代码：\n\n\`\`\`\n${generatedCode}\n\`\`\`\n\n您可以直接复制使用这段代码。如果需要任何修改或有其他问题，请告诉我。`,
+      content: `我已根据您的需求生成了以下代码：
+
+\`\`\`
+${generatedCode}
+\`\`\`
+
+${fileOperations.length > 0 ? `将执行以下文件操作：\n${fileOperationsDescription}` : ""}
+
+您可以直接使用这些代码。如果需要任何修改或有其他问题，请告诉我。`,
     });
 
-
     return {
-      generatedCode: generatedCode,
+      generatedCode,
+      fileOperations,
       messages: [...messages, responseMessage],
     };
   } catch (error) {
@@ -348,13 +385,10 @@ export function createTemplateAgent() {
       // 修改工作流程图中的节点连接关系
       .addEdge("processUserInput", "queryTemplateInfo")
       // 添加条件边，根据shouldGenerateCode决定是否生成代码
-      .addConditionalEdges(
-        "queryTemplateInfo",
-        (state) => {
-          console.log(`[TemplateAgent] 条件边判断 shouldGenerateCode: ${state.shouldGenerateCode}`);
-          return state.shouldGenerateCode ? "generateCode" : END;
-        }
-      )
+      .addConditionalEdges("queryTemplateInfo", (state) => {
+        console.log(`[TemplateAgent] 条件边判断 shouldGenerateCode: ${state.shouldGenerateCode}`);
+        return state.shouldGenerateCode ? "generateCode" : END;
+      })
       .addEdge("generateCode", END);
 
     console.log("[TemplateAgent] 工作流图创建成功");
@@ -368,13 +402,26 @@ export function createTemplateAgent() {
     return {
       app,
       // 提供一个处理函数，用于从主图调用
-      handler: async (state: any, config?: RunnableConfig) => {
+      handler: async (
+        state: {
+          messages?: BaseMessage[];
+          userInput?: string;
+          templateContext?: {
+            loadResult: TemplateLoadResult;
+            langChainResult?: DocumentLoadResult;
+            template?: Template;
+          } | null;
+          [key: string]: any;
+        },
+        config?: RunnableConfig
+      ) => {
         try {
           const templateAgentState = {
             messages: state.messages || [],
             userInput: state.userInput,
             templateContext: state.templateContext,
             generatedCode: null,
+            fileOperations: [],
             error: null,
           };
 
@@ -386,6 +433,7 @@ export function createTemplateAgent() {
           return {
             messages: result.messages,
             generatedCode: result.generatedCode,
+            fileOperations: result.fileOperations || [],
             error: result.error,
           };
         } catch (error) {

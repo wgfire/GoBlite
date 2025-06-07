@@ -28,9 +28,6 @@ export class ModelFactory {
         return null;
       }
 
-      console.log("创建模型:", config);
-      console.log("模型类型:", config.modelType, "提供商:", config.provider);
-
       // 通用选项
       const commonOptions = {
         temperature: config.temperature ?? DEFAULT_MODEL_PARAMS.temperature,

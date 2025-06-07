@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { ChatHeader } from "./ChatHeader";
 import { MessageList } from "./MessageList";
 import { InputArea } from "./InputArea";
@@ -28,9 +28,17 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
   const modelType = currentModelConfig?.modelType;
   const [showAPIKeyConfig, setShowAPIKeyConfig] = useState(false);
   const { setUploadedFiles, uploadedFiles } = useFiles();
-  const { showTemplateForm, selectedTemplate, handleTemplateFormSubmit, handleTemplateSelect, handleTemplateFormClose } = useTemplates();
+  const { showTemplateForm, selectedTemplate, handleTemplateFormSubmit, handleTemplateSelect, handleTemplateFormClose, initTemplateContextFromConversation } = useTemplates();
   const { messages, isLoading: isSending, sendMessage, handleCancelRequest } = useChatAgent();
   const conversation = useConversation();
+
+  // 当会话变化时，初始化模板上下文
+  useEffect(() => {
+    if (conversation.currentConversation) {
+      // 从当前会话初始化模板上下文
+      initTemplateContextFromConversation();
+    }
+  }, [conversation.currentConversation, initTemplateContextFromConversation]);
 
   // Ref to store the current width before collapsing
   const chatRef = useRef<HTMLDivElement>(null);
@@ -51,21 +59,22 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
           for (const msg of templateMessages) {
             await conversation?.addMessage({
               message: msg,
-              conversationId: result.newConversationId
+              conversationId: result.newConversationId,
             });
           }
+          conversation?.switchConversation(result.newConversationId);
         }
       } else {
         // 使用当前会话 ID
         for (const msg of templateMessages) {
           await conversation?.addMessage({
             message: msg,
-            conversationId: activeConversationId
+            conversationId: activeConversationId,
           });
         }
       }
     }
-  }
+  };
 
   return (
     <motion.div
@@ -83,14 +92,16 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
         ease: "easeInOut",
         duration: 0.3,
       }}
-      className={`flex flex-col bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative ${isCollapsed ? "rounded-r-lg overflow-hidden chat-collapsed" : "h-full"
-        }`}
+      className={`flex flex-col bg-gray-900 text-gray-200 bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl relative ${
+        isCollapsed ? "rounded-r-lg overflow-hidden chat-collapsed" : "h-full"
+      }`}
     >
       {/* Collapse/Expand button */}
       <motion.button
         onClick={onCollapseChange}
-        className={`absolute z-20 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 transition-colors ${isCollapsed ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4"
-          }`}
+        className={`absolute z-20 p-2 rounded-full bg-slate-800 hover:bg-slate-700 text-cyan-400 hover:text-cyan-300 transition-colors ${
+          isCollapsed ? "top-4 left-1/2 -translate-x-1/2" : "top-4 right-4"
+        }`}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         title={isCollapsed ? "展开聊天" : "收起聊天"}
@@ -141,13 +152,7 @@ const Chat: React.FC<ChatProps> = ({ onCollapseChange, isCollapsed }) => {
             className="flex flex-col h-full w-full"
           >
             <div className="relative">
-              <ChatHeader
-                onTemplateSelect={onTemplateSelect}
-                selectedTemplate={selectedTemplate}
-                isMobile={false}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-              />
+              <ChatHeader onTemplateSelect={onTemplateSelect} selectedTemplate={selectedTemplate} isMobile={false} activeTab={activeTab} setActiveTab={setActiveTab} />
               <div className="absolute right-14 top-5 flex items-center space-x-2">
                 <StatusIndicator status={status || ServiceStatus.UNINITIALIZED} onOpenAPIKeyConfig={() => setShowAPIKeyConfig(true)} />
               </div>

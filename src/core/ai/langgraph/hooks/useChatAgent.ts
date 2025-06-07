@@ -145,7 +145,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
           const invokeParams = {
             ...initialState,
             userInput: null,
-            templateContext: { path: "", content: "" },
+            templateContext: null,
             isInitializing: true, // 设置初始化标记
           };
 
@@ -267,7 +267,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
               isError: true,
               timestamp: Date.now(),
             },
-            role: MessageRole.SYSTEM,
+            role: MessageRole.ASSISTANT,
             content: `发送消息失败: ${err instanceof Error ? err.message : "未知错误"}`,
           },
           conversationId: activeConversationId,
