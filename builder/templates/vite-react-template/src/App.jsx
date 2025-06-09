@@ -1,82 +1,165 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import { HashRouter, Routes, Route } from "react-router-dom";
 
 const PageDisplay = lazy(() => import("./page"));
 
-// 动态导入 schema.json
-// Vite 支持 JSON 导入
-// 注意：在构建时，这个 import 会被处理，schema.json 的内容会包含在包里
+const getLangFromWindowHeader = () => {
+  if (typeof window !== "undefined" && typeof window.getHeader === "function") {
+    try {
+      const header = window.getHeader();
+      if (header && typeof header.Locale === "string" && header.Locale.trim() !== "") {
+        return header.Locale;
+      }
+    } catch (e) {
+      console.warn("Error accessing window.getHeader().Locale:", e);
+    }
+  }
+  return null;
+};
+
+const getLangFromQuery = () => {
+  try {
+    const search = location.search;
+    const params = new URLSearchParams(search);
+    const lang = params.get("lang");
+    if (lang && lang.trim() !== "") {
+      return lang;
+    }
+  } catch (e) {
+    console.warn("Error parsing URL query parameters for language:", e);
+  }
+  return null;
+};
+
+// 从浏览器偏好获取语言
+const getLangFromNavigator = () => {
+  if (typeof navigator !== "undefined" && navigator.language) {
+    return navigator.language;
+  }
+  return null;
+};
+
+// 按优先级确定有效语言
+const determineEffectiveLanguage = supportedLanguages => {
+  let lang = null;
+
+  // 1. 从 URL 查询参数 (?lang=xx) 获取
+  lang = getLangFromQuery();
+  if (lang && supportedLanguages.includes(lang)) {
+    return lang;
+  }
+  console.log(lang, "getLangFromQuery");
+
+  // 2. 从 window.getHeader().Locale 获取
+  lang = getLangFromWindowHeader();
+  if (lang) {
+    if (supportedLanguages.includes(lang)) return lang;
+  }
+
+  // 3. 从浏览器语言 (navigator.language) 获取
+  const navLang = getLangFromNavigator();
+  if (navLang) {
+    if (supportedLanguages.includes(navLang)) return navLang;
+  }
+
+  // 4. 默认使用第一个支持的语言或硬编码的默认值
+  if (supportedLanguages.length > 0) {
+    return supportedLanguages[0];
+  }
+  return "en-US"; // Fallback default language
+};
+
+// Extract supported languages from schema data
+const extractSupportedLanguages = schemas => {
+  const langSet = new Set();
+  if (Array.isArray(schemas)) {
+    schemas.forEach(deviceConfig => {
+      if (deviceConfig && deviceConfig.languagePageMap) {
+        Object.keys(deviceConfig.languagePageMap).forEach(lang => langSet.add(lang));
+      }
+    });
+  }
+  const langs = Array.from(langSet);
+  return langs.length > 0 ? langs : ["en-US"];
+};
+
+// --- App Component ---
 
 const App = () => {
   const [allSchemaData, setAllSchemaData] = useState(null);
+  const [currentLanguage, setCurrentLanguage] = useState(null);
   const [loadingSchema, setLoadingSchema] = useState(true);
   const [errorSchema, setErrorSchema] = useState(null);
 
   useEffect(() => {
-    const fetchSchema = async () => {
+    let isMounted = true;
+
+    const fetchSchemaAndSetLanguage = async () => {
+      if (!isMounted) return;
+      setLoadingSchema(true);
+      setErrorSchema(null);
+
       try {
-        // Vite 将会处理这个动态导入。确保 schema.json 存在于 src 目录中
         const schemaModule = await import("./schema.json");
-        console.log(JSON.parse(schemaModule.default), "json数据");
-        setAllSchemaData(JSON.parse(schemaModule.default)); // JSON 模块的默认导出是其内容
+        const rawSchemaContent = schemaModule.default;
+
+        if (typeof rawSchemaContent !== "string") {
+          console.warn("schema.json's default export was not a string.");
+        }
+        const parsedSchema = typeof rawSchemaContent === "string" ? JSON.parse(rawSchemaContent) : rawSchemaContent;
+
+        if (!isMounted) return;
+        setAllSchemaData(parsedSchema);
+
+        const supportedLangs = extractSupportedLanguages(parsedSchema);
+        console.log(supportedLangs, "supportedLangs", parsedSchema);
+        const effectiveLang = determineEffectiveLanguage(supportedLangs);
+        console.log(effectiveLang, "当前语言");
+        if (!isMounted) return;
+        setCurrentLanguage(effectiveLang);
       } catch (err) {
-        console.error("Failed to load schema.json:", err);
-        setErrorSchema("Could not load page configuration.");
+        console.error("Failed to load schema.json or determine language:", err);
+        if (!isMounted) return;
+        setErrorSchema("Could not load page configuration or language settings.");
       } finally {
-        setLoadingSchema(false);
+        if (isMounted) {
+          setLoadingSchema(false);
+        }
       }
     };
-    fetchSchema();
-  }, []);
 
+    fetchSchemaAndSetLanguage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
   if (loadingSchema) {
     return <div>Loading page configuration...</div>;
   }
 
   if (errorSchema || !allSchemaData) {
-    return <div>Error: {errorSchema || "Page configuration is missing."}</div>;
+    return <div>Error: {errorSchema || "Page configuration is missing or invalid."}</div>;
   }
 
-  // 从 schema 数据动态生成支持的语言列表
-  const getSupportedLanguages = schemas => {
-    const langSet = new Set();
-    if (Array.isArray(schemas)) {
-      schemas.forEach(deviceConfig => {
-        if (deviceConfig.languagePageMap) {
-          Object.keys(deviceConfig.languagePageMap).forEach(lang => langSet.add(lang));
-        }
-      });
-    }
-    const langs = Array.from(langSet);
-    return langs.length > 0 ? langs : ["zh"]; // 默认 'zh' 如果没有找到
-  };
-
-  const supportedLanguages = getSupportedLanguages(allSchemaData);
+  if (!currentLanguage) {
+    return <div>Determining language settings...</div>;
+  }
 
   return (
-    <BrowserRouter>
-      <Suspense fallback={<div>Loading Page Component...</div>}>
-        <Routes>
-          <Route
-            path="/:langCode"
-            element={<LanguageGate supportedLanguages={supportedLanguages} schemas={allSchemaData} />}
-          />
-          <Route path="/" element={<Navigate to={`/${supportedLanguages[0] || "zh"}`} replace />} />
-          <Route path="*" element={<div>404 - Page Not Found (Client Side)</div>} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <Suspense fallback={<div>Loading Page Component...</div>}>
+      <Routes>
+        <Route path="/" element={<PageDisplay langCode={currentLanguage} allSchemas={allSchemaData} />} />
+        <Route path="*" element={<div>404 - Page Not Found</div>} />
+      </Routes>
+    </Suspense>
   );
 };
 
-const LanguageGate = ({ supportedLanguages, schemas }) => {
-  const { langCode } = useParams();
-  const defaultLang = supportedLanguages[0] || "zh";
+const RootApp = () => (
+  <HashRouter>
+    <App />
+  </HashRouter>
+);
 
-  if (!langCode || !supportedLanguages.includes(langCode.toLowerCase())) {
-    return <Navigate to={`/${defaultLang}`} replace />;
-  }
-  return <PageDisplay langCode={langCode.toLowerCase()} allSchemas={schemas} />;
-};
-
-export default App;
+export default RootApp;

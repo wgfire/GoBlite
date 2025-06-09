@@ -1,5 +1,5 @@
 export const uploadSource = (file: File) => {
-  return fetch("https://demo-resource.mistorebox.com/api/op/resource/v1/file/upload-zip", {
+  return fetch(import.meta.env.VITE_UPLOAD_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

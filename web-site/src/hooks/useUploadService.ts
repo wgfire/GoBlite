@@ -17,7 +17,8 @@ export const useUploadService = (options?: UploadServiceOptions) => {
       // 1. 调用构建服务
       toast({
         title: "开始构建",
-        description: "正在准备您的设计稿..."
+        description: "正在准备您的设计稿...",
+        duration: 10000
       });
       const rawBuilderApiUrl = import.meta.env.VITE_BUILDER_API_URL;
       let builderApiUrl;
@@ -81,12 +82,12 @@ export const useUploadService = (options?: UploadServiceOptions) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `mt-${projectName}.zip`;
+      a.download = `${projectName}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
 
-      const fileName = `mt-${projectName}.zip`;
+      const fileName = `${projectName}.zip`;
       const file = new File([blob], fileName, { type: "application/zip" });
 
       toast({

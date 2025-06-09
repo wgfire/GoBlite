@@ -40,7 +40,7 @@ interface TemplateGroup {
 export const Layout: React.FC = () => {
   const context = useDesignContext();
   const { currentInfo, templates = [], updateContext } = context;
-  console.log(templates, "layout");
+  console.log(templates, "layout", currentInfo);
   // 为每个模板项添加图标
   const templatesWithIcons = useMemo(() => {
     return templates.map((group: TemplateGroup) => ({

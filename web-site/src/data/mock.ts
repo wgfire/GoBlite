@@ -3,7 +3,7 @@ export const devices = [
     type: "mobile",
     pageTemplate: "static-download",
     languagePageMap: {
-      zh: {
+      "zh-CN": {
         schema: {
           ROOT: {
             type: {
@@ -3283,7 +3283,7 @@ export const devices = [
           }
         }
       },
-      en: {
+      "en-US": {
         schema: {
           ROOT: {
             type: {
@@ -3440,7 +3440,7 @@ export const devices = [
           }
         }
       },
-      vn: {
+      "vi-VN": {
         schema: {
           ROOT: {
             type: {

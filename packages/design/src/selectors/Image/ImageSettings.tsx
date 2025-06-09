@@ -68,7 +68,7 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
             <Settings.ItemUpload
               propKey="src"
               label="上传图片"
-              uploadUrl="https://demo-resource.mistorebox.com/api/op/resource/v1/file/upload"
+              uploadUrl={import.meta.env.VITE_UPLOAD_API_URL}
               buttonText="选择并上传图片"
             />
             <Settings.ItemInput propKey="src" label="图片地址" placeholder="输入图片URL" />

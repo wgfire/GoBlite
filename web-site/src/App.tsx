@@ -8,9 +8,13 @@ const App: React.FC = () => {
   const [templates, setTemplates] = useState<NonNullable<DesignContextProps["templates"]>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [devicesData, setDevicesData] = useState<DesignContextProps["device"]>([]);
+  const [lang, setLang] = useState<string>("");
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
   console.log(id, "模版id");
+  /**
+   * 获取模版数据
+   */
   const getTemplatesData = async () => {
     setIsLoading(true);
     const res = await getTemplates();
@@ -37,6 +41,9 @@ const App: React.FC = () => {
       setIsLoading(false);
     }
   };
+  /**
+   * 获取专题配置
+   */
   const getTopicData = async () => {
     setIsLoading(true);
     const res = await getTopicConfig(Number(id));
@@ -46,6 +53,7 @@ const App: React.FC = () => {
       const devicesData: DesignContextProps["device"] = JSON.parse(data.content);
       console.log(devicesData, "专题配置");
       setDevicesData(devicesData);
+      setLang(data.langCode);
       setIsLoading(false);
     } catch (error) {
       console.error("获取专题配置失败:", error);
@@ -72,7 +80,7 @@ const App: React.FC = () => {
   if (isLoading) {
     return <Loading loading={isLoading} />;
   }
-  return <DesignPageClient devices={devicesData} templates={templates} />;
+  return <DesignPageClient devices={devicesData} templates={templates} langCode={lang} />;
 };
 
 export default App;

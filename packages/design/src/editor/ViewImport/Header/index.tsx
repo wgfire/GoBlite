@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
   };
 
   // 处理上传/下载按钮点击
-  const downloadHandle = async () => {
+  const downloadHandle = useCallback(async () => {
     try {
       setIsDownloading(true);
       BusinessEvents.emit("onDownload", { device: device });
@@ -115,7 +115,7 @@ export const Header: React.FC = () => {
     } finally {
       setIsDownloading(false);
     }
-  };
+  }, [device]);
 
   const saveHandle = useCallback(() => {
     const { success, updatedDevice } = saveCurrentSchema(); // 调用修改后的函数
@@ -149,7 +149,7 @@ export const Header: React.FC = () => {
 
         <div className="ml-10 clear-child-borders">
           <Select value={currentInfo.language} onValueChange={handleLanguageChange}>
-            <SelectTrigger className="w-[80px]">
+            <SelectTrigger>
               <SelectValue placeholder="切换语言" />
             </SelectTrigger>
             <SelectContent>
