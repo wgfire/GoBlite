@@ -68,12 +68,18 @@ const App: React.FC = () => {
     return devices;
   };
   useMount(() => {
-    getTemplatesData();
-    if (id) {
-      getTopicData();
-    } else {
-      const devicesData = getDevicesData();
-      setDevicesData(devicesData);
+    try {
+      getTemplatesData();
+      if (id) {
+        getTopicData();
+      } else {
+        const devicesData = getDevicesData();
+        setDevicesData(devicesData);
+      }
+    } catch (error) {
+      console.error("获取数据失败:", error);
+    } finally {
+      setIsLoading(false);
     }
   });
 

@@ -13,6 +13,24 @@
         "{projectRoot}/dist"
       ]
     },
+    "build:demo": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "build:demo"
+      },
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
+    "build:stage": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "build:stage"
+      },
+      "outputs": [
+        "{projectRoot}/dist"
+      ]
+    },
     "dev": {
       "executor": "nx:run-script",
       "options": {

@@ -26,9 +26,7 @@ ARG BUILD_ENV=production
 
 # 构建 web-site (Nx 会自动构建所有依赖)
 RUN if [ "$BUILD_ENV" = "demo" ]; then \
-      pnpm run build:web-site -- --mode demo; \
-    elif [ "$BUILD_ENV" = "stage" ]; then \
-      pnpm run build:web-site -- --mode stage; \
+      pnpm run build:web-site:demo; \
     else \
       pnpm run build:web-site; \
     fi
