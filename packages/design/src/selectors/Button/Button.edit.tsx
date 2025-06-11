@@ -52,10 +52,10 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     console.log(events, "按钮点击事件", eventScripts);
-    if (events?.onClick) {
+    if (events?.onClick?.type === "builtin") {
       const eventValue = Object.values(eventScripts);
       const event = eventValue.find(item => {
-        return item.name === events.onClick;
+        return item.name === events.onClick?.value;
       });
       if (event) {
         const handler = event.handler;

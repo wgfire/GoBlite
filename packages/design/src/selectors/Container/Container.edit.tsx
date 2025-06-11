@@ -44,7 +44,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   const { display, fillSpace, background, backgroundImage, gap } = style;
   useEffect(() => {
     if (events?.onLoad) {
-      executeUserScript(events.onLoad);
+      executeUserScript(events.onLoad.value);
     }
   }, [events]);
 

@@ -53,7 +53,7 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
 
   useEffect(() => {
     if (events?.onLoad) {
-      executeUserScript(events.onLoad);
+      executeUserScript(events.onLoad.value);
     }
   }, [events]);
 

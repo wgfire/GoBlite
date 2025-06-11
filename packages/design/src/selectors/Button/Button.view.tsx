@@ -2,6 +2,7 @@ import { useNode, UserComponent } from "@craftjs/core";
 import { Button as ShadcnButton } from "@go-blite/shadcn";
 import { ButtonSettings } from "./ButtonSettings";
 import eventScripts from "@go-blite/events";
+import { executeUserScript } from "@/utils/script/scriptRunner";
 import ContentEditable from "react-contenteditable";
 import { ButtonProps } from "./type";
 import { ElementBoxView } from "@/components/ElementBox";
@@ -14,12 +15,11 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
   const { color } = style;
   const { text, variant, size } = props;
 
-  /*
-   * 如果是构建部署环境，那么需要从window找到当前的脚本handler
-   */
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     console.log(events, "按钮点击事件", eventScripts);
-    if (events?.onClick?.type === "builtin") {
+    if (!events?.onClick) return;
+
+    if (events.onClick.type === "builtin") {
       const eventValue = Object.values(eventScripts);
       const event = eventValue.find(item => {
         return item.name === events.onClick?.value;
@@ -31,6 +31,12 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
           handler({ target: e.currentTarget, eventName: event.name as string, data: "携带的数据", window });
         }
       }
+    } else if (events.onClick.type === "script") {
+      executeUserScript(events.onClick.value, {
+        window,
+        element: e.currentTarget,
+        event: e.nativeEvent as Event
+      });
     }
   };
 

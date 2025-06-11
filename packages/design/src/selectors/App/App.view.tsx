@@ -36,7 +36,7 @@ export const App: UserComponent<Partial<React.PropsWithChildren<AppProps>>> = pr
   console.log(options, "style");
   useEffect(() => {
     if (events?.onLoad) {
-      executeUserScript(events.onLoad);
+      executeUserScript(events.onLoad.value);
     }
   }, [events]);
 
