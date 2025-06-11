@@ -59,9 +59,18 @@ export interface Animation {
 /**
  * 事件配置 打包的时候去 @go-blite/events 加载
  */
+export type EventType = "builtin" | "script";
+
 export interface EventConfig {
-  value: string;
+  /** builtin | script */
+  type: EventType;
+  /** 展示用名称 */
   name: string;
+  /** builtin: 事件 key ; script: 代码字符串 */
+  value: string;
+  /** 可选描述 */
+  description?: string;
+  version?: string;
 }
 
 export interface ResourceConfig {
@@ -88,8 +97,8 @@ interface CommonComponentProps {
   // 自定义样式 跟布局相关
   customStyle?: CSSProperties;
   events?: {
-    onClick?: string | EventConfig;
-    onLoad?: string;
+    onClick?: EventConfig;
+    onLoad?: EventConfig;
   };
 }
 

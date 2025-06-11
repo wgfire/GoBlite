@@ -15,6 +15,7 @@ import { ItemUpload } from "@/components/Settings/ItemUpload";
 import { ItemSInput } from "@/components/Settings/ItemSInput";
 import { Margins } from "@/components/Settings/Margins";
 import { ItemPosition } from "./ItemPosition"; // Added ItemPosition import
+import { ItemScript } from "@/components/Settings/ItemScript";
 
 export interface SettingsProps<T extends Record<string, any>> {
   defaultValue: T;
@@ -36,6 +37,7 @@ export interface SettingsComponent<T extends Record<string, any>> extends React.
   ItemSInput: typeof ItemSInput<T>;
   Margins: typeof Margins<T>;
   ItemPosition: typeof ItemPosition<T>; // Added ItemPosition to interface
+  ItemScript: typeof ItemScript<T>;
 }
 
 function createSettings<T extends Record<string, any>>(): SettingsComponent<T> {
@@ -70,6 +72,7 @@ function createSettings<T extends Record<string, any>>(): SettingsComponent<T> {
   Settings.ItemSInput = ItemSInput;
   Settings.Margins = Margins;
   Settings.ItemPosition = ItemPosition; // Added ItemPosition to Settings object
+  Settings.ItemScript = ItemScript;
   return Settings;
 }
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { EditorState, Extension } from "@codemirror/state";
+import { EditorState, Extension, Compartment } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching } from "@codemirror/language";
 import { history, historyKeymap } from "@codemirror/commands";
@@ -79,6 +79,14 @@ export const useCodeMirror = ({
 }: UseCodeMirrorOptions = {}) => {
   const editorRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
+
+  /* 使用 Compartment 以便动态替换扩展，而不销毁编辑器 */
+  const languageCompartment = useRef(new Compartment()).current;
+  const themeCompartment = useRef(new Compartment()).current;
+  const readOnlyCompartment = useRef(new Compartment()).current;
+  const heightCompartment = useRef(new Compartment()).current;
+  const extraExtCompartment = useRef(new Compartment()).current;
+
   const [value, setValue] = useState(initialValue);
 
   // 创建编辑器
@@ -98,26 +106,23 @@ export const useCodeMirror = ({
       doc: initialValue,
       extensions: [
         ...baseExtensions,
-        getLanguageExtension(language),
-        getThemeExtension(theme),
-        ...(readOnly ? [EditorView.editable.of(false)] : []),
+        languageCompartment.of(getLanguageExtension(language)),
+        themeCompartment.of(getThemeExtension(theme)),
+        readOnlyCompartment.of(EditorView.editable.of(!readOnly)),
+        heightCompartment.of(
+          EditorView.theme({
+            "&": { height: heightStyle },
+            ".cm-scroller": { fontFamily: "monospace", overflow: "auto" }
+          })
+        ),
+        extraExtCompartment.of(extensions),
         EditorView.updateListener.of(update => {
           if (update.docChanged) {
             const newValue = update.state.doc.toString();
             setValue(newValue);
             onChange?.(newValue);
           }
-        }),
-        EditorView.theme({
-          "&": {
-            height: heightStyle
-          },
-          ".cm-scroller": {
-            fontFamily: "monospace",
-            overflow: "auto"
-          }
-        }),
-        ...extensions
+        })
       ]
     });
 
@@ -132,7 +137,41 @@ export const useCodeMirror = ({
     return () => {
       view.destroy();
     };
-  }, [initialValue, language, theme, readOnly, height, extensions]);
+  }, []);
+
+  /* 响应 language/theme/readOnly/height/extensions 参数变化 -> reconfigure */
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({ effects: languageCompartment.reconfigure(getLanguageExtension(language)) });
+  }, [language]);
+
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({ effects: themeCompartment.reconfigure(getThemeExtension(theme)) });
+  }, [theme]);
+
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({ effects: readOnlyCompartment.reconfigure(EditorView.editable.of(!readOnly)) });
+  }, [readOnly]);
+
+  useEffect(() => {
+    if (!viewRef.current) return;
+    const heightStyle = typeof height === "number" ? `${height}px` : height;
+    viewRef.current.dispatch({
+      effects: heightCompartment.reconfigure(
+        EditorView.theme({
+          "&": { height: heightStyle },
+          ".cm-scroller": { fontFamily: "monospace", overflow: "auto" }
+        })
+      )
+    });
+  }, [height]);
+
+  useEffect(() => {
+    if (!viewRef.current) return;
+    viewRef.current.dispatch({ effects: extraExtCompartment.reconfigure(extensions) });
+  }, [extensions]);
 
   return {
     editorRef,

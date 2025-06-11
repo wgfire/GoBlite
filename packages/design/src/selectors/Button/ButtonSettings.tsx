@@ -19,9 +19,9 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
   }
   const { currentInfo } = designContext;
 
-  const eventOptions = [{ url: "none", name: "无" }, ...Object.values(events)].map(key => ({
-    label: key.name,
-    value: key.name //key.handler
+  const eventOptions = [{ name: "无", value: "none" }, ...Object.values(events)].map(e => ({
+    label: e.name,
+    value: e.name
   }));
 
   return (
@@ -126,7 +126,29 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
 
         <Settings.Content>
           <Settings.Section defaultOpen title={"点击事件"}>
-            <Settings.ItemSelect propKey="events.onClick" label="" options={eventOptions} />
+            {(() => {
+              const selectValue = props.events?.onClick?.type === "builtin" ? props.events.onClick.value : "none";
+              return (
+                <Settings.ItemSelect
+                  label="选择事件"
+                  options={eventOptions}
+                  value={selectValue}
+                  onChange={val => {
+                    setProp(p => {
+                      p.events = p.events || {};
+                      p.events.onClick =
+                        val === "none" ? undefined : ({ type: "builtin", name: val, value: val } as any);
+                    });
+                  }}
+                />
+              );
+            })()}
+            <Settings.ItemScript
+              propKey="events.onClick"
+              label="自定义脚本"
+              buttonText="编写脚本"
+              language="javascript"
+            />
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>

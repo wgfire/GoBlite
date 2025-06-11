@@ -28,6 +28,9 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
   const currentRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: "0px", left: "0px" });
 
+  // 控制浮层是否显示
+  const [toolbarVisible, setToolbarVisible] = useState(true);
+
   const isDragging = useMemo(() => {
     return dom?.getAttribute("data-dragging") === "true";
   }, [dom?.getAttribute("data-dragging")]);
@@ -67,6 +70,27 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
   useLayoutEffect(() => {
     updatePosition();
   }, [isHover, isActive, updatePosition, isDragging]);
+
+  // 当组件重新被选中时，显示浮层
+  useEffect(() => {
+    if (isActive) {
+      setToolbarVisible(true);
+    }
+  }, [isActive]);
+
+  // 监听全局点击事件，点击到浮层外部时隐藏浮层
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (currentRef.current && !currentRef.current.contains(e.target as Node)) {
+        setToolbarVisible(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const craftjsRenderer = document.querySelector(".blite-renderer");
@@ -134,6 +158,7 @@ export const RenderNode: React.FC<{ render: React.ReactElement }> = ({ render })
     <>
       {isActive &&
         !isDragging &&
+        toolbarVisible &&
         createPortal(
           <div
             ref={currentRef}

@@ -5,7 +5,7 @@
  * @description 通过脚本后续可以自定义逻辑
  */
 
-const { exec } = require("child_process");
+import { exec } from "child_process";
 
 console.log(process.argv, "参数");
 

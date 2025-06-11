@@ -2,6 +2,7 @@
   "name": "go-blite",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev:web-site":"nx dev @go-blite/web-site",
     "dev:design":"nx dev @go-blite/design",

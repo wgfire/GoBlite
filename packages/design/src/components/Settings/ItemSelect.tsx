@@ -9,20 +9,31 @@ export interface ItemSelectProps<T> extends defaultProps<T> {
   options: { value: string; label: string; disabled?: boolean }[];
 }
 
-export const ItemSelect = <T,>({ label, options, className, propKey }: ItemSelectProps<T>) => {
-  const { setProp, value } = useSettings<T>();
-  const selectValue = propKey ? get(value, propKey) : "";
-  const onChange = (value: string) => {
-    if (propKey) {
-      setProp(p => {
-        set(p as object, propKey, value);
-      });
+export const ItemSelect = <T,>({
+  label,
+  options,
+  className,
+  propKey,
+  onChange: externalOnChange,
+  value
+}: ItemSelectProps<T>) => {
+  const { setProp, value: ctxVal } = useSettings<T>();
+  const selectValue = propKey ? (get(ctxVal, propKey) as string) : (value as string);
+  const handleChange = (val: string) => {
+    if (externalOnChange) {
+      externalOnChange(val as any);
+    } else {
+      if (propKey) {
+        setProp(p => {
+          set(p as object, propKey, val);
+        });
+      }
     }
   };
   return (
     <div className={clsx("space-y-2", className)}>
       <Label className="text-sm text-gray-400">{label}</Label>
-      <Select value={selectValue as string} onValueChange={onChange}>
+      <Select value={selectValue as string} onValueChange={handleChange}>
         <SelectTrigger>
           <SelectValue placeholder={`${label}`} />
         </SelectTrigger>
