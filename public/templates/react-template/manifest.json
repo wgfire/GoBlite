@@ -14,7 +14,6 @@
     "src/components/HeroSection.tsx": "src/components/HeroSection.tsx",
     "src/components/FeaturesSection.tsx": "src/components/FeaturesSection.tsx",
     "src/components/TestimonialsSection.tsx": "src/components/TestimonialsSection.tsx",
-    "src/components/PricingSection.tsx": "src/components/PricingSection.tsx",
     "src/components/CTASection.tsx": "src/components/CTASection.tsx",
     "src/components/Footer.tsx": "src/components/Footer.tsx"
   }
