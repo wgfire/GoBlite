@@ -26,7 +26,7 @@ const Toolbar: React.FC<ToolbarProps> = ({ onRun, onRebuild, onToggleView, onExp
     <motion.div className="editor-toolbar" initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: "easeOut" }}>
       <div className="toolbar-logo">
         <span className="code-icon">&lt;/&gt;</span>
-        <span className="logo-text">GoBlite</span>
+        <span className="logo-text">Nanoo</span>
       </div>
 
       <div className="toolbar-actions">

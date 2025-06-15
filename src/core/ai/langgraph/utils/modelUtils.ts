@@ -1,7 +1,7 @@
 /**
  * 模型相关工具函数
  */
-import { ModelFactory } from "../../langchain/models/modelFactory";
+import { ModelFactory } from "../models/modelFactory";
 import { BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { RunnableConfig } from "@langchain/core/runnables";
 
@@ -34,20 +34,20 @@ export const invokeModel = async (
 ) => {
   try {
     const model = createModelFromLocalStorage();
-    
+
     if (!model) {
       throw new Error("无法创建AI模型");
     }
-    
+
     // 创建系统提示
     const systemMessage = new SystemMessage(systemPrompt);
-    
+
     // 准备发送给模型的消息
     const promptMessages = [
       systemMessage,
       ...messages,
     ];
-    
+
     // 调用模型
     return await model.invoke(promptMessages, config);
   } catch (error) {

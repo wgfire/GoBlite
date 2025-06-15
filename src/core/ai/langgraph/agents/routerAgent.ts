@@ -7,10 +7,11 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { createTemplateAgent } from "./templateAgent";
 import { getRouterAnalysisPrompt } from "../prompts/routerPrompts";
 import { invokeModel } from "../utils/modelUtils";
-import { Template, TemplateLoadResult } from "@/template/types";
+import { TemplateLoadResult } from "@/template/types";
 import { DocumentLoadResult } from "@/core/ai";
+import { FileOperation } from "../../types/templateResponse";
 // 定义意图类型
-export enum IntentType {
+export enum ResponseType {
   TEMPLATE_CREATION = "template_creation", // 用户想要基于模板创建代码
   DOCUMENT_ANALYSIS = "document_analysis", // 用户想要分析上传的文档
   IMAGE_ANALYSIS = "image_analysis", // 用户想要分析上传的图片
@@ -19,7 +20,7 @@ export enum IntentType {
 
 // 定义路由结果的输出格式
 const routerOutputSchema = z.object({
-  intent: z.nativeEnum(IntentType).describe("用户意图类型"),
+  intent: z.nativeEnum(ResponseType).describe("用户意图类型"),
   confidence: z.number().min(0).max(1).describe("意图识别的置信度"),
   explanation: z.string().describe("意图识别的解释"),
   next: z.string().describe("下一个要执行的节点名称"),
@@ -71,14 +72,17 @@ const RouterState = Annotation.Root({
   templateContext: Annotation<{
     loadResult: TemplateLoadResult;
     langChainResult?: DocumentLoadResult;
-    template?: Template;
+    templateId: string;
+    templateName: string;
   } | null>({
     reducer: (_, y) => y,
   }),
-  /**生成的代码 */
-  generatedCode: Annotation<string | null>({
+  /**文件操作 */
+  fileOperations: Annotation<FileOperation[]>({
     reducer: (_, y) => y,
+    default: () => [],
   }),
+
   /**初始化标记，用于标识是否是初始化调用 */
   isInitializing: Annotation<boolean>({
     reducer: (_, y) => y,
@@ -163,13 +167,22 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
 
     // 使用工具函数调用模型
     const response = await invokeModel(limitedMessages, getRouterAnalysisPrompt(parser.getFormatInstructions()), config);
-
+    console.log(response, '回复内容')
+    
+    // 提取并清理响应内容
+    let rawContent = typeof response.content === "string" ? response.content : JSON.stringify(response.content);
+    console.log("原始响应内容:", rawContent);
+    
+    // 清理JSON标记和格式化字符
+    let cleanedContent = cleanJsonResponse(rawContent);
+    console.log("清理后的内容:", cleanedContent);
+    
     // 解析结构化输出
-    const parsedOutput = await parser.parse(typeof response.content === "string" ? response.content : JSON.stringify(response.content));
+    const parsedOutput = await parser.parse(cleanedContent);
     console.log("路由分析结果:", parsedOutput);
 
     // 如果是一般对话，直接将分析结果中的内容作为AI回复添加到消息历史
-    if (parsedOutput.intent === IntentType.GENERAL_CHAT) {
+    if (parsedOutput.intent === ResponseType.GENERAL_CHAT) {
       console.log("检测到一般对话意图，直接使用分析结果中的内容作为回复");
 
       // 创建AI回复消息
@@ -180,7 +193,6 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
       return {
         routerAnalysis: parsedOutput,
         messages: [...messages, responseMessage],
-        // 设置标记，表示已经有回复，避免generalChatNode再次调用大模型
         hasResponse: true,
       };
     }
@@ -224,11 +236,11 @@ const routerDecisionNode = async (state: RouterStateType) => {
 
   // 根据分析的意图决定下一步
   switch (analysis.intent) {
-    case IntentType.TEMPLATE_CREATION:
+    case ResponseType.TEMPLATE_CREATION:
       return { next: "templateCreation" };
-    case IntentType.DOCUMENT_ANALYSIS:
+    case ResponseType.DOCUMENT_ANALYSIS:
       return { next: "documentAnalysis" };
-    case IntentType.IMAGE_ANALYSIS:
+    case ResponseType.IMAGE_ANALYSIS:
       return { next: "imageAnalysis" };
     default:
       return { next: null };
@@ -427,4 +439,26 @@ export function createRouterAgent() {
     console.error("创建路由代理失败:", error);
     throw new Error(`创建路由代理失败: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+// 清理JSON标记和格式化字符
+function cleanJsonResponse(content: string): string {
+  // 移除```json 和 ``` 标记
+  content = content.replace(/```json\s*/g, "");
+  content = content.replace(/```\s*/g, "");
+  
+  // 移除其他可能的JSON标记
+  content = content.replace(/<json>/g, "");
+  content = content.replace(/<\/json>/g, "");
+  
+  // 提取JSON对象（从第一个{到最后一个}）
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    content = jsonMatch[0];
+  }
+  
+  // 清理内容但保持JSON结构
+  content = content.trim();
+  
+  return content;
 }

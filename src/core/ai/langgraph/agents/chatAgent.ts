@@ -9,7 +9,7 @@ import {
 } from "@langchain/langgraph/web";
 import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages"; // 导入消息类型
 import { type RunnableConfig } from "@langchain/core/runnables"; // 导入可运行配置和Lambda函数
-import { ModelFactory } from "../../langchain/models/modelFactory"; // 导入模型工厂
+import { ModelFactory } from "../models/modelFactory"; // 导入模型工厂
 
 // 使用内置MemorySaver
 

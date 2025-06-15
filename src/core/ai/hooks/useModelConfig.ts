@@ -111,7 +111,6 @@ export function useModelConfig() {
    * 2. 如果本地没有配置，检查是否有API密钥 - 满足需求3：用户在APIKeyConfig中设置的密钥优先使用
    * 3. 如果没有任何配置，使用默认配置 - 满足需求1：首次进入使用默认配置
    *
-   * 相比原来的实现，移除了冗余的日志和复杂的嵌套逻辑，使代码更清晰易读
    */
   const initializeModelConfig = useMemoizedFn(async () => {
     try {

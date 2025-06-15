@@ -2,6 +2,8 @@
  * AI服务模块类型定义
  */
 
+import { TemplateLoadResult } from "@/template/types";
+
 // 模型提供商枚举
 export enum ModelProvider {
   /** OpenAI */
@@ -116,6 +118,7 @@ export interface ModelConfig {
   /** 基础URL */
   baseUrl?: string;
 }
+
 // 添加元数据类型
 export interface MessageMetadata {
   // 如果消息包含生成的代码
@@ -128,9 +131,22 @@ export interface MessageMetadata {
   templateContext?: {
     templateId: string;
     templateName: string;
-    loadResult?: any;
-    langChainResult?: any;
+    loadResult: TemplateLoadResult;
+    langChainResult?: DocumentLoadResult;
   };
+  // 上传的文件
+  uploadedFiles?: Array<{
+    id: string;
+    file: File;
+    previewUrl?: string;
+  }>;
+  // 文件操作
+  fileOperations?: Array<{
+    path: string;
+    content: string;
+    action: string;
+    language?: string;
+  }>;
   /** 时间戳 */
   timestamp: number;
   // 其他元数据...

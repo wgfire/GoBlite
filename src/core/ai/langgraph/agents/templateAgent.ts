@@ -1,32 +1,51 @@
 // 从"@langchain/langgraph/web"导入必要的组件
 import { END, START, StateGraph, Annotation, messagesStateReducer } from "@langchain/langgraph/web";
-import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from "@langchain/core/messages";
+import { BaseMessage, HumanMessage, AIMessage } from "@langchain/core/messages";
 import { type RunnableConfig } from "@langchain/core/runnables";
-import { ModelFactory } from "../../langchain/models/modelFactory";
 import { z } from "zod";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { Template, TemplateLoadResult } from "@/template/types";
 import { DocumentLoadResult } from "@/core/ai";
 import { invokeModel } from "../utils";
-import { FileOperationType, FileOperation } from "../../types/templateResponse";
-import { extractFileOperationsFromCodeBlocks } from "../../utils/fileOperationTools";
+import { FileOperation } from "../../types/templateResponse";
 
-// 定义响应类型结构
+import {
+  getTemplateAnalysisPrompt,
+  getTemplateBasedCodeGenerationPrompt,
+  extractTemplateStructure,
+  extractUserRequirements
+} from "../prompts/templatePrompts";
+
+// 响应结构 Schema（支持 content_base64，可兼容 create/edit）
 const responseTypeSchema = z.object({
-  responseType: z.enum(["TEMPLATE_INFO", "CODE_GENERATION"]).describe("响应类型，表明是提供模板信息还是生成代码"),
-  explanation: z.string().describe("选择该响应类型的原因说明"),
-  content: z.string().describe("响应内容"),
+  responseType: z.enum(["TEMPLATE_INFO", "CODE_GENERATION", "CLARIFY"]).describe("响应类型"),
+  explanation: z.string().describe("原因说明"),
+  content: z.string().describe("自然语言回复"),
   fileOperations: z
     .array(
       z.object({
         path: z.string().describe("文件路径"),
-        content: z.string().describe("文件内容"),
         action: z.enum(["create", "update", "delete"]).describe("操作类型"),
+        content: z.string().optional().describe("代码内容（plain）"), // 默认可选，但会根据 action 进行条件验证
+
         language: z.string().optional().describe("文件语言"),
       })
     )
     .optional()
-    .describe("文件操作列表，仅在CODE_GENERATION类型时使用"),
+    .describe("文件操作列表，仅在 CODE_GENERATION 时使用")
+    .superRefine((fileOperations, ctx) => {
+      if (fileOperations) {
+        fileOperations.forEach((op, index) => {
+          if ((op.action === "create" || op.action === "update") && op.content === undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `文件操作 ${index} (路径: ${op.path}) 的 'content' 字段在 'create' 或 'update' 操作时是必需的。`,
+              path: [`fileOperations`, index, `content`],
+            });
+          }
+        });
+      }
+    }),
 });
 
 // 定义错误消息元数据类型
@@ -128,54 +147,34 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
   }
 
   try {
-    // 使用ModelFactory创建模型
-    const modelConfigStr = localStorage.getItem("ai_current_model");
-    const modelConfig = modelConfigStr ? JSON.parse(modelConfigStr) : {};
-    const model = ModelFactory.createModel(modelConfig);
-
-    if (!model) {
-      console.error(`[TemplateAgent] queryTemplateInfoNode 无法创建模型，返回错误消息`);
-      return {
-        error: "无法创建 AI 模型",
-      };
-    }
-
     // 获取模板上下文（如果有）
     const templateContext = state.templateContext;
 
     // 创建响应类型解析器
     const responseTypeParser = StructuredOutputParser.fromZodSchema(responseTypeSchema);
 
-    // 提取模板文档内容（如果有）
-    let documentContents = "";
+    let templateSummary = "";
+
     if (templateContext?.langChainResult?.documents && templateContext.langChainResult.documents.length > 0) {
-      documentContents = templateContext.langChainResult.documents
-        .map((doc: { metadata?: { source?: string }; pageContent?: string }) => {
-          const source = doc.metadata?.source || "未知文件";
-          const content = doc.pageContent ? doc.pageContent : "无内容";
-          return `文件: ${source}\n内容:\n${content}`;
-        })
-        .join("\n\n====================\n\n");
+      const structureInfo = extractTemplateStructure(templateContext.langChainResult.documents);
+
+      templateSummary = structureInfo.summary;
+
+      console.log(`[TemplateAgent] 提取到模板结构信息，包含 ${structureInfo.keyFiles.length} 个文件`);
     }
 
-    // 创建系统提示 - 专注于意图分析，不生成代码
-    const systemPrompt = `你是一个专业的前端开发模板分析专家。你的任务是分析用户的请求，判断用户意图：
-
-      1. 如果用户想了解模板信息，请提供详细的模板解释，帮助用户理解模板里的前端组件功能，不需要关注前端代码层面的实现细节
-      2. 如果用户想要生成代码，请简要说明你理解的需求，并标记为需要代码生成，但不要在这个阶段生成实际代码
-
-      请注意：你的任务是判断用户意图并提供分析，不是生成代码。如果用户需要代码生成，另一个专门的代码生成专家会处理。
-
-      ${responseTypeParser.getFormatInstructions()}
-
-      ${documentContents ? `模板文件内容：\n${documentContents}` : "无可用的模板文件内容"}
-`;
+    // 使用优化的模板分析提示词
+    const systemPrompt = getTemplateAnalysisPrompt(
+      responseTypeParser.getFormatInstructions(),
+      templateSummary
+    );
 
     // 过滤掉其他的系统消息，只保留用户和助手的消息
     const filteredMessages = messages.filter((msg) => msg.getType() === "human" || msg.getType() === "ai");
 
     // 准备发送给模型的消息
     const promptMessages = filteredMessages.slice(-5);
+
     // 调用模型
     console.log(`[TemplateAgent] queryTemplateInfoNode 调用模型处理请求`);
     const response = await invokeModel(promptMessages, systemPrompt, config);
@@ -185,25 +184,17 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
     console.log(`[TemplateAgent] 模型回复内容长度: ${content.length} 字符`);
 
     try {
-      // 预处理内容，处理可能包含的代码块
-      console.log(`[TemplateAgent] 预处理响应内容`);
-      // const preprocessedContent = preprocessContentWithCodeBlocks(content);
+      // 使用增强的响应解析器
+      console.log(`[TemplateAgent] 解析器处理内容`);
 
-      // 尝试解析响应类型
-      let parsedResponse;
-      try {
-        parsedResponse = await responseTypeParser.parse(content);
-      } catch (preprocessError) {
-        console.warn(`[TemplateAgent] 预处理后解析仍然失败，尝试直接解析原始内容:`, preprocessError);
-        // 如果预处理后仍然解析失败，尝试直接解析原始内容
-        parsedResponse = await responseTypeParser.parse(content);
-      }
-
+      const parsedResponse = await responseTypeParser.parse(cleanJsonResponse(content));    //EnhancedResponseParser.parseResponse(content, responseTypeSchema);
       console.log(`[TemplateAgent] 解析到的响应类型:`, parsedResponse);
+
       // 创建AI回复消息
       const responseMessage = new AIMessage({
         content: parsedResponse.content,
       });
+
       // 直接返回是否继续生成代码
       return {
         messages: [...messages, responseMessage],
@@ -231,7 +222,6 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
     return {
       error: `查询模板信息失败: ${error instanceof Error ? error.message : String(error)}`,
       messages: [...messages, errorMessage],
-      shouldGenerateCode: false,
     };
   }
 };
@@ -255,36 +245,28 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
 
   try {
     const responseTypeParser = StructuredOutputParser.fromZodSchema(responseTypeSchema);
+
     // 获取模板上下文（如果有）
     const templateContext = state.templateContext;
-    let documentContents = "";
+
+    // 提取模板结构信息和用户需求
+    let templateStructure = "";
     if (templateContext?.langChainResult?.documents && templateContext.langChainResult.documents.length > 0) {
-      documentContents = templateContext.langChainResult.documents
-        .map((doc: { metadata?: { source?: string }; pageContent?: string }) => {
-          const source = doc.metadata?.source || "未知文件";
-          const content = doc.pageContent ? doc.pageContent : "无内容";
-          return `文件: ${source}\n内容:\n${content}`;
-        })
-        .join("\n\n====================\n\n");
+      const structureInfo = extractTemplateStructure(templateContext.langChainResult.documents);
+      templateStructure = structureInfo.structure;
+      console.log(`[TemplateAgent] 代码生成基于模板结构，包含 ${structureInfo.keyFiles.length} 个文件`);
     }
 
-    // 创建专门的代码生成系统提示
-    const systemPrompt = `你是一个专业的前端开发代码生成专家。你的任务是根据提供的模板和用户需求生成高质量的代码。
+    // 提取用户具体需求
+    const userRequirements = extractUserRequirements(messages);
+    console.log(`[TemplateAgent] 提取到用户需求: ${userRequirements.substring(0, 100)}...`);
 
-      请遵循以下原则：
-      1. 代码应该遵循最佳实践和设计模式
-      2. 代码应该清晰、可读、易于维护
-      3. 代码应该包含适当的注释
-      4. 代码应该考虑性能和可扩展性
-
-      请以文件操作的形式返回代码，每个文件应该包含完整的代码，格式如下：
-
-      ${responseTypeParser.getFormatInstructions()}
-
-      你可以生成多个文件，每个文件都应该使用上述格式。
-      请确保生成的代码是完整的，可以直接使用的。
-      ${documentContents ? `代码模板文件内容：\n${documentContents}` : "无可用的模板文件内容"}
-      `;
+    // 使用优化的基于模板的代码生成提示词
+    const systemPrompt = getTemplateBasedCodeGenerationPrompt(
+      responseTypeParser.getFormatInstructions(),
+      templateStructure,
+      userRequirements
+    );
 
     // 添加用户消息，以便模型了解具体需求
     const lastUserMessage = messages.filter((m) => m.getType() === "human");
@@ -293,60 +275,33 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
     console.log(`[TemplateAgent] generateCodeNode 调用模型生成代码`);
     const response = await invokeModel(lastUserMessage!, systemPrompt, config);
 
-    // 提取代码
+    // 提取模型回复内容
     const content = typeof response.content === "string" ? response.content : JSON.stringify(response.content);
 
-    // 从回复中提取文件操作
-    const responseData = await responseTypeParser.parse(content);
-    const fileOperations = responseData.fileOperations ?? [];
-    // extractFileOperationsFromCodeBlocks(content);
+    console.log(`[TemplateAgent] 原始模型回复长度: ${content.length} 字符`);
+    console.log(`[TemplateAgent] 原始模型回复前200字符:`, content.substring(0, 200));
 
-    console.log(`[TemplateAgent] 提取到 ${fileOperations.length} 个文件操作`);
+    // 使用多层解析策略
+    let responseData: z.infer<typeof responseTypeSchema> | null = null;
+    const responseMessage: AIMessage = new AIMessage({
+      content: '',
+    });
+    let fileOperations: FileOperation[] = []
 
-    // 如果没有提取到文件操作，尝试从代码块中提取
-    let generatedCode = "";
-    if (fileOperations.length === 0) {
-      // 尝试从回复中提取代码块
-      const codeBlockRegex = /```(?:jsx|tsx|vue|html|css|javascript|typescript)?\n([\s\S]*?)\n```/;
-      const match = content.match(codeBlockRegex);
-      generatedCode = match ? match[1] : content;
-
-      // 如果提取到代码，创建一个默认的文件操作
-      if (generatedCode) {
-        fileOperations.push({
-          path: "generated_code.js", // 默认文件名
-          content: generatedCode,
-          action: FileOperationType.CREATE,
-          language: "javascript",
-        });
+    try {
+      responseData = await responseTypeParser.parse(cleanJsonResponse(content))
+      if (responseData) {
+        console.log(`[TemplateAgent] 增强解析器成功解析`);
+        fileOperations = responseData.fileOperations
+        responseMessage.content = responseData.content
       }
-    } else {
-      // 使用第一个文件操作的内容作为生成的代码
-      generatedCode = fileOperations[0].content;
+    } catch (error) {
+      console.warn(`[TemplateAgent] 增强解析器失败:`, error);
+      console.warn(`[TemplateAgent] 原始模型回复内容 (可能导致解析失败):`, content);
+
     }
 
-    console.log(`[TemplateAgent] 生成的代码长度: ${generatedCode.length} 字符`);
-
-    // 创建文件操作描述
-    const fileOperationsDescription = fileOperations
-      .map((op) => `- ${op.action === FileOperationType.CREATE ? "创建" : op.action === FileOperationType.UPDATE ? "更新" : "删除"} 文件: ${op.path}`)
-      .join("\n");
-
-    // 创建AI回复消息
-    const responseMessage = new AIMessage({
-      content: `我已根据您的需求生成了以下代码：
-
-\`\`\`
-${generatedCode}
-\`\`\`
-
-${fileOperations.length > 0 ? `将执行以下文件操作：\n${fileOperationsDescription}` : ""}
-
-您可以直接使用这些代码。如果需要任何修改或有其他问题，请告诉我。`,
-    });
-
     return {
-      generatedCode,
       fileOperations,
       messages: [...messages, responseMessage],
     };
@@ -411,7 +366,7 @@ export function createTemplateAgent() {
             langChainResult?: DocumentLoadResult;
             template?: Template;
           } | null;
-          [key: string]: any;
+          [key: string]: unknown;
         },
         config?: RunnableConfig
       ) => {
@@ -448,4 +403,52 @@ export function createTemplateAgent() {
     console.error("创建模板代理失败:", error);
     throw new Error(`创建模板代理失败: ${error instanceof Error ? error.message : String(error)}`);
   }
+}
+
+// 尝试修复常见的JSON问题
+function fixCommonJsonIssues(jsonStr: string): string {
+  // 尝试修复JSON中的换行符问题
+  jsonStr = jsonStr.replace(/\\n/g, "\\n")
+    .replace(/\\'/g, "\\'")
+    .replace(/\\"/g, '\\"')
+    .replace(/\\&/g, "\\&")
+    .replace(/\\r/g, "\\r")
+    .replace(/\\t/g, "\\t")
+    .replace(/\\b/g, "\\b")
+    .replace(/\\f/g, "\\f");
+  // 尝试修复JSON中的注释问题
+  jsonStr = jsonStr.replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "");
+  return jsonStr;
+}
+
+function cleanJsonResponse(content: string): string {
+  // 移除```json 和 ``` 标记
+  content = content.replace(/```json\s*/g, "");
+  content = content.replace(/```\s*/g, "");
+
+  // 移除其他可能的JSON标记
+  content = content.replace(/<json>/g, "");
+  content = content.replace(/<\/json>/g, "");
+
+  // 提取JSON对象（从第一个 { 到最后一个 }）
+  // 改进：使用更精确的正则表达式来匹配最外层的JSON对象
+  const jsonMatch = content.match(/```json\s*(\{[\s\S]*?\})\s*```/);
+  if (jsonMatch && jsonMatch[1]) {
+    content = jsonMatch[1];
+  } else {
+    // 如果没有 ```json``` 标记，尝试匹配最外层的 {}
+    const bracketMatch = content.match(/\{[\s\S]*\}/);
+    if (bracketMatch) {
+      content = bracketMatch[0];
+    }
+  }
+
+  // 清理内容但保持JSON结构
+  content = content.trim();
+
+  // 应用通用的JSON修复
+  content = fixCommonJsonIssues(content);
+
+  return content;
 }

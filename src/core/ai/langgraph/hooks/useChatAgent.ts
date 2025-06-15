@@ -8,6 +8,7 @@ import { useConversation } from "./useConversation";
 import useMemoizedFn from "@/hooks/useMemoizedFn";
 import { useAtomValue } from "jotai";
 import { templateContextAtom } from "@/components/Chat/atoms/templateAtom";
+import { FileItemType, useFileSystem } from "@/core/fileSystem";
 
 // Hook选项
 export interface UseAgentChatOptions {
@@ -26,6 +27,7 @@ const initAgentState = {
   routerAnalysis: null,
   templateContext: null,
   generatedCode: null,
+  fileOperations: [],
   error: null,
   isInitializing: false,
   hasResponse: false,
@@ -41,6 +43,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { initializeModelConfig } = useModelConfig();
+  const { openFile, writeFile } = useFileSystem()
 
   // 使用useConversation hook管理会话
   const conversation = useConversation();
@@ -145,12 +148,12 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
           const invokeParams = {
             ...initialState,
             userInput: null,
-            templateContext: null,
+            templateContext: templateContext,
             isInitializing: true, // 设置初始化标记
           };
 
           await agentInstance.app.invoke(invokeParams, config);
-          console.log("memorySaver 激活成功");
+          console.log("memorySaver 激活成功", templateContext);
         } catch (initError) {
           console.error("激活 memorySaver 失败:", initError);
           // 即使激活失败也继续，不影响整体初始化
@@ -166,7 +169,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
       setIsLoading(false);
     }
     /**无需修改 */
-  }, [config]);
+  }, [config, templateContext]);
 
   // 发送消息
   const sendMessage = useMemoizedFn(async (content: string) => {
@@ -221,7 +224,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
       const invokeParams = {
         userInput: content,
         // 传递模板上下文给大模型
-        templateContext: templateContext || null,
+        templateContext: templateContext,
       };
 
       console.log("发送消息时的模板上下文:", templateContext);
@@ -253,6 +256,18 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
 
       // 更新代理状态
       setCurrentState(result);
+      if (result.fileOperations) {
+        console.log(result.fileOperations, 'ai返回文件信息')
+        for (let index = 0; index < result.fileOperations.length; index++) {
+          const element = result.fileOperations[index];
+          openFile({
+            path: element.path,
+            type: FileItemType.FILE
+          })
+          writeFile(element.path, element.content)
+
+        }
+      }
 
       return responseText;
     } catch (err) {

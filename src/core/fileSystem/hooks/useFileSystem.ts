@@ -268,7 +268,7 @@ export const useFileSystem = function (initialFiles?: FileItem[]) {
 
   // 打开文件
   const openFile = useCallback(
-    (file: FileItem) => {
+    (file: Pick<FileItem, 'path'|'type'>) => {
       console.log("openFile 被调用:", file.path);
       if (file.type === FileItemType.FOLDER) {
         console.log("无法打开文件夹");

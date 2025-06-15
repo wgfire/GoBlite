@@ -26,4 +26,6 @@ export const templateContextAtom = atom<{
   loadResult: TemplateLoadResult;
   langChainResult?: DocumentLoadResult;
   template?: Template;
+  templateId: string;
+  templateName: string;
 } | null>(null);

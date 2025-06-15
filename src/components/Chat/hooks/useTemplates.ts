@@ -168,7 +168,7 @@ export const useTemplates = () => {
       setTemplateContext((prev) => {
         if (prev && prev.loadResult) {
           return {
-            loadResult: prev.loadResult,
+            ...prev,
             formData: data,
           };
         }
@@ -221,7 +221,7 @@ export const useTemplates = () => {
     // 获取当前会话的模板上下文
     const templateContextFromConversation = getCurrentConversationTemplateContext();
     if (templateContextFromConversation) {
-      console.log("从会话中初始化模板上下文:", templateContextFromConversation.templateName);
+      console.log("从会话中初始化模板上下文:", templateContextFromConversation);
 
       // 如果当前没有选择模板，或者选择的模板与会话中的不同，则更新
       if (!selectedTemplate || selectedTemplate.id !== templateContextFromConversation.templateId) {
@@ -237,11 +237,8 @@ export const useTemplates = () => {
           setTemplateContext({
             loadResult: templateContextFromConversation.loadResult || { success: true },
             langChainResult: templateContextFromConversation.langChainResult,
-            template: {
-              id: templateContextFromConversation.templateId,
-              name: templateContextFromConversation.templateName,
-              fields: [],
-            },
+            templateId: templateContextFromConversation.templateId,
+            templateName: templateContextFromConversation.templateName
           });
         }
       }
