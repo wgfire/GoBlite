@@ -264,7 +264,7 @@ export function useChatAgent(options: UseAgentChatOptions = {}) {
             path: element.path,
             type: FileItemType.FILE
           })
-          writeFile(element.path, element.content)
+          writeFile(element.path, element.content!)
 
         }
       }

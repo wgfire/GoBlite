@@ -9,7 +9,8 @@ import { getRouterAnalysisPrompt } from "../prompts/routerPrompts";
 import { invokeModel } from "../utils/modelUtils";
 import { TemplateLoadResult } from "@/template/types";
 import { DocumentLoadResult } from "@/core/ai";
-import { FileOperation } from "../../types/templateResponse";
+import { FileOperation } from "@/core/fileSystem";
+
 // 定义意图类型
 export enum ResponseType {
   TEMPLATE_CREATION = "template_creation", // 用户想要基于模板创建代码
@@ -167,16 +168,16 @@ const routerAnalysisNode = async (state: RouterStateType, config?: RunnableConfi
 
     // 使用工具函数调用模型
     const response = await invokeModel(limitedMessages, getRouterAnalysisPrompt(parser.getFormatInstructions()), config);
-    console.log(response, '回复内容')
-    
+    console.log(response, "回复内容");
+
     // 提取并清理响应内容
-    let rawContent = typeof response.content === "string" ? response.content : JSON.stringify(response.content);
+    const rawContent = typeof response.content === "string" ? response.content : JSON.stringify(response.content);
     console.log("原始响应内容:", rawContent);
-    
+
     // 清理JSON标记和格式化字符
-    let cleanedContent = cleanJsonResponse(rawContent);
+    const cleanedContent = cleanJsonResponse(rawContent);
     console.log("清理后的内容:", cleanedContent);
-    
+
     // 解析结构化输出
     const parsedOutput = await parser.parse(cleanedContent);
     console.log("路由分析结果:", parsedOutput);
@@ -261,12 +262,7 @@ const templateAgentNode = async (
 ): Promise<{
   messages?: BaseMessage[];
   generatedCode?: string | null;
-  fileOperations?: Array<{
-    path: string;
-    content: string;
-    action: string;
-    language?: string;
-  }>;
+  fileOperations?: FileOperation[];
   error?: string;
 }> => {
   console.log(`[RouterAgent] templateAgentNode 开始统一处理模板相关请求`);
@@ -344,7 +340,7 @@ const templateAgentNode = async (
     return {
       messages: result.messages,
       generatedCode: result.generatedCode,
-      fileOperations: result.fileOperations || [], // 添加文件操作
+      fileOperations: result.fileOperations, // 添加文件操作
     };
   } catch (error) {
     console.error(`[RouterAgent] templateAgentNode 处理失败:`, error);
@@ -446,19 +442,19 @@ function cleanJsonResponse(content: string): string {
   // 移除```json 和 ``` 标记
   content = content.replace(/```json\s*/g, "");
   content = content.replace(/```\s*/g, "");
-  
+
   // 移除其他可能的JSON标记
   content = content.replace(/<json>/g, "");
   content = content.replace(/<\/json>/g, "");
-  
+
   // 提取JSON对象（从第一个{到最后一个}）
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     content = jsonMatch[0];
   }
-  
+
   // 清理内容但保持JSON结构
   content = content.trim();
-  
+
   return content;
 }

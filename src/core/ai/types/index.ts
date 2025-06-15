@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * AI服务模块类型定义
  */
@@ -80,6 +81,8 @@ export enum AIMessageType {
   IMAGE = "image",
   /** 文件 */
   FILE = "file",
+  /**错误 */
+  ERROR = "error",
 }
 
 // 模型信息接口
@@ -143,7 +146,7 @@ export interface MessageMetadata {
   // 文件操作
   fileOperations?: Array<{
     path: string;
-    content: string;
+    content?: string;
     action: string;
     language?: string;
   }>;

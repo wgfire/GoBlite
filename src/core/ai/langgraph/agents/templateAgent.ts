@@ -7,14 +7,9 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { Template, TemplateLoadResult } from "@/template/types";
 import { DocumentLoadResult } from "@/core/ai";
 import { invokeModel } from "../utils";
-import { FileOperation } from "../../types/templateResponse";
+import { FileOperation } from "@/core/fileSystem/types"; // 从文件系统类型中导入 FileOperation
 
-import {
-  getTemplateAnalysisPrompt,
-  getTemplateBasedCodeGenerationPrompt,
-  extractTemplateStructure,
-  extractUserRequirements
-} from "../prompts/templatePrompts";
+import { getTemplateAnalysisPrompt, getTemplateBasedCodeGenerationPrompt, extractTemplateStructure, extractUserRequirements } from "../prompts/templatePrompts";
 
 // 响应结构 Schema（支持 content_base64，可兼容 create/edit）
 const responseTypeSchema = z.object({
@@ -25,10 +20,11 @@ const responseTypeSchema = z.object({
     .array(
       z.object({
         path: z.string().describe("文件路径"),
-        action: z.enum(["create", "update", "delete"]).describe("操作类型"),
-        content: z.string().optional().describe("代码内容（plain）"), // 默认可选，但会根据 action 进行条件验证
-
-        language: z.string().optional().describe("文件语言"),
+        type: z.enum(["create", "update", "delete", "rename"]).describe("操作类型"), // 将 action 改为 type
+        content: z.string().optional().describe("代码内容（plain）"), // 默认可选，但会根据 type 进行条件验证
+        newPath: z.string().optional().describe("新路径（重命名操作时）"),
+        isFolder: z.boolean().optional().describe("是否为文件夹"),
+        timestamp: z.number().optional().describe("操作时间戳"),
       })
     )
     .optional()
@@ -36,7 +32,7 @@ const responseTypeSchema = z.object({
     .superRefine((fileOperations, ctx) => {
       if (fileOperations) {
         fileOperations.forEach((op, index) => {
-          if ((op.action === "create" || op.action === "update") && op.content === undefined) {
+          if ((op.type === "create" || op.type === "update") && op.content === undefined) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: `文件操作 ${index} (路径: ${op.path}) 的 'content' 字段在 'create' 或 'update' 操作时是必需的。`,
@@ -164,10 +160,7 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
     }
 
     // 使用优化的模板分析提示词
-    const systemPrompt = getTemplateAnalysisPrompt(
-      responseTypeParser.getFormatInstructions(),
-      templateSummary
-    );
+    const systemPrompt = getTemplateAnalysisPrompt(responseTypeParser.getFormatInstructions(), templateSummary);
 
     // 过滤掉其他的系统消息，只保留用户和助手的消息
     const filteredMessages = messages.filter((msg) => msg.getType() === "human" || msg.getType() === "ai");
@@ -187,7 +180,7 @@ const queryTemplateInfoNode = async (state: TemplateAgentStateType, config?: Run
       // 使用增强的响应解析器
       console.log(`[TemplateAgent] 解析器处理内容`);
 
-      const parsedResponse = await responseTypeParser.parse(cleanJsonResponse(content));    //EnhancedResponseParser.parseResponse(content, responseTypeSchema);
+      const parsedResponse = await responseTypeParser.parse(cleanJsonResponse(content)); //EnhancedResponseParser.parseResponse(content, responseTypeSchema);
       console.log(`[TemplateAgent] 解析到的响应类型:`, parsedResponse);
 
       // 创建AI回复消息
@@ -262,11 +255,7 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
     console.log(`[TemplateAgent] 提取到用户需求: ${userRequirements.substring(0, 100)}...`);
 
     // 使用优化的基于模板的代码生成提示词
-    const systemPrompt = getTemplateBasedCodeGenerationPrompt(
-      responseTypeParser.getFormatInstructions(),
-      templateStructure,
-      userRequirements
-    );
+    const systemPrompt = getTemplateBasedCodeGenerationPrompt(responseTypeParser.getFormatInstructions(), templateStructure, userRequirements);
 
     // 添加用户消息，以便模型了解具体需求
     const lastUserMessage = messages.filter((m) => m.getType() === "human");
@@ -284,21 +273,20 @@ const generateCodeNode = async (state: TemplateAgentStateType, config?: Runnable
     // 使用多层解析策略
     let responseData: z.infer<typeof responseTypeSchema> | null = null;
     const responseMessage: AIMessage = new AIMessage({
-      content: '',
+      content: "",
     });
-    let fileOperations: FileOperation[] = []
+    let fileOperations: FileOperation[] | undefined = [];
 
     try {
-      responseData = await responseTypeParser.parse(cleanJsonResponse(content))
+      responseData = await responseTypeParser.parse(cleanJsonResponse(content));
       if (responseData) {
         console.log(`[TemplateAgent] 增强解析器成功解析`);
-        fileOperations = responseData.fileOperations
-        responseMessage.content = responseData.content
+        fileOperations = responseData.fileOperations;
+        responseMessage.content = responseData.content;
       }
     } catch (error) {
       console.warn(`[TemplateAgent] 增强解析器失败:`, error);
       console.warn(`[TemplateAgent] 原始模型回复内容 (可能导致解析失败):`, content);
-
     }
 
     return {
@@ -408,7 +396,8 @@ export function createTemplateAgent() {
 // 尝试修复常见的JSON问题
 function fixCommonJsonIssues(jsonStr: string): string {
   // 尝试修复JSON中的换行符问题
-  jsonStr = jsonStr.replace(/\\n/g, "\\n")
+  jsonStr = jsonStr
+    .replace(/\\n/g, "\\n")
     .replace(/\\'/g, "\\'")
     .replace(/\\"/g, '\\"')
     .replace(/\\&/g, "\\&")
@@ -417,8 +406,7 @@ function fixCommonJsonIssues(jsonStr: string): string {
     .replace(/\\b/g, "\\b")
     .replace(/\\f/g, "\\f");
   // 尝试修复JSON中的注释问题
-  jsonStr = jsonStr.replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*$/gm, "");
+  jsonStr = jsonStr.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
   return jsonStr;
 }
 

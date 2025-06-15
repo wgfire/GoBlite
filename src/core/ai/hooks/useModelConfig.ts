@@ -127,7 +127,7 @@ export function useModelConfig() {
           console.log("使用本地存储的模型配置");
         } catch (_) {
           // 解析失败时不使用该配置
-          console.error("解析本地存储的模型配置失败");
+          console.error("解析本地存储的模型配置失败", _);
         }
       }
 
@@ -318,5 +318,6 @@ export function useModelConfig() {
     initializeModelConfig,
     switchModelType,
     setModelKey,
+    resetModelConfig,
   };
 }

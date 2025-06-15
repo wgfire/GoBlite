@@ -64,11 +64,6 @@ export const TemplateForm = ({ template, onSubmit, onClose }: TemplateFormProps)
     return isValid;
   };
 
-  // 验证当前步骤的字段
-  const validateCurrentStep = () => {
-    return validateForm(getCurrentFields());
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -175,20 +170,20 @@ export const TemplateForm = ({ template, onSubmit, onClose }: TemplateFormProps)
             </div>
           </motion.div>
         ) : (
-            <motion.form
-              key="form"
-              onSubmit={handleSubmit}
-              className="p-5 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar"
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 50 }}
-            >
-              {getCurrentFields().map((field) => (
-                <motion.div key={field.id} className="space-y-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-                  <FormField field={field} value={formData[field.id] || ""} onChange={handleChange} error={formErrors[field.id]} />
-                </motion.div>
-              ))}
-            </motion.form>
+          <motion.form
+            key="form"
+            onSubmit={handleSubmit}
+            className="p-5 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar"
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 50 }}
+          >
+            {getCurrentFields().map((field) => (
+              <motion.div key={field.id} className="space-y-2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+                <FormField field={field} value={formData[field.id] || ""} onChange={handleChange} error={formErrors[field.id]} />
+              </motion.div>
+            ))}
+          </motion.form>
         )}
       </AnimatePresence>
 

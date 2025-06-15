@@ -54,7 +54,7 @@ export function getRouterAnalysisPrompt(formatInstructions: string): string {
 
 ## 文件操作说明
 - 仅在 TEMPLATE_CREATION 意图时填写 fileOperations
-- action: "create"(新建)、"update"(修改)、"delete"(删除)
+- type: "create"(新建)、"update"(修改)、"delete"(删除)
 - 根据用户需求预估需要创建的文件
 
 ## 输出格式要求
@@ -69,5 +69,5 @@ ${formatInstructions}
 - explanation: "用户明确要求创建登录页面，属于模板创建意图"
 - next: "templateCreation"
 - content: "我理解您想要创建一个登录页面。我将为您生成相应的模板代码。"
-- fileOperations: [{"path": "login.html", "action": "create", "language": "html"}]`;
+- fileOperations: [{"path": "login.html", "type": "create", "language": "html"}]`;
 }

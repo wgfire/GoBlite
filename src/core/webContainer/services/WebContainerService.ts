@@ -237,10 +237,7 @@ export class WebContainerService {
         try {
           const ports = [3000, 5173, 8080, 4000];
           for (const port of ports) {
-            const checkProcess = await this.webcontainerInstance.spawn("sh", [
-              "-c",
-              `lsof -i:${port} | grep LISTEN || echo "No process on port ${port}"`,
-            ]);
+            const checkProcess = await this.webcontainerInstance.spawn("sh", ["-c", `lsof -i:${port} | grep LISTEN || echo "No process on port ${port}"`]);
 
             // 收集输出
             const outputStream = new WritableStream({
@@ -558,5 +555,8 @@ export class WebContainerService {
 
     console.log("转换后的WebContainer文件结构:", JSON.stringify(result, null, 2));
     return result;
+  }
+  public getRunning() {
+    return this.isRunning;
   }
 }

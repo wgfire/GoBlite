@@ -25,23 +25,43 @@ function Tooltip({ children }: TooltipProps) {
 }
 
 interface TooltipTriggerProps {
-  children: ReactNode;
+  children: React.ReactElement<React.HTMLProps<HTMLElement>>;
   asChild?: boolean;
 }
 
 function TooltipTrigger({ children, asChild = false }: TooltipTriggerProps) {
   const { setOpen } = React.useContext(TooltipContext);
-  const Child = asChild
-    ? React.cloneElement(children as React.ReactElement, {
-        onMouseEnter: () => setOpen(true),
-        onMouseLeave: () => setOpen(false),
-      })
-    : children;
 
+  if (asChild) {
+    // 当 asChild 为 true 时，将事件处理器合并到子元素的 props 中
+    return React.cloneElement(children, {
+      onMouseEnter: (event: React.MouseEvent<HTMLElement>) => {
+        setOpen(true);
+        // 调用子元素可能已有的 onMouseEnter
+        if (typeof children.props.onMouseEnter === 'function') {
+          children.props.onMouseEnter(event);
+        }
+      },
+      onMouseLeave: (event: React.MouseEvent<HTMLElement>) => {
+        setOpen(false);
+        // 调用子元素可能已有的 onMouseLeave
+        if (typeof children.props.onMouseLeave === 'function') {
+          children.props.onMouseLeave(event);
+        }
+      },
+    });
+  }
+
+  // 当 asChild 为 false 时，渲染一个 span 元素来处理事件
   return (
-    <div onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      {Child}
-    </div>
+    <span
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      // 确保 span 元素可以聚焦，以便键盘导航
+      tabIndex={0}
+    >
+      {children}
+    </span>
   );
 }
 

@@ -7,8 +7,7 @@ import "./PreviewArea.css";
 export const PreviewArea: React.FC<PreviewAreaProps> = ({
   url = "",
   isRunning = false,
-  onRefresh,
-  onStop, 
+  onRefresh
 }) => {
   const { viewMode, isLoading, changeViewMode, refresh, updateUrl, openInNewWindow, handleIframeLoad } = usePreview();
 

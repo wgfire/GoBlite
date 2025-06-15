@@ -37,11 +37,18 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
   return <DialogContext.Provider value={{ open: isOpen, setOpen: handleOpenChange }}>{children}</DialogContext.Provider>;
 }
 
-function DialogTrigger({ children }: { children: ReactNode }) {
+function DialogTrigger({ children }: { children: React.ReactElement<React.HTMLAttributes<HTMLElement>> }) {
   const { setOpen } = React.useContext(DialogContext);
 
-  return React.cloneElement(children as React.ReactElement, {
-    onClick: () => setOpen(true),
+  const child = React.Children.only(children);
+
+  return React.cloneElement(child, {
+    onClick: (event: React.MouseEvent<HTMLElement>) => {
+      setOpen(true);
+      if (typeof child.props.onClick === 'function') {
+        child.props.onClick(event);
+      }
+    },
   });
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { FileItem } from "../core/fileSystem/types";
 
 export interface TemplateFile {

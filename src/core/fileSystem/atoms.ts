@@ -159,7 +159,7 @@ export const findAndUpdateItemHelper = (items: FileItem[], path: string, updateF
 };
 
 // 派生原子：查找文件或文件夹
-export const findItemAtom = atom(null, (get, set, path: string) => {
+export const findItemAtom = atom(null, (get, _set, path: string) => {
   const files = get(filesAtom);
   return findItemHelper(files, path);
 });

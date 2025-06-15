@@ -61,8 +61,8 @@ export const AIResponseHandler: React.FC<AIResponseHandlerProps> = ({ content })
       <div className="mt-2 mb-4">
         <div className="relative rounded-md overflow-hidden">
           <img 
-            src={content.content} 
-            alt={content.metadata?.alt || "AI生成的图像"} 
+            src={content.imageUrl} 
+            alt={content.imageUrl || "AI生成的图像"} 
             className="max-w-full h-auto rounded-md"
           />
           <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 flex justify-between items-center">
@@ -77,7 +77,7 @@ export const AIResponseHandler: React.FC<AIResponseHandlerProps> = ({ content })
                 // 下载图像
                 const link = document.createElement('a');
                 link.href = content.content;
-                link.download = content.metadata?.filename || 'ai-generated-image.png';
+                link.download = content.content || 'ai-generated-image.png';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
@@ -94,13 +94,13 @@ export const AIResponseHandler: React.FC<AIResponseHandlerProps> = ({ content })
 
   // 处理文件内容
   if (content.type === AIMessageType.FILE) {
-    const fileInfo = content.metadata?.fileInfo;
+    const fileInfo = content.filePath;
     
     return (
       <div className="mt-2 mb-4 p-4 bg-gray-800 rounded-md">
         <div className="flex items-center">
           <FiFile className="mr-2 text-blue-400" />
-          <span className="text-sm font-medium">{fileInfo?.name || '文件'}</span>
+          <span className="text-sm font-medium">{fileInfo || '文件'}</span>
         </div>
         <div className="mt-2 flex space-x-2">
           <Button 
@@ -108,8 +108,8 @@ export const AIResponseHandler: React.FC<AIResponseHandlerProps> = ({ content })
             size="sm"
             onClick={() => {
               // 打开文件
-              if (fileInfo?.path) {
-                const file = fileSystem.findItem(fileSystem.files, fileInfo.path);
+              if (fileInfo) {
+                const file = fileSystem.findItem(fileSystem.files, fileInfo);
                 if (file) {
                   fileSystem.openFile(file);
                 }

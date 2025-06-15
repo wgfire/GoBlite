@@ -3,6 +3,7 @@
  */
 
 import { Document } from "langchain/document";
+import { FileOperation, FileOperationType } from "@/core/fileSystem/types"; // 从文件系统类型中导入
 
 /**
  * 模板响应类型枚举
@@ -12,32 +13,6 @@ export enum TemplateResponseType {
   TEMPLATE_INFO = "TEMPLATE_INFO",
   /** 代码生成 */
   CODE_GENERATION = "CODE_GENERATION"
-}
-
-/**
- * 文件操作类型枚举
- */
-export enum FileOperationType {
-  /** 创建文件 */
-  CREATE = "create",
-  /** 更新文件 */
-  UPDATE = "update",
-  /** 删除文件 */
-  DELETE = "delete"
-}
-
-/**
- * 文件操作接口
- */
-export interface FileOperation {
-  /** 文件路径 */
-  path: string;
-  /** 文件内容 */
-  content: string;
-  /** 操作类型 */
-  action: FileOperationType;
-  /** 文件语言（可选） */
-  language?: string;
 }
 
 /**
@@ -82,39 +57,6 @@ export function createFileOperationsFromDocuments(documents: Document[]): FileOp
   return documents.map(doc => ({
     path: doc.metadata.path || `file_${Date.now()}.txt`,
     content: doc.pageContent,
-    action: FileOperationType.CREATE,
-    language: getLanguageFromPath(doc.metadata.path || '')
+    type: FileOperationType.CREATE,
   }));
-}
-
-/**
- * 从文件路径获取语言
- * @param path 文件路径
- * @returns 语言
- */
-function getLanguageFromPath(path: string): string {
-  const extension = path.split('.').pop()?.toLowerCase() || '';
-  
-  const extensionMap: Record<string, string> = {
-    'js': 'javascript',
-    'ts': 'typescript',
-    'jsx': 'jsx',
-    'tsx': 'tsx',
-    'html': 'html',
-    'css': 'css',
-    'scss': 'scss',
-    'json': 'json',
-    'md': 'markdown',
-    'py': 'python',
-    'java': 'java',
-    'c': 'c',
-    'cpp': 'cpp',
-    'go': 'go',
-    'rs': 'rust',
-    'rb': 'ruby',
-    'php': 'php',
-    'sh': 'bash'
-  };
-  
-  return extensionMap[extension] || 'plaintext';
 }

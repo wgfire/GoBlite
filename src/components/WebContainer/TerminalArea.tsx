@@ -137,7 +137,7 @@ export const TerminalArea: React.FC<TerminalAreaProps> = ({
   const activeTab = getActiveTab();
 
   // 格式化终端行（处理命令行前缀）
-  const formatTerminalLine = (line: string, index: number, lines: string[]) => {
+  const formatTerminalLine = (line: string, index: number) => {
     // 如果是命令行（以$开头）
     if (line.startsWith('$ ')) {
       return (
@@ -225,8 +225,8 @@ export const TerminalArea: React.FC<TerminalAreaProps> = ({
             transition={{ duration: 0.2 }}
           >
             <div className="terminal-content" ref={terminalContentRef}>
-              {activeTab.content.map((line, index, array) => 
-                formatTerminalLine(line, index, array)
+              {activeTab.content.map((line, index) => 
+                formatTerminalLine(line, index)
               )}
             </div>
             
