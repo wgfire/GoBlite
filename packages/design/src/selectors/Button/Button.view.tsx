@@ -28,7 +28,7 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
         const handler = event.handler;
 
         if (handler) {
-          handler({ target: e.currentTarget, eventName: event.name as string, data: "携带的数据", window });
+          handler({ target: e.currentTarget, eventName: event.name as string, data: "携带的数据" });
         }
       }
     } else if (events.onClick.type === "script") {

@@ -3,8 +3,8 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import dts from "vite-plugin-dts";
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, path.resolve(__dirname, "./"), "");
-  console.log(mode, "design构建信息", env);
+  loadEnv(mode, path.resolve(__dirname, "./"), "");
+  // console.log(mode, "design构建信息", env);
   return {
     plugins: [
       react(),

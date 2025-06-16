@@ -7,14 +7,12 @@ import { Text as TextEdit } from "./Text/Text.edit";
 import { Button as ButtonEdit } from "./Button/Button.edit";
 import { Image as ImageEdit } from "./Image/Image.edit";
 import { App as AppEdit } from "./App/App.edit";
-import { NonFarm as NonFarmEdit } from "./NonFarm/NonFarm.edit";
 
 // 导入视图模式组件
 import { Container as ContainerView } from "./Container/Container.view";
 import { Text as TextView } from "./Text/Text.view";
 import { Button as ButtonView } from "./Button/Button.view";
 import { Image as ImageView } from "./Image/Image.view";
-import { NonFarm as NonFarmView } from "./NonFarm/NonFarm.view";
 
 import { App as AppView } from "./App/App.view";
 
@@ -53,14 +51,6 @@ export const internalBusinessComponents: BusinessComponents[] = [
     viewResolver: ImageView,
     description: "图片",
     category: "基础组件"
-  },
-  {
-    name: "NonFarm",
-    icon: React.createElement(AppWindow, { size: 20 }),
-    editResolver: NonFarmEdit,
-    viewResolver: NonFarmView,
-    description: "非农",
-    category: "业务组件"
   },
   {
     name: "App", // 'App' 通常作为根组件或特殊容器

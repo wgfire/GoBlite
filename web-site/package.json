@@ -17,7 +17,8 @@
     "react-dom": "^18.2.0",
     "ahooks": "^3.8.1",
     "lodash-es": "^4.17.21",
-    "use-immer": "^0.10.0"
+    "use-immer": "^0.10.0",
+    "lucide-react":"0.515.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",

@@ -5,7 +5,7 @@ import { assets } from "../data/assets";
 import { useUploadService } from "@/hooks/useUploadService";
 import { saveSource } from "@/api/module/topic/saveSource";
 import { toast } from "@go-blite/shadcn/hooks";
-
+import { businessComponents } from "../selectors";
 interface DesignPageClientProps {
   devices: DesignContextProps["device"];
   templates: DesignContextProps["templates"];
@@ -31,14 +31,6 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates,
       }
     }
 
-    // 您之前的日志，适配新的变量名
-    console.log(
-      "Schema to use in DesignProvider:",
-      schemaToUse,
-      "First language from device:",
-      firstLanguageFromDevice
-    );
-
     // 确定最终使用的语言：优先使用 langCode，其次是设备中的第一个可用语言，最后是默认的 "zh-CN"
     const languageToUse = langCode || firstLanguageFromDevice || "zh-CN";
 
@@ -51,7 +43,8 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates,
         device: "mobile",
         pageTemplate: "static-download",
         language: languageToUse
-      }
+      },
+      resolver: businessComponents
     };
   }, [devices, templates, langCode]);
 

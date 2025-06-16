@@ -1,4 +1,4 @@
-import { BaseStyle, CommonComponentProps } from "@/types/schema";
+import { BaseStyle, CommonComponentProps } from "@go-blite/design";
 
 export interface ContainerStyle extends BaseStyle {
   fillSpace?: boolean;

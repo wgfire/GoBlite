@@ -1,7 +1,7 @@
 import React from "react";
 import { NonFarmProps } from "./type";
-import { useNode } from "@craftjs/core";
-import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
+import { useNode } from "@go-blite/design";
+import { SettingsComponentProps, SettingsHOC } from "@go-blite/design";
 
 const NonFarmSettingsComponent: React.FC<SettingsComponentProps<NonFarmProps>> = ({ Settings }) => {
   const { props, displayName } = useNode(node => ({
@@ -16,17 +16,23 @@ const NonFarmSettingsComponent: React.FC<SettingsComponentProps<NonFarmProps>> =
           <Settings.Section defaultOpen title={"组件名称"}>
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
           </Settings.Section>
+          <Settings.Section title="发布时间" defaultOpen={true}>
+            <Settings.ItemInput propKey="time" type="text" />
+          </Settings.Section>
           <Settings.Section title="尺寸" defaultOpen={true}>
             <div className="grid grid-cols-2 gap-2">
-              <Settings.ItemInput propKey="customStyle.width" type="text" />
-              <Settings.ItemInput propKey="customStyle.height" type="text" />
-            </div>
-          </Settings.Section>
-          <Settings.Section defaultOpen title={"边距/圆角"}>
-            <div className="grid grid-cols-2 gap-4">
-              <Settings.ItemSlide propKey="style.margin" min={0} max={100} step={1} label="外边距" />
-              <Settings.ItemSlide propKey="style.padding" min={0} max={100} step={1} label="内边距" />
-              <Settings.ItemSlide propKey="style.borderRadius" min={0} max={100} step={1} label="圆角" />
+              <Settings.ItemSInput
+                label="宽度"
+                propKey="customStyle.width"
+                units={["px", "%", "auto", "vw", "vh"]}
+                slider={true}
+              />
+              <Settings.ItemSInput
+                label="高度"
+                propKey="customStyle.height"
+                units={["px", "%", "auto", "vw", "vh"]}
+                slider={true}
+              />
             </div>
           </Settings.Section>
         </Settings.Content>

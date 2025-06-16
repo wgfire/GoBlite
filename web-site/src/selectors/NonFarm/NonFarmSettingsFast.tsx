@@ -1,7 +1,7 @@
 import React from "react";
 import { NonFarmProps } from "./type";
-import { useNode } from "@craftjs/core";
-import SettingsHOC, { SettingsComponentProps } from "@/components/Settings/index";
+import { useNode } from "@go-blite/design";
+import { SettingsComponentProps, SettingsHOC } from "@go-blite/design";
 
 const NonFarmSettingsFastComponent: React.FC<SettingsComponentProps<NonFarmProps>> = ({ Settings }) => {
   const { props, displayName } = useNode(node => ({

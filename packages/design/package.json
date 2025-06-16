@@ -48,7 +48,7 @@
     "@go-blite/events": "workspace:*",
     "@go-blite/shadcn": "workspace:*",
     "clsx": "^2.1.1",
-    "lucide-react": "^0.439.0",
+    "lucide-react":"0.515.0",
     "re-resizable": "6.1.0",
     "react-color": "^2.19.3",
     "react-contenteditable": "^3.3.7",
