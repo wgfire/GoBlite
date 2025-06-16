@@ -25,6 +25,19 @@ Go-Blite 为静态站点生成平台,支持从Figma导入静态资源到平台�
 - ESLint
 - Prettier
 
+## 本地开发
+
+### 提交规范
+
+本项目使用 Commitizen 进行规范化的 Git Commit Message 提交。
+请使用以下命令进行提交：
+
+```bash
+npm run commit
+```
+
+按照提示完成提交信息的填写。
+
 ## 开发指南
 
 ### 协作方式
