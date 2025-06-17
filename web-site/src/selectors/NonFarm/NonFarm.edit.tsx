@@ -7,7 +7,7 @@ import { NonFarmProps } from "./type";
 import { useDateSubtr } from "./hooks/useDateSubtr";
 import { NonFarmSettings } from "./NonFarmSettings";
 import { NonFarmSettingsFast } from "./NonFarmSettingsFast";
-import { useAppEnv } from "@/hooks/useAppEnv";
+import { useAppEnv } from "../hooks/useAppEnv";
 
 export const defaultProps: NonFarmProps = {
   style: {

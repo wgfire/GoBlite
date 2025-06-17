@@ -6,6 +6,7 @@ import { useNode, UserComponent } from "@go-blite/design";
 import { NonFarmProps } from "./type";
 import { useDateSubtr } from "./hooks/useDateSubtr";
 import { ElementBoxView } from "@go-blite/design";
+import { useAppEnv } from "../hooks/useAppEnv";
 export const defaultProps: NonFarmProps = {
   style: {
     background: "#996741"
@@ -31,6 +32,8 @@ export const NonFarm: UserComponent<Partial<React.PropsWithChildren<NonFarmProps
     ...defaultProps,
     ...props
   };
+  const { envData } = useAppEnv();
+  console.log(envData, "envData");
   const { time, style, customStyle } = options;
 
   const { days, hours, minutes, seconds, isEnd } = useDateSubtr(time);
