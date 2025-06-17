@@ -94,6 +94,7 @@
   },
   "devDependencies": {
     "globby": "^14.0.2",
+    "vite": "^6.3.5",
     "vite-plugin-dts": "^4.2.3",
     "vite-plugin-tailwind-purgecss": "^0.3.5"
   }
