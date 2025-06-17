@@ -1,6 +1,102 @@
 import { Extension } from "@codemirror/state";
 
 /**
+ * API参数类型定义
+ */
+export interface ApiParamType {
+  /**
+   * 参数名称
+   */
+  name: string;
+  /**
+   * 参数类型
+   */
+  type: string;
+  /**
+   * 参数描述
+   */
+  description?: string;
+  /**
+   * 是否必填
+   */
+  required?: boolean;
+  /**
+   * 子参数，用于对象类型参数
+   */
+  children?: ApiParamType[];
+  /**
+   * 示例值
+   */
+  example?: string;
+}
+
+/**
+ * API方法定义
+ */
+export interface ApiMethodType {
+  /**
+   * 方法名称
+   */
+  name: string;
+  /**
+   * 方法描述
+   */
+  description?: string;
+  /**
+   * 方法参数
+   */
+  params?: ApiParamType[];
+  /**
+   * 返回值类型
+   */
+  returnType?: string;
+  /**
+   * 返回值描述
+   */
+  returnDescription?: string;
+  /**
+   * 示例代码
+   */
+  example?: string;
+}
+
+/**
+ * API对象定义
+ */
+export interface ApiObjectType {
+  /**
+   * 对象名称
+   */
+  name: string;
+  /**
+   * 对象描述
+   */
+  description?: string;
+  /**
+   * 对象方法
+   */
+  methods?: ApiMethodType[];
+  /**
+   * 对象属性
+   */
+  properties?: ApiParamType[];
+}
+
+/**
+ * 自定义API定义
+ */
+export interface CustomApiType {
+  /**
+   * 全局对象
+   */
+  globals?: Record<string, any>;
+  /**
+   * API定义
+   */
+  apis?: ApiObjectType[];
+}
+
+/**
  * 支持的语言类型
  */
 export type LanguageType = "javascript" | "css" | "html" | "json";
@@ -46,6 +142,10 @@ export interface CodeEditorProps {
    * 自定义全局对象
    */
   globals?: Record<string, any>;
+  /**
+   * 自定义API定义，用于代码提示
+   */
+  customApis?: CustomApiType;
   /**
    * 自定义样式
    */
@@ -96,4 +196,8 @@ export interface CodeEditorDialogProps {
    * 自定义全局对象，用于代码提示
    */
   globals?: Record<string, any>;
+  /**
+   * 自定义API定义，用于代码提示
+   */
+  customApis?: CustomApiType;
 }

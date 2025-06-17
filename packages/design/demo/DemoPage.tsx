@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { Design } from "../src/editor/Design";
 import { DesignProvider, useDesignContext } from "../src/context";
-import { DesignContextProps } from "@/context/Provider";
+import { DesignContextProps, Devices } from "@/context/Provider";
 import { devices } from "./mock";
 
 const DemoContent: React.FC = () => {
@@ -11,12 +11,13 @@ const DemoContent: React.FC = () => {
 
   return <Design />;
 };
+const localDevice: Devices = localStorage.getItem("schema") ? JSON.parse(localStorage.getItem("schema")!) : devices;
 
 export const DemoPage: React.FC = () => {
   const initialProps = useMemo<Partial<DesignContextProps>>(
     () => ({
-      device: devices,
-      schema: devices[0].languagePageMap["zh"].schema,
+      device: localDevice,
+      schema: localDevice[0].languagePageMap["zh-CN"].schema,
       assets: [
         {
           name: "icon",

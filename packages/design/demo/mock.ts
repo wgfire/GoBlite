@@ -4,7 +4,7 @@ export const devices: Devices = [
     type: "desktop",
     pageTemplate: "static-download",
     languagePageMap: {
-      zh: {
+      "zh-CN": {
         schema: {
           ROOT: {
             type: {
@@ -170,7 +170,7 @@ export const devices: Devices = [
     type: "mobile",
     pageTemplate: "static-download",
     languagePageMap: {
-      zh: {
+      "zh-CN": {
         schema: {
           ROOT: {
             type: {
@@ -615,7 +615,7 @@ export const devices: Devices = [
             },
             parent: "ROOT",
             hidden: false,
-            nodes: ["uTv0w73DHQ", "Dqn3KXSlPe", "OhmxHpZXPR", "Nh9sigpQCh", "3QFRNi3NqV"],
+            nodes: ["uTv0w73DHQ", "Dqn3KXSlPe", "Nh9sigpQCh", "3QFRNi3NqV"],
             linkedNodes: {}
           },
           "HHakc-yk-T": {
@@ -2267,42 +2267,6 @@ export const devices: Devices = [
             nodes: [],
             linkedNodes: {}
           },
-          OhmxHpZXPR: {
-            type: {
-              resolvedName: "NonFarm"
-            },
-            isCanvas: false,
-            props: {
-              style: {
-                background: "rgba(139, 95, 63, 1)"
-              },
-              events: {},
-              customStyle: {
-                position: "relative",
-                left: "58.1875px",
-                top: "13px",
-                justifySelf: "start",
-                alignSelf: "start",
-                transform: "none",
-                willChange: "none",
-                zIndex: "auto",
-                maxWidth: 420,
-                maxHeight: 533
-              },
-              animation: [],
-              time: "2025-06-04T20:30:00",
-              timeText: "非农公布倒计时",
-              dayText: "天"
-            },
-            displayName: "NonFarm",
-            custom: {
-              displayName: "NonFarm"
-            },
-            parent: "4yxYoZXyt6",
-            hidden: false,
-            nodes: [],
-            linkedNodes: {}
-          },
           uTv0w73DHQ: {
             type: {
               resolvedName: "Container"
@@ -3448,7 +3412,7 @@ export const devices: Devices = [
           }
         }
       },
-      en: {
+      "en-US": {
         schema: {
           ROOT: {
             type: {
@@ -3605,7 +3569,7 @@ export const devices: Devices = [
           }
         }
       },
-      vn: {
+      "vi-VN": {
         schema: {
           ROOT: {
             type: {
@@ -3843,7 +3807,7 @@ export const devices: Devices = [
     type: "tablet",
     pageTemplate: "static-download",
     languagePageMap: {
-      zh: {
+      "zh-CN": {
         schema: {
           ROOT: {
             type: {

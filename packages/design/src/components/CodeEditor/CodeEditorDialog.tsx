@@ -18,7 +18,8 @@ const CodeEditorDialog: React.FC<CodeEditorDialogProps> = ({
   theme = "light",
   onConfirm,
   onCancel,
-  globals = {}
+  globals = {},
+  customApis
 }) => {
   // 当前编辑的代码
   const [code, setCode] = useState(initialValue);
@@ -44,30 +45,38 @@ const CodeEditorDialog: React.FC<CodeEditorDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[800px]">
+      <DialogContent className="sm:max-w-[800px] w-[95vw] code-editor-dialog">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        <div className="py-4">
-          <Tabs defaultValue={currentLanguage} value={currentLanguage} onValueChange={handleLanguageChange}>
+        <div className="py-4 w-full">
+          <Tabs
+            defaultValue={currentLanguage}
+            value={currentLanguage}
+            onValueChange={handleLanguageChange}
+            className="w-full"
+          >
             <TabsList className="mb-2">
               <TabsTrigger value="javascript">JavaScript</TabsTrigger>
               <TabsTrigger value="css">CSS</TabsTrigger>
               <TabsTrigger value="html">HTML</TabsTrigger>
               <TabsTrigger value="json">JSON</TabsTrigger>
             </TabsList>
-            <TabsContent value={currentLanguage} className="mt-0">
-              <CodeEditor
-                language={currentLanguage}
-                initialValue={code}
-                theme={theme}
-                onChange={setCode}
-                height="400px"
-                autoFocus
-                globals={globals}
-                className="border rounded-md"
-              />
+            <TabsContent value={currentLanguage} className="mt-0 w-full">
+              <div className="w-full overflow-hidden border rounded-md code-editor-wrapper">
+                <CodeEditor
+                  language={currentLanguage}
+                  initialValue={code}
+                  theme={theme}
+                  onChange={setCode}
+                  height="400px"
+                  autoFocus
+                  globals={globals}
+                  customApis={customApis}
+                  className="w-full"
+                />
+              </div>
             </TabsContent>
           </Tabs>
         </div>

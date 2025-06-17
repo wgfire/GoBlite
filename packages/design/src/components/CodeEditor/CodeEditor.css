@@ -1,0 +1,114 @@
+/* CodeEditor 组件样式 */
+.code-editor-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.code-editor {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* CodeMirror 编辑器样式覆盖 */
+.code-editor .cm-editor {
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.code-editor .cm-scroller {
+  overflow: auto !important;
+  font-family: monospace !important;
+  max-width: 100% !important;
+}
+
+.code-editor .cm-content {
+  width: max-content !important;
+  min-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.code-editor .cm-line {
+  padding: 0 4px !important;
+  white-space: pre !important;
+  overflow: visible !important;
+}
+
+/* 确保行号区域高度正确 */
+.code-editor .cm-gutters {
+  min-height: 100% !important;
+}
+
+/* 确保长行可以水平滚动 */
+.code-editor .cm-lineWrapping {
+  white-space: pre !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+/* 添加一些基本的语法高亮样式 */
+.code-editor .cm-string {
+  color: #a31515 !important;
+}
+
+.code-editor .cm-keyword {
+  color: #0000ff !important;
+}
+
+.code-editor .cm-comment {
+  color: #008000 !important;
+}
+
+.code-editor .cm-number {
+  color: #098658 !important;
+}
+
+/* 确保对话框和标签页内容宽度正确 */
+.code-editor-dialog {
+  max-width: 800px !important;
+  width: 95vw !important;
+}
+
+.code-editor-dialog .cm-editor {
+  max-width: 100% !important;
+}
+
+.code-editor-dialog .cm-content {
+  max-width: 100% !important;
+}
+
+.code-editor-wrapper {
+  width: 100% !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+/* 强制设置编辑器宽度 */
+.code-editor-dialog .cm-editor,
+.code-editor-dialog .cm-scroller,
+.code-editor-dialog .cm-content {
+  max-width: 760px !important; /* 800px对话框减去内边距 */
+}
+
+/* 确保滚动条显示 */
+.code-editor-dialog .cm-scroller::-webkit-scrollbar {
+  height: 8px !important;
+  width: 8px !important;
+}
+
+.code-editor-dialog .cm-scroller::-webkit-scrollbar-track {
+  background: #f1f1f1 !important;
+}
+
+.code-editor-dialog .cm-scroller::-webkit-scrollbar-thumb {
+  background: #888 !important;
+  border-radius: 4px !important;
+}
+
+.code-editor-dialog .cm-scroller::-webkit-scrollbar-thumb:hover {
+  background: #555 !important;
+}

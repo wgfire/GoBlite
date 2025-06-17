@@ -49,9 +49,9 @@ export const Sidebar: React.FC = () => {
       )}
     >
       <Tabs defaultValue="props" className="h-full w-[300px]">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="props">属性配置</TabsTrigger>
-          <TabsTrigger value="build">部署信息</TabsTrigger>
+          {/* <TabsTrigger value="build">部署信息</TabsTrigger> */}
         </TabsList>
         <TabsContent value="props" className="h-full overflow-auto mt-0">
           <SidebarItem title={name} icon={<Edit className="h-4 w-4" />} className="">

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { EditorState, Extension, Compartment } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirror/view";
 import { indentOnInput, syntaxHighlighting, defaultHighlightStyle, bracketMatching } from "@codemirror/language";
-import { history, historyKeymap } from "@codemirror/commands";
+import { history, historyKeymap, defaultKeymap, insertNewlineAndIndent } from "@codemirror/commands";
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { javascript } from "@codemirror/lang-javascript";
 import { css } from "@codemirror/lang-css";
@@ -21,7 +21,15 @@ const baseExtensions = [
   closeBrackets(),
   indentOnInput(),
   syntaxHighlighting(defaultHighlightStyle),
-  keymap.of([...closeBracketsKeymap, ...historyKeymap])
+  // 添加默认键盘映射，包含回车键处理
+  keymap.of([...defaultKeymap, ...closeBracketsKeymap, ...historyKeymap]),
+  // 特别确保回车键能够正常工作
+  keymap.of([
+    {
+      key: "Enter",
+      run: insertNewlineAndIndent
+    }
+  ])
 ];
 
 /**
@@ -111,8 +119,23 @@ export const useCodeMirror = ({
         readOnlyCompartment.of(EditorView.editable.of(!readOnly)),
         heightCompartment.of(
           EditorView.theme({
-            "&": { height: heightStyle },
-            ".cm-scroller": { fontFamily: "monospace", overflow: "auto" }
+            "&": { height: heightStyle, width: "100%", overflow: "hidden" },
+            ".cm-scroller": {
+              fontFamily: "monospace",
+              overflow: "auto",
+              maxWidth: "100%"
+            },
+            ".cm-content": {
+              width: "max-content",
+              minWidth: "100%"
+            },
+            ".cm-line": {
+              padding: "0 4px",
+              whiteSpace: "pre"
+            },
+            ".cm-gutters": {
+              minHeight: "100%"
+            }
           })
         ),
         extraExtCompartment.of(extensions),
@@ -161,8 +184,23 @@ export const useCodeMirror = ({
     viewRef.current.dispatch({
       effects: heightCompartment.reconfigure(
         EditorView.theme({
-          "&": { height: heightStyle },
-          ".cm-scroller": { fontFamily: "monospace", overflow: "auto" }
+          "&": { height: heightStyle, width: "100%", overflow: "hidden" },
+          ".cm-scroller": {
+            fontFamily: "monospace",
+            overflow: "auto",
+            maxWidth: "100%"
+          },
+          ".cm-content": {
+            width: "max-content",
+            minWidth: "100%"
+          },
+          ".cm-line": {
+            padding: "0 4px",
+            whiteSpace: "pre"
+          },
+          ".cm-gutters": {
+            minHeight: "100%"
+          }
         })
       )
     });

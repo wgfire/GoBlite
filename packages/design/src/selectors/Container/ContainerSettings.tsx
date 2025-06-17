@@ -98,8 +98,12 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
         </Settings.Content>
 
         <Settings.Content>
-          <Settings.ItemInput type="textarea" propKey="events.onClick" label="加载完成事件" />
-          <Settings.ItemInput type="textarea" propKey="events.onClick" label="点击事件" />
+          <Settings.ItemScript
+            propKey="events.onClick"
+            label="自定义脚本"
+            buttonText="编写脚本"
+            language="javascript"
+          />
         </Settings.Content>
       </Settings.Layout>
     </Settings>

@@ -39,16 +39,6 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
               ]}
             />
           </Settings.Section>
-          <Settings.Section defaultOpen title={"文本对齐"}>
-            <Settings.ItemSelect
-              propKey="style.textAlign"
-              options={[
-                { value: "left", label: "左对齐" },
-                { value: "center", label: "居中" },
-                { value: "right", label: "右对齐" }
-              ]}
-            />
-          </Settings.Section>
           <Settings.Section defaultOpen title={"外边距"}>
             <Settings.Margins
               propKeyPrefix="customStyle.margin"

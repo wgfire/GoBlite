@@ -7,6 +7,7 @@ import { ButtonProps } from "./type";
 import { ButtonSettingsFast } from "./ButtonSettingsFast";
 import ElementBox from "@/components/ElementBox";
 import { useUpdateEffect } from "ahooks";
+import { executeUserScript } from "@/utils/script/scriptRunner";
 
 export const defaultProps: Partial<ButtonProps> = {
   style: {
@@ -51,7 +52,7 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
   }, [variant]);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    console.log(events, "按钮点击事件", eventScripts);
+    if (enabled) return;
     if (events?.onClick?.type === "builtin") {
       const eventValue = Object.values(eventScripts);
       const event = eventValue.find(item => {
@@ -64,6 +65,12 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
           handler({ target: e.currentTarget, eventName: event.name as string, data: "携带的数据" });
         }
       }
+    } else {
+      executeUserScript(events?.onClick?.value || "", {
+        window,
+        element: e.currentTarget,
+        event: e.nativeEvent as Event
+      });
     }
   };
 
