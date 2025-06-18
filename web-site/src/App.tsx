@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DesignPageClient from "./components/DesignPageClient";
 import { devices } from "./data/mock";
-import { DesignContextProps, Loading } from "@go-blite/design";
+import { DesignContextProps, Loading, ROOT_NODE, SerializedNodes } from "@go-blite/design";
 import { getTemplates, getTopicConfig, Templates } from "@/api/module/topic/getTemplates";
 import { useMount } from "ahooks";
 const App: React.FC = () => {
@@ -51,6 +51,12 @@ const App: React.FC = () => {
       const result = await res.json();
       const data = result.value.TopicConfigInfo;
       const devicesData: DesignContextProps["device"] = JSON.parse(data.content);
+      devicesData.forEach(item => {
+        const pageData = item.languagePageMap[data.langCode].schema as SerializedNodes;
+        if (pageData && pageData[ROOT_NODE]) {
+          pageData[ROOT_NODE].props.title = data.h5Title;
+        }
+      });
       console.log(devicesData, "专题配置");
       setDevicesData(devicesData);
       setLang(data.langCode);

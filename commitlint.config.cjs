@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require("node:fs");
 const path = require("node:path");
 const packages = fs.readdirSync(path.resolve(__dirname, "packages"));

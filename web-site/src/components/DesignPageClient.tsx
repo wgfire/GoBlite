@@ -41,7 +41,6 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates,
       assets: assets as unknown as DesignContextProps["assets"],
       currentInfo: {
         device: "mobile",
-        pageTemplate: "static-download",
         language: languageToUse
       },
       resolver: businessComponents

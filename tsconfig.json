@@ -16,6 +16,11 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "packages/shadcn/scripts/autoIndexImport.js", "builder/templates/vite-react-template/src/hooks/useDeviceType.js"],
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "packages/shadcn/scripts/autoIndexImport.js",
+    "builder/templates/operation-template/src/hooks/useDeviceType.js"
+  ],
   "exclude": ["node_modules"]
 }

@@ -35,8 +35,8 @@ RUN if [ "$BUILD_ENV" = "demo" ]; then \
 # 这会在 /app/builder_deploy 目录下创建一个包含解除引用的 node_modules 的副本
 RUN pnpm --filter @go-blite/builder deploy /app/builder_deploy --prod --legacy
 
-# 为 vite-react-template 模板创建一个可部署的版本
-RUN pnpm --filter vite-react-template deploy /app/vite_react_template_deploy --legacy --config.public-hoist-pattern[]='*'
+# 为 operation-template 模板创建一个可部署的版本
+RUN pnpm --filter operation-template deploy /app/vite_react_template_deploy --legacy --config.public-hoist-pattern[]='*'
 
 # 为 web-site 包创建一个可部署的版本 (包含其生产依赖)
 RUN pnpm --filter web-site deploy /app/web_site_deployed --prod --legacy --config.public-hoist-pattern[]='*'
@@ -63,8 +63,8 @@ COPY --from=builder /app/web_site_deployed /app/web-site
 # 为 builder 服务设置环境变量，以定位 web-site selectors
 ENV WEB_SITE_SELECTORS_ABSOLUTE_PATH=/app/web-site/src/selectors
 
-# 然后用专门部署的、包含 node_modules 的 vite-react-template 覆盖相应路径
-COPY --from=builder /app/vite_react_template_deploy /app/builder/templates/vite-react-template
+# 然后用专门部署的、包含 node_modules 的 operation-template 覆盖相应路径
+COPY --from=builder /app/vite_react_template_deploy /app/builder/templates/operation-template
 
 COPY --from=builder /app/builder/.env ./builder/.env
 

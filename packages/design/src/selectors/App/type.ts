@@ -8,4 +8,5 @@ export interface ContainerStyle extends BaseStyle {
 
 export interface AppProps extends CommonComponentProps {
   style: ContainerStyle;
+  title?: string;
 }

@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 const TEMP_SCHEMA_DIR = process.env.TEMP_SCHEMA_DIR || path.join(__dirname, "..", "..", "schemas");
 const BUILD_OUTPUT_DIR = process.env.BUILD_OUTPUT_DIR || path.join(__dirname, "..", "..", "build_outputs");
 const VITE_TEMPLATE_DIR =
-  process.env.VITE_TEMPLATE_DIR || path.join(__dirname, "..", "..", "templates", "vite-react-template");
+  process.env.VITE_TEMPLATE_DIR || path.join(__dirname, "..", "..", "templates", "operation-template");
 const finalWebSiteSelectorsPath =
   process.env.WEB_SITE_SELECTORS_ABSOLUTE_PATH || path.resolve(__dirname, "../../../web-site/src/selectors");
 

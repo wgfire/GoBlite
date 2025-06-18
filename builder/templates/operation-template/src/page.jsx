@@ -32,7 +32,6 @@ const findSchemaForDevice = (deviceConfig, primaryLang, fallbackLang) => {
 const Page = ({ langCode, allSchemas }) => {
   const deviceType = useDeviceType();
   const [currentSchema, setCurrentSchema] = useState(null);
-  const [pageTemplate, setPageTemplate] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -53,7 +52,6 @@ const Page = ({ langCode, allSchemas }) => {
     setIsLoading(true);
     setError(null);
     setCurrentSchema(null);
-    setPageTemplate(null);
 
     const fallbackLanguage = "en-US";
     let foundSchemaInfo = null;
@@ -87,7 +85,6 @@ const Page = ({ langCode, allSchemas }) => {
 
     if (foundSchemaInfo && foundSchemaInfo.schema) {
       setCurrentSchema(foundSchemaInfo.schema);
-      setPageTemplate(foundSchemaInfo.template);
       console.log(foundSchemaInfo.schema, "当前渲染的schema");
     } else {
       setError(`Schema not found for language "${langCode}" on "${deviceType}" device after all fallbacks.`);
@@ -97,10 +94,10 @@ const Page = ({ langCode, allSchemas }) => {
   }, [langCode, deviceType, structuredSchemas]);
 
   useEffect(() => {
-    if (pageTemplate) {
-      document.title = `Page: ${pageTemplate} (${langCode.toUpperCase()}) - ${deviceType}`;
+    if (currentSchema) {
+      document.title = `${currentSchema["ROOT"].props.title}`;
     }
-  }, [pageTemplate, langCode, deviceType]);
+  }, [currentSchema]);
 
   if (isLoading) return <div>Loading content...</div>;
   if (error) return <div>Error: {error}</div>;

@@ -6,7 +6,7 @@ export type PageTemplate = "static-download";
 
 export interface Device {
   type: DeviceType;
-  pageTemplate: PageTemplate;
+  pageTemplate?: PageTemplate;
   languagePageMap: {
     [key: string]: {
       schema: SerializedNodes | string;
@@ -31,7 +31,7 @@ export interface DesignContextProps {
   device: Devices;
   currentInfo: {
     device: DeviceType;
-    pageTemplate: PageTemplate;
+    pageTemplate?: PageTemplate;
     language: string;
   };
   schema?: string | SerializedNodes;

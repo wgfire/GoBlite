@@ -35,7 +35,6 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
       device: initialProps.device,
       currentInfo: initialProps.currentInfo ?? {
         device: "desktop",
-        pageTemplate: "static-download",
         language: "zh-CN"
       },
       showSidebar: initialProps.showSidebar || false,

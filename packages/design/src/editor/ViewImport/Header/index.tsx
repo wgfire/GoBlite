@@ -76,7 +76,6 @@ export const Header: React.FC = () => {
         } else {
           draft.device.push({
             type: device,
-            pageTemplate: draft.currentInfo.pageTemplate,
             languagePageMap: {
               [syncLanguage]: { schema: syncSchema }
             }
