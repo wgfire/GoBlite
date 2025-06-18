@@ -101,7 +101,7 @@ export const Header: React.FC = () => {
   };
 
   // 处理上传/下载按钮点击
-  const downloadHandle = useCallback(async () => {
+  const downloadHandle = useCallback(() => {
     try {
       setIsDownloading(true);
       BusinessEvents.emit("onDownload", { device: device });

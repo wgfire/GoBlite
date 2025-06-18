@@ -8,6 +8,7 @@ import { useDateSubtr } from "./hooks/useDateSubtr";
 import { NonFarmSettings } from "./NonFarmSettings";
 import { NonFarmSettingsFast } from "./NonFarmSettingsFast";
 import { useAppEnv } from "../hooks/useAppEnv";
+import { useEffect } from "react";
 
 export const defaultProps: NonFarmProps = {
   style: {
@@ -42,7 +43,9 @@ export const NonFarm: UserComponent<Partial<React.PropsWithChildren<NonFarmProps
     ...props
   };
   const { envData } = useAppEnv();
-  console.log(envData, "envData");
+  useEffect(() => {
+    console.log(envData, "envData");
+  }, [envData]);
   const { time, style, customStyle } = options;
 
   const { days, hours, minutes, seconds } = useDateSubtr(time);

@@ -50,6 +50,7 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates,
 
   console.log("initialProps: " + initialProps);
   const handleDownloadEvent = async (data: { device: DesignContextProps["device"] }) => {
+    console.log(data.device, "data.device");
     const params = {
       device: data.device,
       projectName: "mt-goblite-web-" + id

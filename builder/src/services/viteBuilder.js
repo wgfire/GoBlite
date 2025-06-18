@@ -14,7 +14,18 @@ const TEMP_SCHEMA_DIR = process.env.TEMP_SCHEMA_DIR || path.join(__dirname, ".."
 const BUILD_OUTPUT_DIR = process.env.BUILD_OUTPUT_DIR || path.join(__dirname, "..", "..", "build_outputs");
 const VITE_TEMPLATE_DIR =
   process.env.VITE_TEMPLATE_DIR || path.join(__dirname, "..", "..", "templates", "vite-react-template");
-const finalWebSiteSelectorsPath = path.resolve(__dirname, "../../../web-site/src/selectors");
+const finalWebSiteSelectorsPath =
+  process.env.WEB_SITE_SELECTORS_ABSOLUTE_PATH || path.resolve(__dirname, "../../../web-site/src/selectors");
+
+if (process.env.WEB_SITE_SELECTORS_ABSOLUTE_PATH) {
+  logger.info(
+    `Using WEB_SITE_SELECTORS_ABSOLUTE_PATH from environment: ${process.env.WEB_SITE_SELECTORS_ABSOLUTE_PATH}`
+  );
+} else {
+  logger.info(
+    `WEB_SITE_SELECTORS_ABSOLUTE_PATH not set, resolving path relative to __dirname: ${finalWebSiteSelectorsPath}`
+  );
+}
 // 确保目录存在
 fs.ensureDirSync(TEMP_SCHEMA_DIR);
 fs.ensureDirSync(BUILD_OUTPUT_DIR);
@@ -114,12 +125,18 @@ async function createProjectFromTemplate(buildId, schemaData) {
     await fs.writeJson(tempSchemaPath, schemaData, { spaces: 2 });
     logger.info(`[Build ${buildId}] Schema data written to temporary project: ${tempSchemaPath}`);
 
+    // Escape for safe embedding in JS strings and RegExp
+    const escapedFinalWebSiteSelectorsPath = finalWebSiteSelectorsPath.replace(/\\/g, "\\\\");
+    logger.info(
+      `[Build ${buildId}] Escaped finalWebSiteSelectorsPath for Vite config: ${escapedFinalWebSiteSelectorsPath}`
+    );
+
     const viteConfigContent = `
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-const webSiteSelectorsPath = "${finalWebSiteSelectorsPath}";
+const webSiteSelectorsPath = "${escapedFinalWebSiteSelectorsPath}";
 
 console.log("Generated Vite config: webSiteSelectorsPath resolved to:", webSiteSelectorsPath);
 if (!webSiteSelectorsPath) {
@@ -174,8 +191,14 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@web-site-selectors": webSiteSelectorsPath
-    }
+      "@web-site-selectors": webSiteSelectorsPath,
+      // 可以根据需要添加更多别名
+    },
+    dedupe: [
+      'react',
+      'react-dom',
+      '@go-blite/design'
+    ]
   }
 });
 `;
