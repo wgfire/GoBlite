@@ -89,7 +89,8 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
         variant={variant}
         size={size}
         style={{
-          ...style
+          ...style,
+          fontSize: parseInt(style?.fontSize as string) + "px"
         }}
         className="rounded-sm"
       >

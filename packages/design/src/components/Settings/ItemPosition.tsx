@@ -52,11 +52,12 @@ export function ItemPosition<T = any>({ label, propKeyPrefix, className }: ItemP
   };
 
   useEffect(() => {
-    if (currentPosition === "sticky") {
+    if (currentPosition === "sticky" || currentPosition === "fixed") {
       const styleObj = get(allProps, propKeyPrefix);
       setProp(props => {
         const newStyle = { ...styleObj };
         newStyle.gridArea = "auto";
+        newStyle.zIndex = 1000;
         set(props as object, propKeyPrefix, newStyle);
       });
     } else {
@@ -65,6 +66,7 @@ export function ItemPosition<T = any>({ label, propKeyPrefix, className }: ItemP
         if (styleObj) {
           const newStyleObj = { ...styleObj };
           newStyleObj["gridArea"] = "1/1/2/2";
+          newStyleObj.zIndex = "auto";
           set(props as object, propKeyPrefix, newStyleObj);
         }
       });

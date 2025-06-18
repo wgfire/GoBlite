@@ -33,6 +33,19 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
           </Settings.Section>
           <Settings.Section defaultOpen title={"按钮文本"}>
             <Settings.ItemInput propKey="text" placeholder="输入按钮文本" />
+            <Settings.ItemInput propKey="style.fontSize" type="number" placeholder="文字大小" />
+          </Settings.Section>
+          <Settings.Section defaultOpen title={"变体"}>
+            <Settings.ItemSelect
+              propKey="variant"
+              label="按钮样式"
+              options={[
+                { value: "default", label: "默认" },
+                { value: "destructive", label: "破坏性" },
+                { value: "secondary", label: "次要" },
+                { value: "link", label: "链接" }
+              ]}
+            />
           </Settings.Section>
           <Settings.Section defaultOpen title={"尺寸设置"}>
             <Settings.ItemSInput
@@ -48,29 +61,6 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
               slider={true}
             />
           </Settings.Section>
-          <Settings.Section defaultOpen title={"变体"}>
-            <Settings.ItemSelect
-              propKey="variant"
-              label="按钮样式"
-              options={[
-                { value: "default", label: "默认" },
-                { value: "destructive", label: "破坏性" },
-                { value: "secondary", label: "次要" },
-                { value: "outline", label: "轮廓" },
-                { value: "ghost", label: "幽灵" },
-                { value: "link", label: "链接" }
-              ]}
-            />
-          </Settings.Section>
-          <Settings.Section title={"外边距"}>
-            <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
-          </Settings.Section>
-          <Settings.Section title={"内边距"}>
-            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
-          </Settings.Section>
-          <Settings.Section title={"定位"}>
-            <Settings.ItemPosition propKeyPrefix="customStyle" />
-          </Settings.Section>
         </Settings.Content>
 
         <Settings.Content>
@@ -82,7 +72,15 @@ const ButtonSettingsComponent: React.FC<SettingsComponentProps<ButtonProps>> = (
             <Settings.ItemColor propKey="style.color" label={<span className="text-sm text-gray-400">文字颜色</span>} />
           </Settings.Section>
           <Settings.ItemSlide propKey="style.borderRadius" label="圆角" min={0} max={100} step={1} />
-
+          <Settings.Section title={"外边距"}>
+            <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section title={"内边距"}>
+            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section title={"定位"}>
+            <Settings.ItemPosition propKeyPrefix="customStyle" />
+          </Settings.Section>
           {/* 安全区域设置，仅在移动设备模式下显示 */}
           {currentInfo.device === "mobile" && (
             <Settings.Section title={"安全区域设置"} defaultOpen>

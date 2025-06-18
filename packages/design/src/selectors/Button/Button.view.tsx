@@ -59,7 +59,8 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
         variant={variant}
         size={size}
         style={{
-          ...style
+          ...style,
+          fontSize: parseInt(style?.fontSize as string) + "px"
         }}
         className="rounded-sm w-full h-full"
       >

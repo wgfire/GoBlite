@@ -73,16 +73,6 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
               <Settings.ItemSlide propKey="style.gap" min={0} max={100} step={1} label="内部间距" />
             </div>
           </Settings.Section> */}
-
-          <Settings.Section title={"外边距"}>
-            <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
-          </Settings.Section>
-          <Settings.Section title={"内边距"}>
-            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
-          </Settings.Section>
-          <Settings.Section title={"定位"}>
-            <Settings.ItemPosition propKeyPrefix="customStyle" />
-          </Settings.Section>
         </Settings.Content>
 
         <Settings.Content>
@@ -94,6 +84,15 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
           ></Settings.ItemSelect>
           <Settings.Section defaultOpen title={"圆角"}>
             <Settings.ItemSInput label="圆角" propKey="style.borderRadius" units={["px", "%"]} slider={true} />
+          </Settings.Section>
+          <Settings.Section title={"外边距"}>
+            <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section title={"内边距"}>
+            <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
+          </Settings.Section>
+          <Settings.Section title={"定位"}>
+            <Settings.ItemPosition propKeyPrefix="customStyle" />
           </Settings.Section>
         </Settings.Content>
 

@@ -18,12 +18,11 @@ export const ButtonSettingsComponentFast: React.FC<SettingsComponentProps<Button
             { value: "default", label: "默认" },
             { value: "destructive", label: "破坏性" },
             { value: "secondary", label: "次要" },
-            { value: "outline", label: "轮廓" },
-            { value: "ghost", label: "幽灵" },
             { value: "link", label: "链接" }
           ]}
         />
         <Settings.ItemColor propKey="style.color" label="字体颜色" />
+        <Settings.ItemInput propKey="style.fontSize" label="文字大小" />
         <Settings.GridLayout label="快速排列" justifyKey="customStyle.justifySelf" alignKey="customStyle.alignSelf" />
       </div>
     </Settings>

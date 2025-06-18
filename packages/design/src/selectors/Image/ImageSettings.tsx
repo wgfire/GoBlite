@@ -32,7 +32,7 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
 
   return (
     <Settings defaultValue={props}>
-      <Settings.Layout tabs={["基础配置", "行为"]}>
+      <Settings.Layout tabs={["基础配置", "样式", "行为"]}>
         <Settings.Content>
           <Settings.Section defaultOpen title={"组件名称"}>
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
@@ -74,16 +74,27 @@ const ImageSettingsComponent: React.FC<SettingsComponentProps<ImageProps>> = ({ 
             <Settings.ItemInput propKey="src" label="图片地址" placeholder="输入图片URL" />
             <Settings.ItemInput propKey="alt" label="替代文本" placeholder="输入提示文案" />
           </Settings.Section>
+        </Settings.Content>
+        <Settings.Content>
           <Settings.Section defaultOpen title={"外边距"}>
             <Settings.Margins propKeyPrefix="style.margin" label="外边距" units={["px", "%", "vw"]} slider={false} />
           </Settings.Section>
           <Settings.Section defaultOpen title={"内边距"}>
             <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
           </Settings.Section>
+          <Settings.Section title={"定位"}>
+            <Settings.ItemPosition propKeyPrefix="customStyle" />
+          </Settings.Section>
         </Settings.Content>
         <Settings.Content>
           <Settings.Section title="点击事件" defaultOpen>
             <Settings.ItemSelect propKey="events.onClick" label="" options={eventOptions} />
+            <Settings.ItemScript
+              propKey="events.onClick"
+              label="自定义脚本"
+              buttonText="编写脚本"
+              language="javascript"
+            />
           </Settings.Section>
           <Settings.Section title="水印设置" defaultOpen>
             <div className="flex items-center space-x-2 justify-between mt-2">

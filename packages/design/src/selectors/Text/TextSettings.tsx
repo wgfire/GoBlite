@@ -39,6 +39,15 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
               ]}
             />
           </Settings.Section>
+          <Settings.Section defaultOpen title={"颜色设置"}>
+            <Settings.ItemColor propKey="style.color" label="文本颜色" />
+          </Settings.Section>
+          <Settings.Section defaultOpen title={"阴影设置"}>
+            <Settings.ItemSlide propKey="style.shadow" min={0} max={1} step={0.1} label="文本阴影" />
+          </Settings.Section>
+        </Settings.Content>
+
+        <Settings.Content>
           <Settings.Section defaultOpen title={"外边距"}>
             <Settings.Margins
               propKeyPrefix="customStyle.margin"
@@ -54,15 +63,6 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
               units={["px", "%", "vw"]}
               slider={false}
             />
-          </Settings.Section>
-        </Settings.Content>
-
-        <Settings.Content>
-          <Settings.Section defaultOpen title={"颜色设置"}>
-            <Settings.ItemColor propKey="style.color" label="文本颜色" />
-          </Settings.Section>
-          <Settings.Section defaultOpen title={"阴影设置"}>
-            <Settings.ItemSlide propKey="style.shadow" min={0} max={1} step={0.1} label="文本阴影" />
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>
