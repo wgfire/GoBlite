@@ -12,23 +12,4 @@ export const useCanvasSubscribe = () => {
   const dragNode = useDragNode();
   const guides = useGuides();
   useEventManager([doubleClick, contextMenu, guides, dragNode, autoToContainer]);
-
-  //   registerHook({
-  //     id: "customFeature",
-  //     handlers: {
-  //       mouseDown: data => {
-  //         console.log(data, "自定义");
-  //       }
-  //     }
-  //   });
-  //   registerHooks([
-  //     {
-  //       id: "customFeature2",
-  //       handlers: {
-  //         mouseDown: data => {
-  //           console.log(data, "自定义2");
-  //         }
-  //       }
-  //     }
-  //   ]);
 };

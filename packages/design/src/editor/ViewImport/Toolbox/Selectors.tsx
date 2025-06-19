@@ -41,7 +41,7 @@ export const Selectors: React.FC = () => {
               {componentsInCategory.map((comp: BusinessComponents) => {
                 let elementProps: any = {};
                 if (comp.name === "Container") {
-                  elementProps = { style: { ...ContainerDefaultProps.style, width: "100px", height: "100px" } };
+                  elementProps = { style: { ...ContainerDefaultProps.style } };
                 } else if (comp.name === "Text") {
                   elementProps = { text: "文本" };
                 } else if (comp.name === "Button") {

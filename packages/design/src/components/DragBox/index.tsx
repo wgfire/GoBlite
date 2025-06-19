@@ -26,6 +26,7 @@ export const DragBox = forwardRef<HTMLDivElement, React.PropsWithChildren<DragBo
       mouseOffset: { x: 0, y: 0 }
     });
     const elementRef = useRef<HTMLElement | undefined>(undefined);
+    const flowMode = useRef<boolean>(false);
 
     const handleDragStart = useCallback((e: React.MouseEvent) => {
       dragStateRef.current.isDragging = true;
@@ -44,7 +45,11 @@ export const DragBox = forwardRef<HTMLDivElement, React.PropsWithChildren<DragBo
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
       const container = elements.find(el => {
         const node = query.getNodes()[el.getAttribute("data-id")!];
-        return node?.data.isCanvas;
+        if (node?.data.isCanvas) {
+          flowMode.current = node?.data.props.layoutMode === "flow";
+          return true;
+        }
+        return false;
       }) as HTMLElement;
 
       if (container && elementRef.current) {
@@ -57,19 +62,22 @@ export const DragBox = forwardRef<HTMLDivElement, React.PropsWithChildren<DragBo
     }, []);
 
     const createCallback = (nodeTree: NodeTree) => {
-      console.log(nodeTree, "nodeTree");
-      // const leftPercent = `${Number((dragStateRef.current.mouseOffset.x * 100).toFixed(2))}%`;
-      //const topPercent = `${Number((dragStateRef.current.mouseOffset.y * 100).toFixed(2))}%`;
       const leftPx = `${dragStateRef.current.mouseOffset.x}px`;
       const topPx = `${dragStateRef.current.mouseOffset.y}px`;
       actions.setProp(nodeTree.rootNodeId, props => {
-        props.customStyle = {
-          ...props.customStyle,
-          position: "relative",
-          left: leftPx,
-          top: topPx
-          //transform: `translate(${dragStateRef.current.mouseOffset.x}px, ${dragStateRef.current.mouseOffset.y}px)`
-        };
+        if (flowMode.current) {
+          props.customStyle = {
+            ...props.customStyle,
+            position: "relative"
+          };
+        } else {
+          props.customStyle = {
+            ...props.customStyle,
+            position: "relative",
+            left: leftPx,
+            top: topPx
+          };
+        }
       });
     };
 
@@ -99,16 +107,11 @@ export const DragBox = forwardRef<HTMLDivElement, React.PropsWithChildren<DragBo
     );
 
     return (
-      <div
-        draggable // Ensure the div is draggable for onDragStart etc. to work reliably
-        onDrag={handleDrag}
-        onDragStart={handleDragStart}
-        ref={internalDivRef} // Use the combined ref callback
-      >
+      <div draggable onDrag={handleDrag} onDragStart={handleDragStart} ref={internalDivRef}>
         {children}
       </div>
     );
   }
 );
 
-DragBox.displayName = "DragBox"; // Good practice for forwardRef components
+DragBox.displayName = "DragBox";

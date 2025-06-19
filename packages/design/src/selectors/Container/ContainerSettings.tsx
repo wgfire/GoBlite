@@ -43,36 +43,34 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
               />
             </div>
           </Settings.Section>
-          {/* <Settings.Section defaultOpen title={"布局"}>
+          <Settings.Section defaultOpen title={"布局"}>
             <Settings.ItemSelect
-              className="w-full"
-              propKey="style.display"
-              defaultValue="flex"
+              label="布局模式"
+              propKey="layoutMode"
+              defaultValue="absolute"
               options={[
-                { value: "block", label: "常规" },
-                { value: "flex", label: "Flex 布局" },
-                { value: "grid", label: "Grid 布局" }
+                { value: "absolute", label: "绝对定位模式" },
+                { value: "flow", label: "流式布局模式" }
               ]}
             />
-            {props.style.display === "grid" && (
-              <div className="grid grid-cols-1 gap-2">
+            {props.layoutMode === "flow" && (
+              <>
                 <Settings.ItemSelect
-                  propKey="style.gridArea"
-                  label="排列方式"
+                  label="网格流向"
+                  propKey="style.gridAutoFlow"
+                  defaultValue="row"
                   options={[
-                    { value: "1 / 1 / 2 / 2", label: "自由排列" },
-                    { value: "auto", label: "默认排列" }
+                    { value: "row", label: "纵向排列" },
+                    { value: "column", label: "横向排列" },
+                    { value: "row dense", label: "纵向密集" },
+                    { value: "column dense", label: "横向密集" }
                   ]}
                 />
-              </div>
+                <Settings.ItemSlide label="元素间距" propKey="style.gap" min={0} max={50} step={1} />
+              </>
             )}
-            {props.style.display === "flex" && (
-              <Settings.FlexLayout label="弹性布局" justifyKey="style.justifyContent" alignKey="style.alignItems" />
-            )}
-            <div className="grid grid-cols-1 gap-4">
-              <Settings.ItemSlide propKey="style.gap" min={0} max={100} step={1} label="内部间距" />
-            </div>
-          </Settings.Section> */}
+            {props.layoutMode === "absolute" && <Settings.ItemPosition propKeyPrefix="customStyle" />}
+          </Settings.Section>
         </Settings.Content>
 
         <Settings.Content>
@@ -90,9 +88,6 @@ const ContainerSettingsComponent: React.FC<SettingsComponentProps<ContainerProps
           </Settings.Section>
           <Settings.Section title={"内边距"}>
             <Settings.Margins propKeyPrefix="style.padding" label="内边距" units={["px", "%", "vw"]} slider={false} />
-          </Settings.Section>
-          <Settings.Section title={"定位"}>
-            <Settings.ItemPosition propKeyPrefix="customStyle" />
           </Settings.Section>
         </Settings.Content>
 

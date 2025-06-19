@@ -119,15 +119,16 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
     console.log(drag, "缩放");
     if (!target || !(target instanceof HTMLElement)) return;
 
-    target.style.transform = drag.transform;
-
     if (scalaText && initialFontSizeRef.current) {
       const { value: initialValue, unit } = initialFontSizeRef.current;
-      // Moveable 的 scale 是一个数组 [scaleX, scaleY]，通常文本缩放我们关心平均缩放或特定方向
-      // 这里我们简单取 scale[0] 作为缩放因子，或者根据需求调整
       const currentScale = Array.isArray(scale) ? (scale[0] + scale[1]) / 2 : 1; // 使用平均缩放值
       const newFontSize = initialValue * currentScale;
       target.style.fontSize = `${newFontSize.toFixed(4)}${unit}`;
+      setProp((props: any) => {
+        props.style.fontSize = Number(newFontSize.toFixed(4));
+      });
+    } else {
+      target.style.transform = drag.transform;
     }
   };
   const handleScaleEnd = ({ target, lastEvent }: OnScaleEnd) => {
@@ -135,14 +136,7 @@ export const Moveables: React.FC<React.PropsWithChildren<ResizerProps>> = props 
     if (!target || !(target instanceof HTMLElement)) return;
 
     if (scalaText && initialFontSizeRef.current && lastEvent) {
-      const { value: initialValue, unit } = initialFontSizeRef.current;
-      const finalScale = Array.isArray(lastEvent.scale) ? (lastEvent.scale[0] + lastEvent.scale[1]) / 2 : 1; // 使用平均缩放值
-      const newNumericFontSize = initialValue * finalScale;
-      setProp((props: any) => {
-        props.style.fontSize = `${Number(newNumericFontSize.toFixed(4))}${unit}`;
-      });
-      // 重置元素的内联 transform，因为属性已更新
-      //target.style.transform = "none";
+      target.style.transform = "none";
       initialFontSizeRef.current = null; // 重置初始字体大小
     } else if (!scalaText) {
       // 非文本缩放逻辑保持不变

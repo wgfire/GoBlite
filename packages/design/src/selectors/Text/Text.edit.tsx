@@ -16,7 +16,6 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
-
   return (
     <ElementBox
       ref={node => node && connect(node)}

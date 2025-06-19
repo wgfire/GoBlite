@@ -7,6 +7,7 @@ import { omit } from "lodash-es";
 import ElementBox from "@/components/ElementBox";
 import { useUpdateAppHeight } from "@/hooks/useUpdateAppHeight";
 import { executeUserScript } from "@/utils/script/scriptRunner";
+
 export const defaultProps: ContainerProps = {
   style: {
     display: "grid",
@@ -19,13 +20,17 @@ export const defaultProps: ContainerProps = {
     gridTemplateColumns: "minmax(0px, 1fr)",
     flexDirection: "row",
     maxHeight: 100000,
-    maxWidth: 100000
+    maxWidth: 100000,
+    gridAutoFlow: "row", // 默认纵向排列
+    gap: 8
   },
   events: {},
   customStyle: {
-    width: "10%",
-    height: "10%"
+    width: "100px",
+    height: "100px"
   },
+  // 默认使用绝对定位模式
+  layoutMode: "absolute",
   animation: []
 };
 
@@ -40,36 +45,53 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
     ...props
   };
   useUpdateAppHeight(id);
-  const { style, events, customStyle, children } = options;
-  const { display, fillSpace, background, backgroundImage, gap } = style;
+  const { style, events, customStyle, children, layoutMode } = options;
+  const { background, backgroundImage, gap, gridAutoFlow } = style;
   useEffect(() => {
     if (events?.onLoad) {
       executeUserScript(events.onLoad.value);
     }
-  }, [events]);
+  }, [events?.onLoad]);
 
   const styleBg = useMemo(() => {
-    // 如果backgroundImage存在，则删除background属性
-
-    return {
-      ...(backgroundImage && backgroundImage !== "none"
-        ? {
-            background: undefined,
-            backgroundImage: `url(${backgroundImage})`,
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-            backgroundSize: "100% 100%"
-          }
-        : { background: background || "rgba(255, 255, 255, 1)" })
-    };
+    const bgStyle: React.CSSProperties = {};
+    if (background) {
+      bgStyle.background = background;
+    }
+    if (backgroundImage && backgroundImage !== "none") {
+      bgStyle.backgroundImage = backgroundImage;
+      bgStyle.backgroundSize = "cover";
+      bgStyle.backgroundPosition = "center";
+      bgStyle.backgroundRepeat = "no-repeat";
+    }
+    return bgStyle;
   }, [background, backgroundImage]);
 
   const styled = useMemo(() => {
     // 移除background属性，以避免与backgroundImage同时存在
-    const styled = { ...omit(style, "background", "backgroundImage"), ...customStyle };
-
-    return styled;
-  }, [display, customStyle, style]);
+    const baseStyle = omit(style, "background", "backgroundImage");
+    // 根据布局模式应用不同的网格策略
+    if (layoutMode === "flow") {
+      // 流式布局：使用网格自动排列
+      return {
+        ...baseStyle,
+        ...customStyle,
+        display: "grid",
+        // 设置网格自动流向
+        gridAutoFlow: gridAutoFlow || "row",
+        // 移除固定的网格模板，让网格自动创建
+        gridTemplateRows: "auto",
+        gridTemplateColumns: "auto",
+        // 设置网格间距
+        gap: gap || 0,
+        // 移除绝对定位相关的属性
+        position: "relative" as const
+      };
+    } else {
+      // 绝对定位模式：使用叠加网格（原有逻辑）
+      return { ...baseStyle, ...customStyle };
+    }
+  }, [style, customStyle, layoutMode, gridAutoFlow, gap]);
 
   return (
     <ElementBox
@@ -78,7 +100,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
       data-id={id}
       style={{
         gap: gap ?? 0,
-        flex: fillSpace ? 1 : "unset",
         ...styleBg,
         ...styled
       }}

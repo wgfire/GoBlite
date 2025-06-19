@@ -6,6 +6,7 @@
 
 import { Moveables, ResizerProps } from "../Resizer/Resizer";
 import { useRef, forwardRef } from "react";
+import { useParentLayoutMode } from "@/hooks/useParentLayoutMode";
 
 export type ElementBoxProps = {
   children: React.ReactNode;
@@ -14,10 +15,21 @@ export type ElementBoxProps = {
   display?: "grid" | "flex";
   animation?: Animation[];
 } & Omit<ResizerProps, "target">;
-const gridStyle = {
+
+// 绝对定位模式的网格样式（原有逻辑）
+const absoluteGridStyle = {
   gridArea: "1 / 1 / 2 / 2",
   alignSelf: "start",
   justifySelf: "start"
+};
+
+// 流式布局模式的样式
+const flowGridStyle = {
+  gridArea: "auto", // 让网格自动分配位置
+  alignSelf: "stretch", // 拉伸填充单元格高度，
+  justifySelf: "stretch", // 拉伸填充单元格宽度
+  minWidth: 0, // 防止内容溢出
+  minHeight: 0 // 防止内容溢出
 };
 
 export const ElementBoxView: React.FC<ElementBoxProps> = props => {
@@ -25,6 +37,11 @@ export const ElementBoxView: React.FC<ElementBoxProps> = props => {
 
   // 生成唯一的DOM ID，避免重复
   const uniqueDomId = `${id}-view`;
+
+  const layoutMode = useParentLayoutMode(id);
+
+  // 根据布局模式选择样式
+  const gridStyle = layoutMode === "absolute" ? absoluteGridStyle : flowGridStyle;
 
   return (
     <div data-id={id} id={uniqueDomId} style={{ ...gridStyle, ...style }}>
@@ -37,8 +54,16 @@ export const ElementBox = forwardRef<HTMLDivElement, ElementBoxProps>((props, re
   const { id, children, style = {}, ...moveProps } = props;
   const targetRef = useRef<HTMLDivElement | null>(null);
 
+  const detectedLayoutMode = useParentLayoutMode(id);
+
+  // 优先使用检测到的父容器布局模式
+  const layoutMode = detectedLayoutMode;
+
   // 生成唯一的DOM ID，避免重复
   const uniqueDomId = `${id}-dom`;
+
+  // 根据布局模式选择样式
+  const gridStyle = layoutMode === "absolute" ? absoluteGridStyle : flowGridStyle;
 
   return (
     <>

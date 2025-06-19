@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowRightCircle } from "lucide-react";
+import { ArrowRightCircle } from "lucide-react"; // 导入 X 图标
 import { useDesignContext } from "@/context";
 
 export interface ContextMenuHocProps {
@@ -25,12 +25,12 @@ export const ContextMenuHoc = React.memo((props: ContextMenuHocProps) => {
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-lg font-semibold">{name}-属性设置</h3>
         <ArrowRightCircle
-          className="h-4 w-4 cursor-pointer"
+          className="h-4 w-4 cursor-pointer text-gray-500 hover:text-gray-700" // 可以调整一下样式
           onClick={() => {
-            window.dispatchEvent(new CustomEvent("closeContextMenu"));
             updateContext(draft => {
               draft.showSidebar = !showSidebar;
             });
+            props.onClose();
           }}
         />
       </div>

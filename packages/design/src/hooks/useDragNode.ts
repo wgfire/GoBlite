@@ -20,7 +20,8 @@ interface DragState {
 
 export const useDragNode = (): HookConfig => {
   const {
-    actions: { setProp }
+    actions: { setProp },
+    query
   } = useEditor();
   const dragState = useRef<DragState>({
     mode: "translate",
@@ -117,12 +118,25 @@ export const useDragNode = (): HookConfig => {
       }
     });
   };
+
   const mouseDrag = (data: Events["mouseDrag"]) => {
     const { target, parentRect, rect } = data;
     if (!parentRect || !rect || !target) return;
 
-    //dragNode(data);
-    switchToAbsolute(data);
+    const parentId = target.parentElement?.dataset.id;
+    if (parentId) {
+      const parentNode = query.node(parentId).get();
+      const parentLayoutMode = parentNode?.data?.props?.layoutMode || "absolute";
+
+      if (parentLayoutMode === "absolute") {
+        switchToAbsolute(data);
+      } else if (parentLayoutMode === "flow") {
+        // 暂不处理
+      }
+    } else {
+      // 默认使用绝对定位
+      switchToAbsolute(data);
+    }
   };
 
   const resetToTranslate = () => {
