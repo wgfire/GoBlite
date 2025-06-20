@@ -3,9 +3,10 @@ import { useEditor } from "@craftjs/core";
 import { Layers } from "@craftjs/layers";
 import clsx from "clsx";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@go-blite/shadcn";
-import { Edit, Layers as LayersIcon, ChevronDown } from "lucide-react";
+import { Edit, Layers as LayersIcon, ChevronDown, Globe } from "lucide-react";
 import { Settings } from "../../Settings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@go-blite/shadcn";
+import { I18nManager } from "@/I18n";
 
 const SidebarItem: React.FC<{
   title: string;
@@ -48,9 +49,10 @@ export const Sidebar: React.FC = () => {
         enabled ? "opacity-100" : "opacity-0 w-0"
       )}
     >
-      <Tabs defaultValue="props" className="h-full w-[300px]">
-        <TabsList className="grid w-full grid-cols-1">
+      <Tabs defaultValue="props" className="h-full w-[350px]">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="props">属性配置</TabsTrigger>
+          <TabsTrigger value="i18n">国际化</TabsTrigger>
           {/* <TabsTrigger value="build">部署信息</TabsTrigger> */}
         </TabsList>
         <TabsContent value="props" className="h-full overflow-auto mt-0">
@@ -59,6 +61,11 @@ export const Sidebar: React.FC = () => {
           </SidebarItem>
           <SidebarItem title="层级" icon={<LayersIcon className="h-4 w-4" />} className="">
             <Layers expandRootOnLoad={true} />
+          </SidebarItem>
+        </TabsContent>
+        <TabsContent value="i18n" className="h-full overflow-auto mt-0">
+          <SidebarItem title="国际化管理" icon={<Globe className="h-4 w-4" />} className="">
+            <I18nManager />
           </SidebarItem>
         </TabsContent>
       </Tabs>

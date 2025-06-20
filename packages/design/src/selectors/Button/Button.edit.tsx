@@ -24,8 +24,10 @@ export const defaultProps: Partial<ButtonProps> = {
   },
   variant: "default",
   size: "default",
-  text: "Button",
-  useSafeArea: true
+  useSafeArea: true,
+  i18n: {
+    button_text: "按钮"
+  }
 };
 
 export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle, events, ...props }) => {
@@ -35,7 +37,8 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
     connectors: { connect }
   } = useNode();
   const { color } = style!;
-  const { text, variant, size } = props;
+  const { variant, size, i18n } = props;
+  const { button_text } = i18n || {};
 
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
@@ -95,12 +98,12 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
         className="rounded-sm"
       >
         <ContentEditable
-          html={text || ""}
+          html={button_text || ""}
           disabled={!enabled}
           style={{ color }}
           onChange={e => {
             setProp((prop: ButtonProps) => {
-              prop.text = e.target.value;
+              prop.i18n.button_text = e.target.value;
             });
           }}
           tagName="h2"

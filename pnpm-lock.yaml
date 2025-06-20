@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@crowdin/crowdin-api-client':
+        specifier: ^1.45.0
+        version: 1.45.0
       ahooks:
         specifier: ^3.8.1
         version: 3.8.1(react@18.3.1)
@@ -227,6 +230,9 @@ importers:
       '@craftjs/layers':
         specifier: 0.2.5
         version: 0.2.5(@craftjs/core@0.2.10(react@18.3.1))(react@18.3.1)(styled-components@6.1.13(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      '@crowdin/crowdin-api-client':
+        specifier: ^1.45.0
+        version: 1.45.0
       '@go-blite/events':
         specifier: workspace:*
         version: link:../events
@@ -843,6 +849,10 @@ packages:
     resolution: {integrity: sha512-TJ0mm7rTacQK/875E5+SzvL90RXMFFQYDLuriawDe7i85Ha9K2vy3ap1sUEqrPCotL1KuaOx+d3CjLFFR6PTmg==}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18
+
+  '@crowdin/crowdin-api-client@1.45.0':
+    resolution: {integrity: sha512-UxWO0psEzIHkJiXTYD10R1o/cSjUuHbqcKE5/lLlDzeORF5farpwK4Cj9GJk7eT4xVhh/NXOt5UN0T+e0RKYvQ==}
+    engines: {node: '>=12.9.0'}
 
   '@dabh/diagnostics@2.0.3':
     resolution: {integrity: sha512-hrlQOIi7hAfzsMqlGSFyVucrx38O+j6wiGOf//H2ecvIEqYN4ADBSS2iLMh5UFyDunCNniUIPk/q3riFv45xRA==}
@@ -6523,6 +6533,12 @@ snapshots:
       react: 18.3.1
       shallowequal: 1.1.0
       tiny-invariant: 1.3.3
+
+  '@crowdin/crowdin-api-client@1.45.0':
+    dependencies:
+      axios: 1.9.0
+    transitivePeerDependencies:
+      - debug
 
   '@dabh/diagnostics@2.0.3':
     dependencies:

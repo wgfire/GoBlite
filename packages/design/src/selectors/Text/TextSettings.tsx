@@ -11,13 +11,13 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
 
   return (
     <Settings defaultValue={props}>
-      <Settings.Layout tabs={["基础配置", "样式"]}>
+      <Settings.Layout tabs={["基础配置", "样式", "多语言"]}>
         <Settings.Content>
           <Settings.Section defaultOpen title={"组件名称"}>
             <Settings.ItemName placeholder="请输入组件名称" value={displayName} />
           </Settings.Section>
 
-          <Settings.ItemInput propKey="text" label="文本内容" placeholder="输入文本内容" />
+          <Settings.ItemInput propKey="i18n.text" label="文本内容" placeholder="输入文本内容" />
 
           <Settings.Section defaultOpen title={"字体设置"}>
             <Settings.ItemInput propKey="style.fontSize" type="number" />
@@ -63,6 +63,11 @@ const TextSettingsComponent: React.FC<SettingsComponentProps<TextProps>> = ({ Se
               units={["px", "%", "vw"]}
               slider={false}
             />
+          </Settings.Section>
+        </Settings.Content>
+        <Settings.Content>
+          <Settings.Section defaultOpen title={"多语言设置"}>
+            <Settings.ItemI18n propKeys={["text"]} label="配置多语言" />
           </Settings.Section>
         </Settings.Content>
       </Settings.Layout>

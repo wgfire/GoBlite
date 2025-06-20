@@ -16,6 +16,7 @@ import { ItemSInput } from "@/components/Settings/ItemSInput";
 import { Margins } from "@/components/Settings/Margins";
 import { ItemPosition } from "./ItemPosition"; // Added ItemPosition import
 import { ItemScript } from "@/components/Settings/ItemScript";
+import { ItemI18n } from "@/components/Settings/ItemI18n"; // 添加多语言设置组件
 
 export interface SettingsProps<T extends Record<string, any>> {
   defaultValue: T;
@@ -38,6 +39,7 @@ export interface SettingsComponent<T extends Record<string, any>> extends React.
   Margins: typeof Margins<T>;
   ItemPosition: typeof ItemPosition<T>; // Added ItemPosition to interface
   ItemScript: typeof ItemScript<T>;
+  ItemI18n: typeof ItemI18n; // 添加多语言设置组件到接口
 }
 
 function createSettings<T extends Record<string, any>>(): SettingsComponent<T> {
@@ -73,6 +75,7 @@ function createSettings<T extends Record<string, any>>(): SettingsComponent<T> {
   Settings.Margins = Margins;
   Settings.ItemPosition = ItemPosition; // Added ItemPosition to Settings object
   Settings.ItemScript = ItemScript;
+  Settings.ItemI18n = ItemI18n; // 添加多语言设置组件到Settings对象
   return Settings;
 }
 

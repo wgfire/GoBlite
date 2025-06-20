@@ -23,7 +23,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
     // console.error("Design context is not available in ViewImport");
     return null;
   }
-  const { currentInfo, showSidebar } = designContext;
+  const { currentInfo } = designContext;
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -63,7 +63,7 @@ export const ViewImport: React.FC<ViewImportProps> = ({ children }) => {
             <Canvas className="h-full w-full overflow-y-auto overflow-x-hidden hidden-scroll">{children}</Canvas>
           </div>
         </div>
-        {showSidebar && <Sidebar />}
+        {<Sidebar />}
       </div>
     </div>
   );

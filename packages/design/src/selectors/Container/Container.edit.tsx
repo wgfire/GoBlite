@@ -54,17 +54,15 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
   }, [events?.onLoad]);
 
   const styleBg = useMemo(() => {
-    const bgStyle: React.CSSProperties = {};
-    if (background) {
-      bgStyle.background = background;
-    }
-    if (backgroundImage && backgroundImage !== "none") {
-      bgStyle.backgroundImage = backgroundImage;
-      bgStyle.backgroundSize = "cover";
-      bgStyle.backgroundPosition = "center";
-      bgStyle.backgroundRepeat = "no-repeat";
-    }
-    return bgStyle;
+    // 如果backgroundImage存在，则设置size
+    return backgroundImage && backgroundImage !== "none"
+      ? {
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+          backgroundSize: "100% 100%"
+        }
+      : { background: background || "rgba(255, 255, 255, 1)" };
   }, [background, backgroundImage]);
 
   const styled = useMemo(() => {
@@ -88,7 +86,6 @@ export const Container: UserComponent<Partial<React.PropsWithChildren<ContainerP
         position: "relative" as const
       };
     } else {
-      // 绝对定位模式：使用叠加网格（原有逻辑）
       return { ...baseStyle, ...customStyle };
     }
   }, [style, customStyle, layoutMode, gridAutoFlow, gap]);

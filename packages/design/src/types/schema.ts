@@ -100,6 +100,9 @@ interface CommonComponentProps {
     onClick?: EventConfig;
     onLoad?: EventConfig;
   };
+  i18n?: {
+    [key: string]: string;
+  };
 }
 
 export type { BaseStyle, CommonComponentProps };

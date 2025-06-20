@@ -18,7 +18,7 @@ export const ItemSlide = <T,>({ label, min, max, step, propKey }: ItemSliderProp
 
   return (
     <div className="pt-[10px]">
-      <Label className="text-sm">{label}</Label>
+      <Label className="text-sm text-gray-400">{label}</Label>
       <div className="flex items-center gap-2">
         <Slider
           min={min}

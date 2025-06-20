@@ -6,7 +6,7 @@ import { TextSettingsFast } from "./TextSettingFast";
 import ElementBox from "@/components/ElementBox";
 
 export const Text: UserComponent<Partial<TextProps>> = props => {
-  const { style, text, customStyle } = props;
+  const { style, customStyle, i18n = {} } = props;
   const { shadow } = style || {};
   const {
     id,
@@ -16,6 +16,7 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
+  const { text } = i18n;
   return (
     <ElementBox
       ref={node => node && connect(node)}
@@ -32,7 +33,7 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
         html={text || ""}
         disabled={!enabled}
         onChange={e => {
-          setProp(prop => (prop.text = e.target.value), 500);
+          setProp(prop => (prop.i18n.text = e.target.value), 500);
         }}
         tagName="p"
         style={{
@@ -61,6 +62,9 @@ Text.craft = {
       shadow: 0
     },
     text: "Text",
+    i18n: {
+      text: "文本"
+    },
     customStyle: {}
   },
   related: {

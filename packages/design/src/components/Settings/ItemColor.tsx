@@ -50,7 +50,7 @@ export const ItemColor = <T,>({ label, propKey }: defaultProps<T>) => {
 
   return (
     <div className="space-y-2">
-      <Label className="flex-shrink-0 text-sm flex items-center">{label}</Label>
+      <Label className="flex-shrink-0 text-sm flex items-center text-gray-400">{label}</Label>
       <div className="flex items-center">
         <Input
           type="text"

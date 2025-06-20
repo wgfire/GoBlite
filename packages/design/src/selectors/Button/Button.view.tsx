@@ -13,7 +13,8 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
     connectors: { connect, drag }
   } = useNode();
   const { color } = style;
-  const { text, variant, size } = props;
+  const { variant, size, i18n } = props;
+  const { button_text } = i18n;
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     console.log(events, "按钮点击事件", eventScripts);
@@ -64,7 +65,13 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
         }}
         className="rounded-sm w-full h-full"
       >
-        <ContentEditable html={text || ""} disabled={true} style={{ color }} tagName="h2" onChange={() => void 0} />
+        <ContentEditable
+          html={button_text || ""}
+          disabled={true}
+          style={{ color }}
+          tagName="h2"
+          onChange={() => void 0}
+        />
       </ShadcnButton>
     </ElementBoxView>
   );
@@ -78,7 +85,9 @@ Button.craft = {
     },
     variant: "default",
     size: "default",
-    text: "Button",
+    i18n: {
+      button_text: "按钮"
+    },
     // 默认不启用安全区域
     useSafeArea: false,
     customStyle: {}

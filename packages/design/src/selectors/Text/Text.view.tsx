@@ -5,12 +5,13 @@ import { TextProps } from "./type";
 import { ElementBoxView } from "@/components/ElementBox";
 
 export const Text: UserComponent<Partial<TextProps>> = props => {
-  const { style, text, customStyle } = props;
+  const { style, customStyle, i18n = {} } = props;
   const { shadow } = style || {};
   const { id, setProp } = useNode();
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
+  const { text } = i18n;
   return (
     <ElementBoxView
       data-id={id}
