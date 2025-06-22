@@ -55,13 +55,6 @@ COPY --from=builder /app/web-site/dist /usr/share/nginx/html
 
 COPY --from=builder /app/builder_deploy ./builder
 
-# 复制 web-site 源代码，builder 服务会引用它
-# viteBuilder.js 将使用 WEB_SITE_SELECTORS_ABSOLUTE_PATH 来查找 /app/web-site/src/selectors
-# 复制完整的 web-site 包 (包含其 node_modules)
-COPY --from=builder /app/web_site_deployed /app/web-site
-
-# 为 builder 服务设置环境变量，以定位 web-site selectors
-ENV WEB_SITE_SELECTORS_ABSOLUTE_PATH=/app/web-site/src/selectors
 
 # 然后用专门部署的、包含 node_modules 的 operation-template 覆盖相应路径
 COPY --from=builder /app/vite_react_template_deploy /app/builder/templates/operation-template

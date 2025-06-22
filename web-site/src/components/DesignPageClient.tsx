@@ -5,7 +5,7 @@ import { assets } from "../data/assets";
 import { useUploadService } from "@/hooks/useUploadService";
 import { saveSource } from "@/api/module/topic/saveSource";
 import { toast } from "@go-blite/shadcn/hooks";
-import { businessComponents } from "../selectors";
+import { businessComponents } from "@go-blite/selectors";
 interface DesignPageClientProps {
   devices: DesignContextProps["device"];
   templates: DesignContextProps["templates"];

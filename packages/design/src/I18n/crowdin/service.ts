@@ -9,7 +9,7 @@ export class CrowdinService {
   private sourceFilesApi: any;
   private translationsApi: any;
   private languagesApi: any;
-  private projectsGroupsApi: any;
+  // private projectsGroupsApi: any;
   private config: CrowdinConfig;
 
   /**
@@ -37,7 +37,7 @@ export class CrowdinService {
     this.sourceFilesApi = client.sourceFilesApi;
     this.translationsApi = client.translationsApi;
     this.languagesApi = client.languagesApi;
-    this.projectsGroupsApi = client.projectsGroupsApi;
+    // this.projectsGroupsApi = client.projectsGroupsApi;
   }
 
   /**

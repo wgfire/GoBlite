@@ -2,7 +2,7 @@ import { DesignProvider, Preview } from "@go-blite/design";
 import { useEffect, useState } from "react";
 import "@go-blite/design/styles";
 // 导入外部业务组件
-import { externalBusinessComponents } from "../BusinessComponents";
+import { externalBusinessComponents } from "../../businessComponents";
 
 const DesignPage = ({ initialData }) => {
   const [schemaData, setSchemaData] = useState(initialData);
