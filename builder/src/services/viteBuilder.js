@@ -110,7 +110,7 @@ async function createProjectFromTemplate(buildId, schemaData) {
       await fs.remove(tempProjectRootPath);
     }
     // Copy the entire base template directory to the temporary location
-    await fs.copy(VITE_TEMPLATE_DIR, tempProjectRootPath, { dereference: true });
+    await fs.copy(VITE_TEMPLATE_DIR, tempProjectRootPath);
     logger.info(`[Build ${buildId}] Copied template from ${VITE_TEMPLATE_DIR} to ${tempProjectRootPath}`);
 
     // Define paths within the new temporary project directory

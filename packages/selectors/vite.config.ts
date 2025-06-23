@@ -14,15 +14,6 @@ export default defineConfig({
       entryRoot: "src"
     })
   ],
-  esbuild: {
-    // 使用 React.createElement 而非 jsx-runtime
-    jsxFactory: "React.createElement",
-    jsxFragment: "React.Fragment"
-  },
-  optimizeDeps: {
-    // 禁用依赖优化，避免生成 _virtual 目录
-    disabled: true
-  },
   build: {
     sourcemap: false,
     emptyOutDir: true,
