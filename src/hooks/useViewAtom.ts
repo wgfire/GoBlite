@@ -5,7 +5,7 @@
 import { atom, useAtom } from "jotai";
 
 // 将atom定义在hook外部，确保只创建一次
-const currentViewAtom = atom<"editor" | "webcontainer" | "templateGallery">("editor");
+const currentViewAtom = atom<"editor" | "webcontainer" | "templateGallery">("templateGallery");
 
 export const useViewAtom = () => {
   const [currentView, setCurrentView] = useAtom(currentViewAtom);
