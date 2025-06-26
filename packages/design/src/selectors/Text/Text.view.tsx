@@ -3,15 +3,20 @@ import ContentEditable from "react-contenteditable";
 import { TextSettings } from "./TextSettings";
 import { TextProps } from "./type";
 import { ElementBoxView } from "@/components/ElementBox";
+import { useI18n } from "@/hooks";
 
 export const Text: UserComponent<Partial<TextProps>> = props => {
   const { style, customStyle, i18n = {} } = props;
   const { shadow } = style || {};
-  const { id, setProp } = useNode();
+  const { id } = useNode();
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
   const { text } = i18n;
+  const { getText } = useI18n(id, ["text"]);
+
+  const textValue = getText("text") || text;
+
   return (
     <ElementBoxView
       data-id={id}
@@ -21,11 +26,9 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
       }}
     >
       <ContentEditable
-        html={text || ""}
+        html={textValue || ""}
         disabled={!enabled}
-        onChange={e => {
-          setProp(prop => (prop.text = e.target.value), 500);
-        }}
+        onChange={() => {}}
         tagName="h2"
         style={{
           ...style,

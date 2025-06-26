@@ -4,6 +4,8 @@ import { TextSettings } from "./TextSettings";
 import { TextProps } from "./type";
 import { TextSettingsFast } from "./TextSettingFast";
 import ElementBox from "@/components/ElementBox";
+import { useEffect } from "react";
+import { useI18n } from "@/hooks/useI18n";
 
 export const Text: UserComponent<Partial<TextProps>> = props => {
   const { style, customStyle, i18n = {} } = props;
@@ -11,12 +13,24 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
   const {
     id,
     connectors: { connect },
-    setProp
+    actions: { setProp }
   } = useNode();
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled
   }));
   const { text } = i18n;
+  const { getText } = useI18n(id, ["text"]);
+
+  const textValue = getText("text");
+
+  useEffect(() => {
+    if (textValue) {
+      setProp((props: TextProps) => {
+        props.i18n.text = textValue;
+      });
+    }
+  }, [textValue]);
+
   return (
     <ElementBox
       ref={node => node && connect(node)}
@@ -33,7 +47,9 @@ export const Text: UserComponent<Partial<TextProps>> = props => {
         html={text || ""}
         disabled={!enabled}
         onChange={e => {
-          setProp(prop => (prop.i18n.text = e.target.value), 500);
+          setProp((prop: TextProps) => {
+            prop.i18n.text = e.target.value;
+          }, 500);
         }}
         tagName="p"
         style={{

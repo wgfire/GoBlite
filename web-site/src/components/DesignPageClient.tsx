@@ -6,16 +6,28 @@ import { useUploadService } from "@/hooks/useUploadService";
 import { saveSource } from "@/api/module/topic/saveSource";
 import { toast } from "@go-blite/shadcn/hooks";
 import { businessComponents } from "@go-blite/selectors";
+import { useCrowdin } from "@/hooks/useCrowdin";
 interface DesignPageClientProps {
   devices: DesignContextProps["device"];
   templates: DesignContextProps["templates"];
-  langCode?: string;
+  i18n: {
+    langCode?: string;
+    fileName?: string;
+    projectId?: number;
+    translation?: Record<string, string>;
+  };
 }
 
-const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates, langCode }) => {
+const DesignPageClient: React.FC<DesignPageClientProps> = props => {
+  const { devices, templates } = props;
+  const { i18n } = props;
+  const { langCode, fileName, projectId, translation } = i18n;
   const { processDownloadAndUpload } = useUploadService();
+  const { handleUpload, handleDownloadTranslation } = useCrowdin(projectId, fileName, langCode || "zh-CN");
+
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
+
   const initialProps = useMemo<Partial<DesignContextProps>>(() => {
     let schemaToUse: DesignContextProps["schema"] = {};
     let firstLanguageFromDevice: string | undefined = undefined;
@@ -43,11 +55,14 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates,
         device: "mobile",
         language: languageToUse
       },
-      resolver: businessComponents
+      resolver: businessComponents,
+      i18n: {
+        translation: translation || {}
+      }
     };
-  }, [devices, templates, langCode]);
+  }, [devices, templates, langCode, i18n]);
 
-  console.log("initialProps: " + initialProps);
+  console.log("initialProps:", initialProps, "i18n", i18n);
   const handleDownloadEvent = async (data: { device: DesignContextProps["device"] }) => {
     console.log(data.device, "data.device");
     const params = {
@@ -79,12 +94,17 @@ const DesignPageClient: React.FC<DesignPageClientProps> = ({ devices, templates,
   };
 
   useEffect(() => {
+    // 使用类型断言确保事件处理函数能够接收包含 _callback 字段的事件数据
     BusinessEvents.on("onDownload", handleDownloadEvent as unknown as (data: unknown) => void);
     BusinessEvents.on("onSave", handleSaveEvent as unknown as (data: unknown) => void);
+    BusinessEvents.on("onI18nUpload", handleUpload as unknown as (data: unknown) => void);
+    BusinessEvents.on("onI18nDownload", handleDownloadTranslation as unknown as (data: unknown) => void);
 
     return () => {
       BusinessEvents.off("onDownload", handleDownloadEvent as unknown as (data: unknown) => void);
       BusinessEvents.off("onSave", handleSaveEvent as unknown as (data: unknown) => void);
+      BusinessEvents.off("onI18nUpload", handleUpload as unknown as (data: unknown) => void);
+      BusinessEvents.off("onI18nDownload", handleDownloadTranslation as unknown as (data: unknown) => void);
     };
   }, []);
 

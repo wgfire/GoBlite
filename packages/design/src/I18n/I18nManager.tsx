@@ -1,7 +1,6 @@
 import React, { useMemo } from "react";
 import { useEditor } from "@craftjs/core";
-import { I18nTable } from "./I18nTable";
-import { I18nExportWithCrowdin } from "./I18nExportWithCrowdin";
+import { I18nWithCrowdin } from "./I18nWithCrowdin";
 
 // 组件i18n信息接口
 export interface ComponentI18n {
@@ -35,8 +34,8 @@ export const I18nManager: React.FC = () => {
         });
         // 添加到导出数据
         Object.entries(node.data.props.i18n).forEach(([propKey, translationKey]) => {
-          // 使用组件类型+ID+属性名作为唯一键
-          const uniqueKey = `${nodeId.substring(0, 8)}_${propKey}`;
+          // 使用完整的NodeID和属性名作为唯一键，确保可逆
+          const uniqueKey = `${nodeId}__${propKey}`;
           // 使用translationKey作为值，这样用户可以看到原始的翻译键
           exportData[uniqueKey] = (translationKey as string) || "";
         });
@@ -60,8 +59,8 @@ export const I18nManager: React.FC = () => {
       </div>
       {componentsWithI18n.length > 0 ? (
         <>
-          <I18nTable components={componentsWithI18n} />
-          <I18nExportWithCrowdin data={exportData} />
+          {/* <I18nTable components={componentsWithI18n} /> */}
+          <I18nWithCrowdin data={exportData} />
         </>
       ) : (
         <div className="text-center py-8 text-gray-500">

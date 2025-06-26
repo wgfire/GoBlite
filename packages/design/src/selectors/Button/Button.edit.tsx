@@ -8,6 +8,8 @@ import { ButtonSettingsFast } from "./ButtonSettingsFast";
 import ElementBox from "@/components/ElementBox";
 import { useUpdateEffect } from "ahooks";
 import { executeUserScript } from "@/utils/script/scriptRunner";
+import { useI18n } from "@/hooks/useI18n";
+import { useEffect } from "react";
 
 export const defaultProps: Partial<ButtonProps> = {
   style: {
@@ -39,6 +41,17 @@ export const Button: UserComponent<Partial<ButtonProps>> = ({ style, customStyle
   const { color } = style!;
   const { variant, size, i18n } = props;
   const { button_text } = i18n || {};
+  const { getText } = useI18n(id, ["button_text"]);
+
+  const text = getText("button_text");
+
+  useEffect(() => {
+    if (text) {
+      setProp((prop: ButtonProps) => {
+        prop.i18n.button_text = text;
+      });
+    }
+  }, [text]);
 
   const { enabled } = useEditor(state => ({
     enabled: state.options.enabled

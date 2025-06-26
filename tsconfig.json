@@ -16,11 +16,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "packages/shadcn/scripts/autoIndexImport.js",
-    "builder/templates/operation-template/src/hooks/useDeviceType.js"
-  ],
+  "include": ["**/*.ts", "**/*.tsx", "builder/templates/operation-template/src/App.jsx"],
   "exclude": ["node_modules"]
 }

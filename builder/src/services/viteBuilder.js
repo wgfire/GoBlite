@@ -177,7 +177,9 @@ function runViteBuild(isolatedProjectPath, buildId, expectedBuildOutputPath) {
 
     // 直接在模板目录中执行构建，不需要每次都安装依赖
     // 如果模板依赖有更新，可以手动在模板目录中执行 pnpm install
-    const buildProcess = exec("npm run build", { cwd: isolatedProjectPath });
+    const mode = process.env.NODE_ENV;
+    const execValue = mode ? `npm run build -- --mode ${mode}` : "npm run build";
+    const buildProcess = exec(execValue, { cwd: isolatedProjectPath });
 
     buildProcess.stdout.on("data", data => {
       logger.info(`[Build ${buildId}-stdout] ${data.toString().trim()}`);

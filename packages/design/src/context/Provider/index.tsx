@@ -39,7 +39,8 @@ export const DesignProvider: React.FC<React.PropsWithChildren<{ initialProps?: P
       },
       showSidebar: initialProps.showSidebar || false,
       syncResponse: initialProps.syncResponse || false,
-      templates: initialProps.templates || []
+      templates: initialProps.templates || [],
+      i18n: initialProps.i18n || { translation: {} }
     };
 
     // 确保返回的是 DesignContextProps 兼容的类型

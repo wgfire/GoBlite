@@ -6,6 +6,7 @@ import { executeUserScript } from "@/utils/script/scriptRunner";
 import ContentEditable from "react-contenteditable";
 import { ButtonProps } from "./type";
 import { ElementBoxView } from "@/components/ElementBox";
+import { useI18n } from "@/hooks";
 
 export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events, useSafeArea, ...props }) => {
   const {
@@ -15,6 +16,8 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
   const { color } = style;
   const { variant, size, i18n } = props;
   const { button_text } = i18n;
+  const { getText } = useI18n(id, ["button_text"]);
+  const textValue = getText("button_text") || button_text;
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     console.log(events, "按钮点击事件", eventScripts);
@@ -66,7 +69,7 @@ export const Button: UserComponent<ButtonProps> = ({ style, customStyle, events,
         className="rounded-sm w-full h-full"
       >
         <ContentEditable
-          html={button_text || ""}
+          html={textValue || ""}
           disabled={true}
           style={{ color }}
           tagName="h2"

@@ -48,6 +48,9 @@ export interface DesignContextProps {
       devices: Devices;
     }[];
   }[];
+  i18n?: {
+    translation: Record<string, string>;
+  };
   metadata?: {
     [key: string]: unknown;
   };

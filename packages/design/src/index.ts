@@ -9,6 +9,7 @@ export * from "./editor/Design";
 export { Preview } from "./editor/Preview";
 export * from "./context";
 export * from "./utils";
+export * from "./hooks";
 
 /**导出setting组件 */
 

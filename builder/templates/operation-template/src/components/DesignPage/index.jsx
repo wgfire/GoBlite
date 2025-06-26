@@ -5,18 +5,21 @@ import "@go-blite/design/styles";
 import { externalBusinessComponents } from "../../businessComponents";
 
 const DesignPage = ({ initialData }) => {
-  const [schemaData, setSchemaData] = useState(initialData);
+  const [schemaData, setSchemaData] = useState(initialData.schema);
+  const [translationData, setTranslationData] = useState(initialData.translation);
 
   // 监听 initialData 变化
   useEffect(() => {
     console.log("DesignPage initialData changed:", initialData);
-    setSchemaData(initialData);
+    setSchemaData(initialData.schema);
+    setTranslationData(initialData.translation);
   }, [initialData]);
 
   if (!schemaData || typeof schemaData !== "object" || Object.keys(schemaData).length === 0) {
     console.error("DesignPage received invalid or empty initialData:", schemaData);
     return <div>Error: Page configuration data is invalid or missing.</div>;
   }
+  console.log("翻译数据", translationData);
 
   return (
     <div
@@ -39,7 +42,10 @@ const DesignPage = ({ initialData }) => {
           schema: schemaData,
           publish: true,
           // 传递外部业务组件
-          resolver: externalBusinessComponents
+          resolver: externalBusinessComponents,
+          i18n: {
+            translation: translationData
+          }
         }}
       >
         <Preview />

@@ -64,7 +64,7 @@ export const Sidebar: React.FC = () => {
           </SidebarItem>
         </TabsContent>
         <TabsContent value="i18n" className="h-full overflow-auto mt-0">
-          <SidebarItem title="国际化管理" icon={<Globe className="h-4 w-4" />} className="">
+          <SidebarItem title="国际化管理" icon={<Globe className="h-4 w-4" />} className="h-full flex flex-col">
             <I18nManager />
           </SidebarItem>
         </TabsContent>

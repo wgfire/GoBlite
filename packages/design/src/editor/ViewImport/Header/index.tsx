@@ -147,7 +147,7 @@ export const Header: React.FC = () => {
         <DeviceButton device="desktop" icon={Monitor} />
 
         <div className="ml-10 clear-child-borders">
-          <Select value={currentInfo.language} onValueChange={handleLanguageChange}>
+          <Select value={currentInfo.language} onValueChange={handleLanguageChange} disabled>
             <SelectTrigger>
               <SelectValue placeholder="切换语言" />
             </SelectTrigger>

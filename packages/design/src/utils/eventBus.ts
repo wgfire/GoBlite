@@ -22,6 +22,8 @@ export type BusinessEventPayload = {
   timestamp?: number;
   success?: boolean;
   error?: Error | string;
+  // 回调函数，用于通知事件处理完成状态
+  _callback?: (success: boolean, data?: any) => void;
 };
 
 export type BusinessEventTypes = {
@@ -29,11 +31,6 @@ export type BusinessEventTypes = {
   onSave: BusinessEventPayload;
   onSaveSuccess: BusinessEventPayload;
   onSaveError: BusinessEventPayload;
-
-  // 部署相关事件
-  onDeploy: BusinessEventPayload;
-  onDeploySuccess: BusinessEventPayload;
-  onDeployError: BusinessEventPayload;
 
   // 下载相关事件
   onDownload: BusinessEventPayload;
@@ -52,6 +49,10 @@ export type BusinessEventTypes = {
 
   // 清空事件
   onClear: BusinessEventPayload;
+
+  // i18n events
+  onI18nUpload: BusinessEventPayload & { data: Record<string, any> };
+  onI18nDownload: BusinessEventPayload & { language: string };
 };
 
 export type Events = {

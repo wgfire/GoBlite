@@ -4,11 +4,20 @@ import { devices } from "./data/mock";
 import { DesignContextProps, Loading, ROOT_NODE, SerializedNodes } from "@go-blite/design";
 import { getTemplates, getTopicConfig, Templates } from "@/api/module/topic/getTemplates";
 import { useMount } from "ahooks";
+import { useCrowdin } from "./hooks/useCrowdin";
+const projectId = 44;
+
 const App: React.FC = () => {
   const [templates, setTemplates] = useState<NonNullable<DesignContextProps["templates"]>>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [devicesData, setDevicesData] = useState<DesignContextProps["device"]>([]);
-  const [lang, setLang] = useState<string>("");
+  const [i18nState, setI18nState] = useState({
+    langCode: "",
+    fileName: "",
+    projectId: 44,
+    translation: undefined
+  });
+  const { fetchTranslationData } = useCrowdin();
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
   console.log(id, "模版id");
@@ -54,13 +63,19 @@ const App: React.FC = () => {
       devicesData.forEach(item => {
         const pageData = item.languagePageMap[data.langCode].schema as SerializedNodes;
         if (pageData && pageData[ROOT_NODE]) {
-          pageData[ROOT_NODE].props.title = data.h5Title;
+          pageData[ROOT_NODE].props.title = data.title;
+          pageData[ROOT_NODE].props.h5Title = data.h5Title;
         }
       });
-      console.log(devicesData, "专题配置");
+      setI18nState(prev => ({
+        ...prev,
+        langCode: data.langCode,
+        fileName: `${data.title}.json`
+      }));
+      console.log(devicesData, "专题配置", data);
       setDevicesData(devicesData);
-      setLang(data.langCode);
       setIsLoading(false);
+      return data;
     } catch (error) {
       console.error("获取专题配置失败:", error);
       setIsLoading(false);
@@ -73,26 +88,52 @@ const App: React.FC = () => {
     }
     return devices;
   };
-  useMount(() => {
+  const getTranslationData = async (fileName: string, languageId: string) => {
     try {
-      getTemplatesData();
-      if (id) {
-        getTopicData();
-      } else {
-        const devicesData = getDevicesData();
-        setDevicesData(devicesData);
-      }
+      const data = await fetchTranslationData({
+        projectId,
+        fileName,
+        languageId
+      });
+      console.log(data, "翻译数据");
+      setI18nState(prev => ({
+        ...prev,
+        fileName,
+        translation: data
+      }));
+    } catch (error) {
+      console.error("获取翻译数据失败:", error);
+      setI18nState(prev => ({
+        ...prev,
+        translation: undefined
+      }));
+    }
+  };
+  const initData = async () => {
+    try {
+      const topicData = await getTopicData();
+      const fileName = `${topicData.title}.json`;
+      await getTranslationData(fileName, topicData.langCode);
     } catch (error) {
       console.error("获取数据失败:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+  useMount(() => {
+    getTemplatesData();
+    if (id) {
+      initData();
+    } else {
+      const devicesData = getDevicesData();
+      setDevicesData(devicesData);
     }
   });
 
   if (isLoading) {
     return <Loading loading={isLoading} />;
   }
-  return <DesignPageClient devices={devicesData} templates={templates} langCode={lang} />;
+  return <DesignPageClient devices={devicesData} templates={templates} i18n={i18nState} />;
 };
 
 export default App;
