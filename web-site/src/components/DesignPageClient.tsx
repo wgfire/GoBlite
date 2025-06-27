@@ -7,6 +7,7 @@ import { saveSource } from "@/api/module/topic/saveSource";
 import { toast } from "@go-blite/shadcn/hooks";
 import { businessComponents } from "@go-blite/selectors";
 import { useCrowdin } from "@/hooks/useCrowdin";
+import "@go-blite/selectors/styles";
 interface DesignPageClientProps {
   devices: DesignContextProps["device"];
   templates: DesignContextProps["templates"];

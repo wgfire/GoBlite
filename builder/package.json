@@ -24,7 +24,6 @@
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
     "@crowdin/crowdin-api-client": "^1.45.0",
-    "axios": "^1.7.2",
     "body-parser": "^2.2.0"
   },
   "devDependencies": {

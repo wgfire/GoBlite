@@ -45,7 +45,6 @@
     "@codemirror/view": "^6.37.1",
     "@craftjs/core": "^0.2.0",
     "@craftjs/layers": "0.2.5",
-    "@crowdin/crowdin-api-client": "^1.45.0",
     "@go-blite/events": "workspace:*",
     "@go-blite/shadcn": "workspace:*",
     "clsx": "^2.1.1",
@@ -56,7 +55,7 @@
     "react-moveable": "^0.56.0"
   },
   "peerDependencies": {
-    "ahooks": "^3.8.1",
+    "ahooks": "3.8.1",
     "lodash-es": "^4.17.21",
     "react": "^18",
     "react-dom": "^18",

@@ -17,8 +17,7 @@
     "prettier": "prettier --write ."
   },
   "dependencies": {
-    "@crowdin/crowdin-api-client": "^1.45.0",
-    "ahooks": "^3.8.1",
+    "ahooks": "3.8.1",
     "lodash-es": "^4.17.21",
     "lucide-react": "0.515.0",
     "react": "^18",

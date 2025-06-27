@@ -12,14 +12,15 @@
   },
   "dependencies": {
     "@go-blite/design": "workspace:^",
-    "@go-blite/shadcn": "workspace:^",
     "@go-blite/selectors": "workspace:^",
+    "@go-blite/shadcn": "workspace:^",
+    "lightweight-charts": "^5.0.7",
+    "ahooks": "3.8.1",
+    "lodash-es": "^4.17.21",
+    "lucide-react": "0.515.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "ahooks": "^3.8.1",
-    "lodash-es": "^4.17.21",
-    "use-immer": "^0.10.0",
-    "lucide-react": "0.515.0"
+    "use-immer": "^0.10.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.0",
@@ -28,7 +29,7 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.9",
-    "typescript": "^5.3.0",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.0"
   }
 }

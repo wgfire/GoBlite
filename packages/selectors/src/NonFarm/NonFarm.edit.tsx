@@ -26,7 +26,7 @@ export const defaultProps: NonFarmProps = {
   animation: [],
   time: "2025-06-04T20:30:00",
   timeText: "非农公布倒计时",
-  dayText: "天"
+  dayText: "天的"
 };
 
 export const NonFarm: UserComponent<Partial<React.PropsWithChildren<NonFarmProps>>> = props => {

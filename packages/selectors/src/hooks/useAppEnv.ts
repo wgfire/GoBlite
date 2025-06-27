@@ -49,6 +49,17 @@ export interface AppEnvData {
   [key: string]: unknown;
 }
 
+const mockEnvData: AppEnvData = {
+  license: "FSC",
+  locale: "zh-CN",
+  isLogin: true,
+  appVersion: 1,
+  nationalityCode: "TW",
+  safeAreaHeight: 0,
+  quotationStyle: 0,
+  theme: "light",
+  sessionToken: "ADDDXXXXASS"
+};
 /**
  * 获取当前APP相关的数据，比如token langCode
  * 使用此 hook 可以获取和更新环境变量
@@ -63,11 +74,12 @@ export const useAppEnv = () => {
     return new Promise((resolve, reject) => {
       setLoading(true);
 
-      // 如果 window.getHeader 不存在，返回空对象
+      // 如果 window.getHeader 不存在，则提供 mock 数据
       if (!window.getHeader) {
+        console.warn("[useAppEnv] window.getHeader is not defined, using mock data.");
+        setEnvData(mockEnvData);
         setLoading(false);
-        setError(new Error("window.getHeader 方法不存在"));
-        resolve({});
+        resolve(mockEnvData);
         return;
       }
 

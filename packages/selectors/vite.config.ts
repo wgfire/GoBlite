@@ -2,6 +2,9 @@ import { resolve } from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
 
+// 定义样式入口文件路径
+// const styleEntry = resolve(__dirname, "src/styles/index.css");
+
 export default defineConfig({
   plugins: [
     dts({
@@ -14,18 +17,32 @@ export default defineConfig({
       entryRoot: "src"
     })
   ],
+
   build: {
     sourcemap: false,
     emptyOutDir: true,
-    minify: true, // 不压缩代码，保持可读性和调试能力
+    minify: true,
+
     lib: {
       // 使用主入口文件
       entry: resolve(__dirname, "src/index.ts"),
-      fileName: "index.js"
+      fileName: "index"
     },
     rollupOptions: {
+      // 添加样式入口文件
+      input: {
+        index: resolve(__dirname, "src/index.ts")
+      },
       // 声明外部依赖
-      external: ["react", "react-dom", "@go-blite/design", "lucide-react", /^react\/jsx-runtime/, /^react-jsx-runtime/],
+      external: [
+        "react",
+        "react-dom",
+        "ahooks",
+        "@go-blite/design",
+        "lucide-react",
+        /^react\/jsx-runtime/,
+        /^react-jsx-runtime/
+      ],
       output: [
         {
           dir: "dist/esm",
