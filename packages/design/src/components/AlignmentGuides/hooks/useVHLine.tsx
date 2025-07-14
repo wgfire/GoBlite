@@ -32,7 +32,7 @@ export const useVHLine = () => {
         height: draggedRect.top - parentRect.top,
         borderLeft: "1px dashed red"
       },
-      label: `${percentageTop} 从顶部`
+      label: `${percentageTop}`
     };
 
     const horizontalLine: Guide = isCloserLeft
@@ -44,7 +44,7 @@ export const useVHLine = () => {
             width: draggedRect.left - parentRect.left,
             borderTop: "1px dashed blue"
           },
-          label: `${percentageHorizontal} 从左边`
+          label: `${percentageHorizontal}`
         }
       : {
           type: "horizontal-right",
@@ -54,7 +54,7 @@ export const useVHLine = () => {
             width: parentRect.width - (draggedRect.right - parentRect.left),
             borderTop: "1px dashed blue"
           },
-          label: `右边${percentageHorizontal}`
+          label: `${percentageHorizontal}`
         };
 
     return [verticalLine, horizontalLine];

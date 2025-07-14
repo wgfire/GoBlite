@@ -45,8 +45,9 @@ export const Canvas = React.memo<CanvasProps>(props => {
   const handleMouseUp = React.useCallback((e: MouseEvent) => {
     mouseDownRef.current?.target?.setAttribute("data-dragging", "false");
     dragRef.current = null;
+    const target = mouseDownRef.current!.target;
     mouseDownRef.current = null;
-    eventBus.emit("mouseUp", { x: e.clientX, y: e.clientY });
+    eventBus.emit("mouseUp", { x: e.clientX, y: e.clientY, target });
   }, []);
 
   // 子元素点击事件代理

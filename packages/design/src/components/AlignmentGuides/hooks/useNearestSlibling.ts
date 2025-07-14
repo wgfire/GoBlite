@@ -34,7 +34,7 @@ export const useNearestSibling = () => {
           height: parentRect.height,
           borderLeft: "1px dashed #ff4d4f"
         },
-        label: "水平居中"
+        label: "居中"
       });
     }
 
@@ -48,7 +48,7 @@ export const useNearestSibling = () => {
           width: parentRect.width,
           borderTop: "1px dashed #ff4d4f"
         },
-        label: "垂直居中"
+        label: "居中"
       });
     }
 
